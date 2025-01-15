@@ -48,19 +48,15 @@ public class ChessBoard {
             switch (i + 1){
                 case 1:
                     setBackRow(i, ChessGame.TeamColor.WHITE);
-                    System.out.print(" white\n");
                     break;
                 case 2:
                     setPawnRow(i, ChessGame.TeamColor.WHITE);
-                    System.out.print(" white\n");
                     break;
                 case 7:
                     setPawnRow(i, ChessGame.TeamColor.BLACK);
-                    System.out.print(" black\n");
                     break;
                 case 8:
                     setBackRow(i, ChessGame.TeamColor.BLACK);
-                    System.out.print(" black\n");
                     break;
                 default:
                     setNullSpaces(i);
@@ -77,7 +73,6 @@ public class ChessBoard {
     private void setPawnRow(int row, ChessGame.TeamColor teamColor) {
         for (int col = 0; col < 8; col++){
             gameBoard[row][col] = new ChessPiece(teamColor, ChessPiece.PieceType.PAWN);
-            System.out.print("[P ]");
         }
     }
 
@@ -93,23 +88,18 @@ public class ChessBoard {
             switch (i + 1){
                 case 1, 8:
                     gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.ROOK);
-                    System.out.print("[R ]");
                     break;
                 case 2, 7:
                     gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.KNIGHT);
-                    System.out.print("[Kn]");
                     break;
                 case 3, 6:
                     gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.BISHOP);
-                    System.out.print("[B ]");
                     break;
                 case 4:
                     gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.QUEEN);
-                    System.out.print("[Q ]");
                     break;
                 case 5:
                     gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
-                    System.out.print("[K ]");
                     break;
                 default:
                     System.out.print("Invalid board index");
@@ -125,8 +115,51 @@ public class ChessBoard {
     public void setNullSpaces(int row) {
         for (int i = 0; i < 8; i++){
             gameBoard[row][i] = null;
-            System.out.print("[  ]");
         }
+    }
+
+    /**
+     * This is a helper function to print the current chess board to the console.
+     */
+    public void printBoard() {
+        for (int temprow = 0; temprow < 8; temprow++){
+            for (int tempcol = 0; tempcol < 8; tempcol++) {
+                if (gameBoard[temprow][tempcol] != null) {
+                    ChessPiece selectedPiece = gameBoard[temprow][tempcol];
+                    printPiece(selectedPiece);
+                }
+                else {
+                    System.out.print("[   ]");
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    /**
+     * This is a helper function to help printBoard() print the chess pieces.
+     * @param selectedPiece is the current piece selected by printBoard().
+     */
+    private void printPiece(ChessPiece selectedPiece){
+        if (selectedPiece.getTeamColor() == ChessGame.TeamColor.BLACK)
+            System.out.print("[B");
+        else
+            System.out.print("[W");
+
+        if (selectedPiece.getPieceType() == ChessPiece.PieceType.PAWN)
+            System.out.print(" P]");
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.ROOK)
+            System.out.print(" R]");
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.KNIGHT)
+            System.out.print("Kn]");
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.BISHOP)
+            System.out.print(" B]");
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.QUEEN)
+            System.out.print(" Q]");
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.KING)
+            System.out.print(" K]");
+        else
+            System.out.print("  ]");
     }
 
     @Override
