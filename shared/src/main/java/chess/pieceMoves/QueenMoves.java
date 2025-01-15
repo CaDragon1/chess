@@ -1,4 +1,23 @@
 package chess.pieceMoves;
 
-public class QueenMoves {
+import chess.ChessBoard;
+import chess.ChessMove;
+import chess.ChessPosition;
+
+import java.util.HashSet;
+
+public class QueenMoves extends PieceMoves {
+    QueenMoves(ChessBoard gameBoard, ChessPosition startPosition) {
+        super(gameBoard, startPosition);
+    }
+
+    @Override
+    protected void calculateMoves() {
+
+    }
+
+    @Override
+    public HashSet<ChessMove> getMoveList() {
+        return null;
+    }
 }
