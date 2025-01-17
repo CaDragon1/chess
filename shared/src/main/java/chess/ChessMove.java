@@ -21,6 +21,17 @@ public class ChessMove {
     }
 
     /**
+     * Second constructor for when there is no promotion piece component to the chess move
+     * @param startPosition
+     * @param endPosition
+     */
+    public ChessMove(ChessPosition startPosition, ChessPosition endPosition) {
+        this.startPosition = startPosition;
+        this.endPosition = endPosition;
+        this.promotionPiece = null;
+    }
+
+    /**
      * @return ChessPosition of starting location
      */
     public ChessPosition getStartPosition() {
