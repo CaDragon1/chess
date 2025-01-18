@@ -68,6 +68,9 @@ public class ChessPiece {
             case QUEEN:
                 pieceMoves = new QueenMoves(board, myPosition);
                 return pieceMoves.getMoveList();
+            case KING:
+                pieceMoves = new KingMoves(board, myPosition);
+                return pieceMoves.getMoveList();
             default:
                 throw new RuntimeException("Not implemented");
         }
