@@ -56,6 +56,9 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         switch (board.getPiece(myPosition).getPieceType()) {
+            case PAWN:
+                pieceMoves = new PawnMoves(board, myPosition);
+                return pieceMoves.getMoveList();
             case ROOK:
                 pieceMoves = new RookMoves(board, myPosition);
                 return pieceMoves.getMoveList();

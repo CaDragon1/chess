@@ -22,7 +22,8 @@ public class PawnMoves extends PieceMoves {
 
     @Override
     protected void calculateMoves() {
-
+        checkFront();
+        checkDiagonals();
     }
 
     /**
@@ -68,15 +69,28 @@ public class PawnMoves extends PieceMoves {
         }
     }
 
+    private void checkFront() {
+        ChessPosition checkedPosition = new ChessPosition(startPosition.getRow() + direction, startPosition.getColumn());
+        if (gameBoard.getPiece(checkedPosition) == null) {
+            addPawnMove(checkedPosition);
+            if (isStartingMove()) {
+                checkedPosition = new ChessPosition(startPosition.getRow() + (2 * direction), startPosition.getColumn());
+                if (gameBoard.getPiece(checkedPosition) == null) {
+                    addPawnMove(checkedPosition);
+                }
+            }
+        }
+    }
+
     private void checkDiagonals() {
         for (int col = startPosition.getColumn() - 1; col <= startPosition.getColumn() + 1; col+=2) {
             if (col <= 8 && col > 0) {
-                ChessPosition checkedPosition = new ChessPosition(startPosition.getRow() + 1, col);
+                ChessPosition checkedPosition = new ChessPosition(startPosition.getRow() + direction, col);
                 ChessPiece checkedPiece = gameBoard.getPiece(checkedPosition);
                 if (checkedPiece != null) {
                     // Is the piece an enemy? If so, we can attack.
                     if (checkedPiece.getTeamColor() != pieceColor) {
-                        moveList.add(new ChessMove(startPosition, checkedPosition));
+                        addPawnMove(checkedPosition);
                     }
                 }
             }
@@ -90,11 +104,18 @@ public class PawnMoves extends PieceMoves {
      * @param checkedPosition is the position we want to use to add a new move to the moveList
      */
     private void addPawnMove(ChessPosition checkedPosition) {
-
+        if (checkedPosition.getRow() == endzone) {
+            for (ChessPiece.PieceType type : ChessPiece.PieceType.values()) {
+                moveList.add(new ChessMove(startPosition, checkedPosition, type));
+            }
+        }
+        else {
+            moveList.add(new ChessMove(startPosition, checkedPosition));
+        }
     }
 
     @Override
     public HashSet<ChessMove> getMoveList() {
-        return null;
+        return moveList;
     }
 }
