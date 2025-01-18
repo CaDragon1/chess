@@ -44,8 +44,8 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        for (int i = 0; i < 8; i++){
-            switch (i + 1){
+        for (int i = 1; i <= 8; i++){
+            switch (i){
                 case 1:
                     setBackRow(i, ChessGame.TeamColor.WHITE);
                     break;
@@ -71,8 +71,8 @@ public class ChessBoard {
      * @param teamColor The team color to make the placed pawns
      */
     private void setPawnRow(int row, ChessGame.TeamColor teamColor) {
-        for (int col = 0; col < 8; col++){
-            gameBoard[row][col] = new ChessPiece(teamColor, ChessPiece.PieceType.PAWN);
+        for (int col = 1; col <= 8; col++){
+            addPiece(new ChessPosition(row, col), new ChessPiece(teamColor, ChessPiece.PieceType.PAWN));
         }
     }
 
@@ -84,22 +84,22 @@ public class ChessBoard {
      * @param teamColor The color of which to make the pieces being placed
      */
     private void setBackRow(int row, ChessGame.TeamColor teamColor) {
-        for (int i = 0; i < 8; i++) {
-            switch (i + 1){
+        for (int i = 1; i <= 8; i++) {
+            switch (i){
                 case 1, 8:
-                    gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.ROOK);
+                    addPiece(new ChessPosition(row, i), new ChessPiece(teamColor, ChessPiece.PieceType.ROOK));
                     break;
                 case 2, 7:
-                    gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.KNIGHT);
+                    addPiece(new ChessPosition(row, i), new ChessPiece(teamColor, ChessPiece.PieceType.KNIGHT));
                     break;
                 case 3, 6:
-                    gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.BISHOP);
+                    addPiece(new ChessPosition(row, i), new ChessPiece(teamColor, ChessPiece.PieceType.BISHOP));
                     break;
                 case 4:
-                    gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.QUEEN);
+                    addPiece(new ChessPosition(row, i), new ChessPiece(teamColor, ChessPiece.PieceType.QUEEN));
                     break;
                 case 5:
-                    gameBoard[row][i] = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
+                    addPiece(new ChessPosition(row, i), new ChessPiece(teamColor, ChessPiece.PieceType.KING));
                     break;
                 default:
                     System.out.print("Invalid board index");
