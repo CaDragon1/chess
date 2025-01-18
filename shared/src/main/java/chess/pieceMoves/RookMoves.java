@@ -59,13 +59,6 @@ public class RookMoves extends PieceMoves {
         boolean keepChecking = true;
         while (keepChecking) {
             // Make sure the checked area is within bounds
-            System.out.print("Horizontal index from starting column ");
-            System.out.print(startPosition.getColumn());
-            System.out.print(": ");
-            System.out.print(horizontal);
-            System.out.print(" using modifier ");
-            System.out.print(right);
-            System.out.print("\nKeep Checking: ");
             if (horizontal <= 8 && horizontal > 0) {
                 ChessPosition checkedPosition = new ChessPosition(startPosition.getRow(), horizontal);
                 ChessPiece checkedPiece = gameBoard.getPiece(checkedPosition);
@@ -80,7 +73,6 @@ public class RookMoves extends PieceMoves {
             else {
                 keepChecking = false;
             }
-            System.out.println(keepChecking);
         }
     }
 
@@ -101,7 +93,7 @@ public class RookMoves extends PieceMoves {
             checkHorizontal(right);
         }
         else {
-            System.out.println("checkStraight has an error");
+            System.out.println("checkStraight bounds exceeded");
         }
 
     }
