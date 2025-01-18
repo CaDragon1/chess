@@ -22,11 +22,6 @@ public class QueenMoves extends PieceMoves {
         }
     }
 
-    @Override
-    public HashSet<ChessMove> getMoveList() {
-        return moveList;
-    }
-
     /**
      * A function designed to check the vertical spaces spanning from startPosition.
      * @param up is the amount of columns we shift upwards each iteration (1 or -1)
@@ -142,5 +137,10 @@ public class QueenMoves extends PieceMoves {
             System.out.println("checkStraight has an error");
         }
 
+    }
+
+    @Override
+    public HashSet<ChessMove> getMoveList() {
+        return moveList;
     }
 }
