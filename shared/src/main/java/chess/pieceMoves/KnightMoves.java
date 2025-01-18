@@ -16,6 +16,7 @@ import java.util.HashSet;
  * (-1, +2) (+1, +2) (-2, +1) (2, +1) (-2, -1) (2, -1) (-1, -2) (+1, -2)
  * Essentially, if the absolute value of (knightPosition.getRow() - row) + abs(knightPosition.getCol() - col) = 3,
  * then as long as that spot is within the board, it is a possible move.
+ * I felt like a genius when I first figured this out lol
  */
 
 public class KnightMoves extends PieceMoves {
