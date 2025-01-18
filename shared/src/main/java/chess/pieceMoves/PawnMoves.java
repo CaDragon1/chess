@@ -106,7 +106,9 @@ public class PawnMoves extends PieceMoves {
     private void addPawnMove(ChessPosition checkedPosition) {
         if (checkedPosition.getRow() == endzone) {
             for (ChessPiece.PieceType type : ChessPiece.PieceType.values()) {
-                moveList.add(new ChessMove(startPosition, checkedPosition, type));
+                if (type != ChessPiece.PieceType.PAWN && type != ChessPiece.PieceType.KING){
+                    moveList.add(new ChessMove(startPosition, checkedPosition, type));
+                }
             }
         }
         else {
