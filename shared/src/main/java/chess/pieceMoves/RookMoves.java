@@ -32,7 +32,7 @@ public class RookMoves extends PieceMoves {
         boolean keepChecking = true;
         while (keepChecking) {
             // Make sure the checked area is within bounds
-            if (vertical < 8 && vertical >= 0) {
+            if (vertical <= 8 && vertical > 0) {
                 ChessPosition checkedPosition = new ChessPosition(vertical, startPosition.getColumn());
                 ChessPiece checkedPiece = gameBoard.getPiece(checkedPosition);
 
@@ -59,11 +59,18 @@ public class RookMoves extends PieceMoves {
         boolean keepChecking = true;
         while (keepChecking) {
             // Make sure the checked area is within bounds
-            if (horizontal < 8 && horizontal >= 0) {
+            System.out.print("Horizontal index from starting column ");
+            System.out.print(startPosition.getColumn());
+            System.out.print(": ");
+            System.out.print(horizontal);
+            System.out.print(" using modifier ");
+            System.out.print(right);
+            System.out.print("\nKeep Checking: ");
+            if (horizontal <= 8 && horizontal > 0) {
                 ChessPosition checkedPosition = new ChessPosition(startPosition.getRow(), horizontal);
                 ChessPiece checkedPiece = gameBoard.getPiece(checkedPosition);
 
-                // Call keepChecking to add our space to the movelist or to see if we need to stop.
+                // Call checkSpace to add our space to the movelist or to see if we need to stop.
                 keepChecking = checkSpace(checkedPosition, checkedPiece);
 
                 // Increment vertical
@@ -73,6 +80,7 @@ public class RookMoves extends PieceMoves {
             else {
                 keepChecking = false;
             }
+            System.out.println(keepChecking);
         }
     }
 
@@ -98,43 +106,8 @@ public class RookMoves extends PieceMoves {
 
     }
 
-//    /**
-//     * Calculates possible moves to the right of the startPosition
-//     */
-//    private void checkRight() {
-//        ChessPiece
-//        boolean keepChecking = true;
-//        for (int i = startPosition.getColumn() + 1; i < 8 && keepChecking; i++) {
-//            targetedPiece
-//            if (gameBoard[startPosition.getRow()][i] != null) {
-//                if (gameBoard[startPosition.getRow()])
-//            }
-//        }
-//    }
-//
-//    /**
-//     * Calculates possible moves to the left the startPosition
-//     */
-//    private void checkLeft() {
-//
-//    }
-//
-//    /**
-//     * Calculates possible moves below the startPosition
-//     */
-//    private void checkDown() {
-//
-//    }
-//
-//    /**
-//     * Calculates possible moves above the startPosition
-//     */
-//    private void checkUp() {
-//
-//    }
-
     @Override
     public HashSet<ChessMove> getMoveList() {
-        return null;
+        return moveList;
     }
 }
