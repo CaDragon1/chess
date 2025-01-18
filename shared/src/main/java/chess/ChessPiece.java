@@ -2,6 +2,7 @@ package chess;
 
 import chess.pieceMoves.BishopMoves;
 import chess.pieceMoves.PieceMoves;
+import chess.pieceMoves.QueenMoves;
 import chess.pieceMoves.RookMoves;
 
 import java.util.Collection;
@@ -63,6 +64,9 @@ public class ChessPiece {
                 return pieceMoves.getMoveList();
             case BISHOP:
                 pieceMoves = new BishopMoves(board, myPosition);
+                return pieceMoves.getMoveList();
+            case QUEEN:
+                pieceMoves = new QueenMoves(board, myPosition);
                 return pieceMoves.getMoveList();
             default:
                 throw new RuntimeException("Not implemented");
