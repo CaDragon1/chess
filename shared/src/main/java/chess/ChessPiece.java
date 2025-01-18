@@ -1,5 +1,6 @@
 package chess;
 
+import chess.pieceMoves.BishopMoves;
 import chess.pieceMoves.PieceMoves;
 import chess.pieceMoves.RookMoves;
 
@@ -59,6 +60,9 @@ public class ChessPiece {
         switch (board.getPiece(myPosition).getPieceType()) {
             case ROOK:
                 pieceMoves = new RookMoves(board, myPosition);
+                return pieceMoves.getMoveList();
+            case BISHOP:
+                pieceMoves = new BishopMoves(board, myPosition);
                 return pieceMoves.getMoveList();
             default:
                 throw new RuntimeException("Not implemented");

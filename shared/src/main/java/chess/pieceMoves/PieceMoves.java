@@ -6,6 +6,7 @@ import chess.ChessPiece;
 import chess.ChessPosition;
 
 import java.util.HashSet;
+import java.util.Objects;
 
 public abstract class PieceMoves {
     /**
@@ -50,5 +51,21 @@ public abstract class PieceMoves {
             moveList.add(new ChessMove(startPosition, checkedPosition));
             return true;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof PieceMoves that)) {
+            return false;
+        }
+        return Objects.equals(moveList, that.moveList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(moveList);
     }
 }
