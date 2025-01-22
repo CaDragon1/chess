@@ -77,6 +77,30 @@ public class ChessGame {
         throw new RuntimeException("Not implemented");
     }
 
+
+    /**
+     * Finds where the king of a given team is
+     * 
+     * @param teamColor which team to find the king of
+     * @return the ChessPosition of the king
+     */
+    private ChessPosition findKing(TeamColor teamColor) {
+        ChessPosition checkPosition;
+        ChessPiece checkPiece;
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                checkPosition = new ChessPosition(i, j);
+                checkPiece = gameBoard.getPiece(checkPosition);
+                if (checkPiece != null && checkPiece.getTeamColor() == teamColor
+                        && checkPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                    return checkPosition;
+                }
+            }
+        }
+        System.out.println("ERROR: No king of team " + teamColor.toString() + " found.");
+        return null;
+    }
+
     /**
      * Determines if the given team is in checkmate
      *
