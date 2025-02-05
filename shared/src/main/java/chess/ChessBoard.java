@@ -136,6 +136,25 @@ public class ChessBoard {
         }
     }
 
+    private ChessBoard copyBoard(){
+        ChessBoard boardCopy = new ChessBoard();
+        ChessPosition targetPosition;
+        ChessPiece targetPiece;
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                targetPosition = new ChessPosition(row, col);
+                targetPiece = getPiece(targetPosition);
+                if (getPiece(targetPosition) != null) {
+                    boardCopy.addPiece(targetPosition, new ChessPiece(targetPiece.getTeamColor(), targetPiece.getPieceType()));
+                }
+                else {
+                    boardCopy.addPiece(targetPosition, null);
+                }
+            }
+        }
+        return boardCopy;
+    }
+
     /**
      * This is a helper function to help printBoard() print the chess pieces.
      * @param selectedPiece is the current piece selected by printBoard().
