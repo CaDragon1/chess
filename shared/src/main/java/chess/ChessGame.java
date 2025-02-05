@@ -1,6 +1,8 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -74,13 +76,23 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+
+        ChessPosition kingPosition = findKing(teamColor);
+        if (kingPosition != null) {
+            if (checkKingStraights(kingPosition)) {
+                System.out.println("The king has been noted as in check.");
+                return true;
+            }
+            System.out.println("Checking for threatening knights");
+            return checkKingKnights(kingPosition);
+        }
+        return false;
     }
 
 
     /**
      * Finds where the king of a given team is
-     * 
+     *
      * @param teamColor which team to find the king of
      * @return the ChessPosition of the king
      */
@@ -100,6 +112,98 @@ public class ChessGame {
         System.out.println("ERROR: No king of team " + teamColor.toString() + " found.");
         return null;
     }
+
+    private boolean checkKingStraights(ChessPosition kingPosition) {
+        for (int rowMod = -1; rowMod <= 1; rowMod++) {
+            for (int colMod = -1; colMod <= 1; colMod++) {
+                if (rowMod != 0 || colMod != 0) {
+                    if (straightChecker(kingPosition, rowMod, colMod)) {
+                        System.out.println("The king is in check.");
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Method to run through a single 'ray' that originates from the king's position, checking to see if the king
+     * is in any danger from that direction.
+     * @param kingPosition is the king's position
+     * @param rowMod is the direction along the rows that we want to travel (-1 for down, 1 for up)
+     * @param colMod is the direction along the columns that we want to travel (-1 for left, 1 for right)
+     * @return true if the king is in check from that direction, false if not.
+     */
+    private boolean straightChecker(ChessPosition kingPosition, int rowMod, int colMod) {
+        ChessPosition checkPosition;
+        ChessPiece checkPiece;
+        ChessGame.TeamColor kingColor = gameBoard.getPiece(kingPosition).getTeamColor();
+        int row = kingPosition.getRow() + rowMod;
+        int col = kingPosition.getColumn() + colMod;
+
+        while (isInBounds(row, col)) {
+            checkPosition = new ChessPosition(row, col);
+            if (gameBoard.getPiece(checkPosition) != null){
+                checkPiece = gameBoard.getPiece(checkPosition);
+                if (checkPiece.getTeamColor() != kingColor) {
+                    return targetingKing(kingPosition, checkPiece, checkPosition);
+                }
+            }
+            row += rowMod;
+            col += colMod;
+        }
+        return false;
+    }
+
+    /**
+     * Method to determine whether a chess piece is targeting the king.
+     * @param kingPosition is the king's position
+     * @param checkPiece is the piece that may or may not be attacking the king
+     * @param checkPosition is the position of the piece that may or may not be attacking the king
+     * @return true if the king's position is included in the piece's movelist
+     */
+    private boolean targetingKing(ChessPosition kingPosition, ChessPiece checkPiece, ChessPosition checkPosition) {
+        // Create a movelist for the selected chess piece.
+        Collection<ChessMove> targetMoves = checkPiece.pieceMoves(gameBoard, checkPosition);
+        System.out.println("\n" + targetMoves.toString());
+
+        // Create two example moves that target the king's position. One for generic pieces,
+        // one for pawn promotion moves.
+        ChessMove dangerMove = new ChessMove(checkPosition, kingPosition);
+        ChessMove pawnDangerMove = new ChessMove(checkPosition, kingPosition, ChessPiece.PieceType.QUEEN);
+
+        // If the danger move is in the move list, the king is in check.
+        System.out.println("Checking king position in enemy movelist");
+        System.out.println(dangerMove + "\n");
+        return targetMoves.contains(dangerMove) || targetMoves.contains(pawnDangerMove);
+    }
+
+    private boolean checkKingKnights(ChessPosition kingPosition) {
+        int kingRow = kingPosition.getRow();
+        int kingCol = kingPosition.getColumn();
+        TeamColor kingColor = gameBoard.getPiece(kingPosition).getTeamColor();
+        ChessPosition checkPosition;
+
+        for (int row = kingRow - 2; row <= kingRow + 2; row ++) {
+            for (int col = kingCol - 2; col <= kingCol + 2; col++) {
+                if (Math.abs(kingRow - row) + Math.abs(kingCol - col) == 3 && isInBounds(row, col)) {
+                    checkPosition = new ChessPosition(row, col);
+                    ChessPiece checkPiece = gameBoard.getPiece(checkPosition);
+                    if (checkPiece != null && checkPiece.getPieceType() == ChessPiece.PieceType.KNIGHT
+                            && checkPiece.getTeamColor() != kingColor) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isInBounds(int row, int col) {
+        return row <= 8 && col <= 8 && row >0 && col > 0;
+    }
+
 
     /**
      * Determines if the given team is in checkmate
@@ -152,5 +256,21 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return gameBoard;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ChessGame chessGame)) {
+            return false;
+        }
+        return currentTeam == chessGame.currentTeam && Objects.equals(gameBoard, chessGame.gameBoard);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(currentTeam, gameBoard);
     }
 }

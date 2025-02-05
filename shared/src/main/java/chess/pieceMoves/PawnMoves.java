@@ -8,9 +8,9 @@ public class PawnMoves extends PieceMoves {
     /**
      * Because pawns are directionally variable depending on the team color, we need a variable to store the pawn's color.
      */
-    ChessGame.TeamColor pieceColor;
-    int direction;
-    int endzone;
+    private ChessGame.TeamColor pieceColor;
+    private int direction;
+    private int endzone;
 
     public PawnMoves(ChessBoard gameBoard, ChessPosition startPosition) {
         super(gameBoard, startPosition);
