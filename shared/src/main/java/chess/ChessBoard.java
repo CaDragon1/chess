@@ -136,7 +136,7 @@ public class ChessBoard {
         }
     }
 
-    private ChessBoard copyBoard(){
+    public ChessBoard copyBoard(){
         ChessBoard boardCopy = new ChessBoard();
         ChessPosition targetPosition;
         ChessPiece targetPiece;

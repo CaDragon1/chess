@@ -66,8 +66,21 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+
+        ChessPiece movePiece = gameBoard.getPiece(move.getStartPosition());
+        if (move.getPromotionPiece() != null) {
+            gameBoard.addPiece(move.getEndPosition(), new ChessPiece(movePiece.getTeamColor(), move.getPromotionPiece()));
+        }
+        else {
+            gameBoard.addPiece(move.getEndPosition(), movePiece);
+        }
+        gameBoard.addPiece(move.getStartPosition(), null);
     }
+
+    public void undoMove(ChessMove move) {
+
+    }
+
 
     /**
      * Determines if the given team is in check
@@ -212,7 +225,28 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (isInCheck(teamColor)) {
+            ChessBoard tempBoard = gameBoard.copyBoard();
+            for (ChessMove move : getAllTeamMoves(teamColor)) {
+            }
+        }
+        return false;
+    }
+
+    private Collection<ChessMove> getAllTeamMoves(TeamColor teamColor) {
+        Collection<ChessMove> allMoves = new HashSet<ChessMove>();
+        ChessPosition checkPosition;
+        ChessPiece checkPiece;
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                checkPosition = new ChessPosition(row, col);
+                checkPiece = gameBoard.getPiece(checkPosition);
+                if (checkPiece != null && checkPiece.getTeamColor() == teamColor) {
+                    allMoves.addAll(checkPiece.pieceMoves(gameBoard, checkPosition));
+                }
+            }
+        }
+        return allMoves;
     }
 
     /**
