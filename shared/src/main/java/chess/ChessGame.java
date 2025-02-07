@@ -13,11 +13,13 @@ import java.util.Objects;
 public class ChessGame {
     TeamColor currentTeam;
     ChessBoard gameBoard;
+    ChessMove previousMove;
 
     public ChessGame() {
         currentTeam = TeamColor.WHITE;
         gameBoard = new ChessBoard();
         gameBoard.resetBoard();
+        previousMove = null;
     }
 
     /**
@@ -56,9 +58,38 @@ public class ChessGame {
         if (gameBoard.getPiece(startPosition) != null) {
             pieceMoves = gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
             pieceMoves.removeIf(this::testMove);
+            if (previousMove != null) {
+                if (enPassantCheck(startPosition)) {
+                    ChessPosition endPosition = new ChessPosition(
+                            previousMove.getEndPosition().getRow() + playDirection(),
+                            previousMove.getEndPosition().getColumn());
+                    pieceMoves.add(new ChessMove(startPosition, endPosition));
+                }
+            }
             return pieceMoves;
         }
         else return null;
+    }
+
+    private boolean enPassantCheck (ChessPosition startPosition) {
+        ChessPiece checkPiece = gameBoard.getPiece(previousMove.getEndPosition());
+        int previousMoveRow = previousMove.getEndPosition().getRow();
+        int previousMoveCol = previousMove.getEndPosition().getColumn();
+
+        if (checkPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+            if (previousMove.getStartPosition().getRow() == (previousMoveRow - (2 * playDirection()))
+                    && gameBoard.getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN
+                    && startPosition.getRow() == previousMoveRow
+                    && (startPosition.getColumn() == previousMoveCol + 1 || startPosition.getColumn() == previousMoveCol - 1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int playDirection() {
+        if (currentTeam == TeamColor.WHITE) return 1;
+        return -1;
     }
 
     /**
@@ -79,6 +110,7 @@ public class ChessGame {
         }
         else {
             moveMaker(move);
+            previousMove = move;
             currentTeam = (currentTeam == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE; // <- Me trying to make my code more concise
         }
     }
@@ -95,6 +127,13 @@ public class ChessGame {
             gameBoard.addPiece(move.getEndPosition(), new ChessPiece(movePiece.getTeamColor(), move.getPromotionPiece()));
         } else {
             gameBoard.addPiece(move.getEndPosition(), movePiece);
+            if (enPassantCheck(move.getStartPosition())) {
+                if (gameBoard.getPiece(move.getEndPosition()).getPieceType() == ChessPiece.PieceType.PAWN
+                && move.getEndPosition().getColumn() == previousMove.getEndPosition().getColumn()
+                && gameBoard.getPiece(move.getEndPosition()) == null) {
+                    gameBoard.addPiece(new ChessPosition(move.getEndPosition().getRow() - playDirection(), move.getEndPosition().getColumn()), null);
+                }
+            }
         }
         gameBoard.addPiece(move.getStartPosition(), null);
     }
