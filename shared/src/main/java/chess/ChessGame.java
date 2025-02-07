@@ -14,12 +14,25 @@ public class ChessGame {
     TeamColor currentTeam;
     ChessBoard gameBoard;
     ChessMove previousMove;
+    boolean whiteKingsideRookMoved;
+    boolean whiteQueensideRookMoved;
+    boolean blackKingsideRookMoved;
+    boolean blackQueensideRookMoved;
+    boolean whiteKingMoved;
+    boolean blackKingMoved;
 
     public ChessGame() {
         currentTeam = TeamColor.WHITE;
         gameBoard = new ChessBoard();
         gameBoard.resetBoard();
         previousMove = null;
+
+        whiteKingMoved = false;
+        whiteKingsideRookMoved = false;
+        whiteQueensideRookMoved = false;
+        blackKingMoved = false;
+        blackKingsideRookMoved = false;
+        blackQueensideRookMoved = false;
     }
 
     /**
@@ -67,10 +80,71 @@ public class ChessGame {
                             previousMove.getEndPosition().getColumn());
                     pieceMoves.add(new ChessMove(startPosition, endPosition));
                 }
+
+                // Check for castling
+                if (gameBoard.getPiece(startPosition).getPieceType() == ChessPiece.PieceType.KING) {
+                    pieceMoves.addAll(getCastleMoves(startPosition));
+                }
+
             }
             return pieceMoves;
         }
         else return null;
+    }
+
+    /**
+     * A function to return all possible castle moves at the given position
+     * @param startPosition is the position of the king.
+     * @return a collection of all possible moves the King can make when castling.
+     */
+    private Collection<ChessMove> getCastleMoves (ChessPosition startPosition) {
+        Collection<ChessMove> castleMoves = new HashSet<>();
+        ChessPiece king = gameBoard.getPiece(startPosition);
+        
+        if (king.getTeamColor() == TeamColor.WHITE && !whiteKingMoved) {
+            if (!whiteKingsideRookMoved && checkPathClear(startPosition, -1)) {
+                castleMoves.add(new ChessMove(startPosition, new ChessPosition(1, 6)));
+            }
+            if (!whiteQueensideRookMoved && checkPathClear(startPosition, 1)) {
+                castleMoves.add(new ChessMove(startPosition, new ChessPosition(1, 2)));
+            }
+        }
+        else if (king.getTeamColor() == TeamColor.BLACK && !blackKingMoved) {
+            if (!blackKingsideRookMoved && checkPathClear(startPosition, -1)) {
+                castleMoves.add(new ChessMove(startPosition, new ChessPosition(8, 6)));
+            }
+            if (!blackQueensideRookMoved && checkPathClear(startPosition, 1)) {
+                castleMoves.add(new ChessMove(startPosition, new ChessPosition(8, 2)));
+            }
+        }
+        return castleMoves;
+    }
+
+    /**
+     * Method to check if the path is clear to castle along for the king.
+     * @param startPosition the position of the king
+     * @param direction The direction we are looking to castle (-1 for kingside, 1 for queenside)
+     * @return true if the coast is clear, false otherwise
+     */
+    private boolean checkPathClear(ChessPosition startPosition, int direction) {
+        ChessPosition pathPosition;
+        ChessMove pathMove;
+
+        if (!isInCheck(gameBoard.getPiece(startPosition).getTeamColor())){
+            for (int i = 1; i * direction + 5 > 1 && i * direction + 5 < 8; i++) {
+                pathPosition = new ChessPosition(startPosition.getRow(), (i * direction) + 5);
+                pathMove = new ChessMove(startPosition, pathPosition);
+                if (i <= 2) {
+                    if (gameBoard.getPiece(pathPosition) != null || testMove(pathMove)) {
+                        return false;
+                    }
+                } else if (gameBoard.getPiece(pathPosition) != null) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -125,10 +199,48 @@ public class ChessGame {
         else {
             moveMaker(move);
             previousMove = move;
+            rookKingHasMoved(move);
             currentTeam = (currentTeam == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE; // <- Me trying to make my code more concise
         }
     }
 
+    /**
+     * Function to determine whether the rook or the king has moved yet.
+     * @param move is the move that we just made.
+     */
+    private void rookKingHasMoved (ChessMove move) {
+        ChessPiece movedPiece = gameBoard.getPiece(move.getEndPosition());
+        if (movedPiece.getPieceType() == ChessPiece.PieceType.KING
+         || movedPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
+
+            int startRow = move.getStartPosition().getRow();
+            int startCol = move.getStartPosition().getColumn();
+
+            if (startRow == 1) {
+                if (startCol == 1) {
+                    whiteKingsideRookMoved = true;
+                }
+                else if (startCol == 4) {
+                    whiteKingMoved = true;
+                }
+                else if (startCol == 8) {
+                    whiteQueensideRookMoved = true;
+                }
+            }
+            else if (startRow == 8) {
+                if (startCol == 1) {
+                    blackKingsideRookMoved = true;
+                }
+                else if (startCol == 4) {
+                    blackKingMoved = true;
+                }
+                else if (startCol == 8) {
+                    blackQueensideRookMoved = true;
+                }
+            }
+
+        }
+    }
 
     /**
      * A helper function so that if I'm guaranteeing the move is valid already, no exceptions need be thrown.
