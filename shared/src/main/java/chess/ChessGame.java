@@ -59,6 +59,8 @@ public class ChessGame {
             pieceMoves = gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
             pieceMoves.removeIf(this::testMove);
             if (previousMove != null) {
+
+                // Check for en passant
                 if (enPassantCheck(startPosition)) {
                     ChessPosition endPosition = new ChessPosition(
                             previousMove.getEndPosition().getRow() + playDirection(),
@@ -71,22 +73,35 @@ public class ChessGame {
         else return null;
     }
 
+    /**
+     * Checks to see if the game will allow for an en passant.
+     * @param startPosition is the position our chess piece is at. It may or may not be a pawn.
+     * @return
+     */
     private boolean enPassantCheck (ChessPosition startPosition) {
-        ChessPiece checkPiece = gameBoard.getPiece(previousMove.getEndPosition());
-        int previousMoveRow = previousMove.getEndPosition().getRow();
-        int previousMoveCol = previousMove.getEndPosition().getColumn();
+        if (previousMove != null) {
+            ChessPiece checkPiece = gameBoard.getPiece(previousMove.getEndPosition());
+            int previousMoveRow = previousMove.getEndPosition().getRow();
+            int previousMoveCol = previousMove.getEndPosition().getColumn();
 
-        if (checkPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-            if (previousMove.getStartPosition().getRow() == (previousMoveRow - (2 * playDirection()))
-                    && gameBoard.getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN
-                    && startPosition.getRow() == previousMoveRow
-                    && (startPosition.getColumn() == previousMoveCol + 1 || startPosition.getColumn() == previousMoveCol - 1)) {
-                return true;
+            // Our piece must be a pawn. The previous move must have been a pawn.
+            // The positions must align, and the previous pawn must have made a double move off their starting rank.
+            if (checkPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                if (previousMove.getStartPosition().getRow() == (previousMoveRow + (2 * playDirection()))
+                        && gameBoard.getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN
+                        && startPosition.getRow() == previousMoveRow
+                        && (startPosition.getColumn() == previousMoveCol + 1 || startPosition.getColumn() == previousMoveCol - 1)) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
+    /**
+     * Determines the direction of play.
+     * @return 1 if white, -1 if black
+     */
     private int playDirection() {
         if (currentTeam == TeamColor.WHITE) return 1;
         return -1;
@@ -106,7 +121,6 @@ public class ChessGame {
             throw new InvalidMoveException("move is invalid");
         }
         else if (gameBoard.getPiece(move.getStartPosition()).getTeamColor() != currentTeam) {
-            throw new InvalidMoveException("cannot play out of turn");
         }
         else {
             moveMaker(move);
@@ -122,16 +136,23 @@ public class ChessGame {
      * @param move is the move to make.
      */
     private void moveMaker(ChessMove move) {
+        boolean directCapture = false;
         ChessPiece movePiece = gameBoard.getPiece(move.getStartPosition());
         if (move.getPromotionPiece() != null) {
             gameBoard.addPiece(move.getEndPosition(), new ChessPiece(movePiece.getTeamColor(), move.getPromotionPiece()));
         } else {
+            if (gameBoard.getPiece(move.getEndPosition()) != null) {
+                directCapture = true;
+            }
             gameBoard.addPiece(move.getEndPosition(), movePiece);
-            if (enPassantCheck(move.getStartPosition())) {
-                if (gameBoard.getPiece(move.getEndPosition()).getPieceType() == ChessPiece.PieceType.PAWN
-                && move.getEndPosition().getColumn() == previousMove.getEndPosition().getColumn()
-                && gameBoard.getPiece(move.getEndPosition()) == null) {
-                    gameBoard.addPiece(new ChessPosition(move.getEndPosition().getRow() - playDirection(), move.getEndPosition().getColumn()), null);
+            if (previousMove != null && enPassantCheck(move.getStartPosition())) {
+                if (gameBoard.getPiece(move.getEndPosition()).getPieceType() == ChessPiece.PieceType.PAWN) {
+                    if (move.getEndPosition().getColumn() == previousMove.getEndPosition().getColumn()){
+                        if (!directCapture) {
+                            ChessPosition capturedPosition = new ChessPosition(move.getEndPosition().getRow() - playDirection(), move.getEndPosition().getColumn());
+                            gameBoard.addPiece(capturedPosition, null);
+                        }
+                    }
                 }
             }
         }
@@ -180,10 +201,8 @@ public class ChessGame {
         ChessPosition kingPosition = findKing(teamColor);
         if (kingPosition != null) {
             if (checkKingStraights(kingPosition)) {
-                System.out.println("The king has been noted as in check.");
                 return true;
             }
-            System.out.println("Checking for threatening knights");
             return checkKingKnights(kingPosition);
         }
         return false;
@@ -218,7 +237,6 @@ public class ChessGame {
             for (int colMod = -1; colMod <= 1; colMod++) {
                 if (rowMod != 0 || colMod != 0) {
                     if (straightChecker(kingPosition, rowMod, colMod)) {
-                        System.out.println("The king is in check.");
                         return true;
                     }
                 }
@@ -266,7 +284,6 @@ public class ChessGame {
     private boolean targetingKing(ChessPosition kingPosition, ChessPiece checkPiece, ChessPosition checkPosition) {
         // Create a movelist for the selected chess piece.
         Collection<ChessMove> targetMoves = checkPiece.pieceMoves(gameBoard, checkPosition);
-        System.out.println("\n" + targetMoves.toString());
 
         // Create two example moves that target the king's position. One for generic pieces,
         // one for pawn promotion moves.
@@ -274,8 +291,6 @@ public class ChessGame {
         ChessMove pawnDangerMove = new ChessMove(checkPosition, kingPosition, ChessPiece.PieceType.QUEEN);
 
         // If the danger move is in the move list, the king is in check.
-        System.out.println("Checking king position in enemy movelist");
-        System.out.println(dangerMove + "\n");
         return targetMoves.contains(dangerMove) || targetMoves.contains(pawnDangerMove);
     }
 
