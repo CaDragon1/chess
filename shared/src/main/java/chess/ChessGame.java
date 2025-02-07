@@ -33,9 +33,7 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        if (currentTeam == TeamColor.BLACK)
-            currentTeam = TeamColor.WHITE;
-        else currentTeam = TeamColor.BLACK;
+        currentTeam = team;
     }
 
     /**
@@ -54,8 +52,12 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        if (gameBoard.getPiece(startPosition) != null)
-            return gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
+        Collection<ChessMove> pieceMoves;
+        if (gameBoard.getPiece(startPosition) != null) {
+            pieceMoves = gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
+            pieceMoves.removeIf(this::testMove);
+            return pieceMoves;
+        }
         else return null;
     }
 
@@ -66,21 +68,67 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if (gameBoard.getPiece(move.getStartPosition()) == null) {
+            throw new InvalidMoveException("no piece at start position");
+        }
+        else if (!validMoves(move.getStartPosition()).contains(move)) {
+            throw new InvalidMoveException("move is invalid");
+        }
+        else if (gameBoard.getPiece(move.getStartPosition()).getTeamColor() != currentTeam) {
+            throw new InvalidMoveException("cannot play out of turn");
+        }
+        else {
+            moveMaker(move);
+            currentTeam = (currentTeam == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+        }
+    }
 
+
+    /**
+     * A helper function so that if I'm guaranteeing the move is valid already, no exceptions need be thrown.
+     * This was made because the tests gave me trouble.
+     * @param move is the move to make.
+     */
+    private void moveMaker(ChessMove move) {
         ChessPiece movePiece = gameBoard.getPiece(move.getStartPosition());
         if (move.getPromotionPiece() != null) {
             gameBoard.addPiece(move.getEndPosition(), new ChessPiece(movePiece.getTeamColor(), move.getPromotionPiece()));
-        }
-        else {
+        } else {
             gameBoard.addPiece(move.getEndPosition(), movePiece);
         }
         gameBoard.addPiece(move.getStartPosition(), null);
     }
 
-    public void undoMove(ChessMove move) {
-
+    /**
+     * Undo a given move and replace the captured piece.
+     * @param move The move we want to undo
+     * @param capturedPiece The piece in the location we captured
+     */
+    public void undoMove(ChessMove move, ChessPiece capturedPiece) {
+        if (move.getPromotionPiece() != null) {
+            gameBoard.addPiece(move.getStartPosition(),
+                    new ChessPiece(gameBoard.getPiece(move.getEndPosition()).getTeamColor(), ChessPiece.PieceType.PAWN));
+        }
+        else {
+            gameBoard.addPiece(move.getStartPosition(), gameBoard.getPiece(move.getEndPosition()));
+        }
+        gameBoard.addPiece(move.getEndPosition(), capturedPiece);
     }
 
+
+    /**
+     * testMove determines whether a specific move puts the king in check.
+     * @param move the move to test
+     * @return true if check, false if not
+     */
+    public boolean testMove(ChessMove move) {
+        boolean inCheck;
+        ChessPiece targetPiece = gameBoard.getPiece(move.getEndPosition());
+        moveMaker(move);
+        inCheck = isInCheck(gameBoard.getPiece(move.getEndPosition()).getTeamColor());
+        undoMove(move, targetPiece);
+        return inCheck;
+    }
 
     /**
      * Determines if the given team is in check
@@ -224,17 +272,23 @@ public class ChessGame {
      * @param teamColor which team to check for checkmate
      * @return True if the specified team is in checkmate
      */
-    public boolean isInCheckmate(TeamColor teamColor) {
-        if (isInCheck(teamColor)) {
-            ChessBoard tempBoard = gameBoard.copyBoard();
-            for (ChessMove move : getAllTeamMoves(teamColor)) {
-            }
+    public boolean isInCheckmate(TeamColor teamColor){
+        if (!isInCheck(teamColor)) {
+            return false;
         }
-        return false;
+        else {
+            for (ChessMove move : getAllTeamMoves(teamColor)) {
+                if (!testMove(move)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     private Collection<ChessMove> getAllTeamMoves(TeamColor teamColor) {
-        Collection<ChessMove> allMoves = new HashSet<ChessMove>();
+        Collection<ChessMove> allMoves = new HashSet<>();
         ChessPosition checkPosition;
         ChessPiece checkPiece;
         for (int row = 1; row <= 8; row++) {
