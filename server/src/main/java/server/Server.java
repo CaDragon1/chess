@@ -27,6 +27,11 @@ public class Server {
 
 
     private Object registerUser(Request request, Response response) {
+//        try {
+//
+//        } catch () {
+//
+//        }
         return null;
     }
 
