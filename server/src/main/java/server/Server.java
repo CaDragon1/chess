@@ -1,8 +1,16 @@
 package server;
 
+import org.eclipse.jetty.client.HttpResponseException;
+import service.Service;
 import spark.*;
+import com.google.gson.Gson;
+
+import java.util.Map;
 
 public class Server {
+
+    // Create a single Gson object for all Gson operations
+    private final Gson gson = new Gson();
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
@@ -26,7 +34,9 @@ public class Server {
     }
 
 
+
     private Object registerUser(Request request, Response response) {
+        Service registerService;
 //        try {
 //
 //        } catch () {
@@ -57,6 +67,26 @@ public class Server {
 
     private Object clearDatabase(Request request, Response response) {
         return null;
+    }
+
+    private Object handleException(Exception e, Response response) {
+        int statusCode;
+        String errorMessage;
+
+        if (e instanceof ServerException) {
+            ServerException serverException = (ServerException) e;
+            statusCode = serverException.getStatusCode();
+            errorMessage = serverException.getMessage();
+        }
+        else {
+            statusCode = 500;
+            errorMessage = "Error: " + e.getMessage();
+        }
+
+        response.status(statusCode);
+        response.type("application/json");
+        // Map.of() creates a key-value pair, which Gson can take and turn into Json.
+        return gson.toJson(Map.of("message", errorMessage) );
     }
 
     public void stop() {
