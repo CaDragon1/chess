@@ -1,5 +1,10 @@
 package service;
 
-public class Service {
+import Models.UserData;
 
+public class Service {
+    public UserData register(UserData userData) {
+
+        return userData;
+    }
 }

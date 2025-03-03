@@ -1,16 +1,21 @@
 package server;
 
+import Models.UserData;
 import org.eclipse.jetty.client.HttpResponseException;
 import service.Service;
 import spark.*;
 import com.google.gson.Gson;
-
 import java.util.Map;
 
 public class Server {
 
     // Create a single Gson object for all Gson operations
     private final Gson gson = new Gson();
+    private final Service service;
+
+    public Server(Service service) {
+        this.service = service;
+    }
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
@@ -26,6 +31,8 @@ public class Server {
         Spark.put("/game", this::joinGame);
         Spark.delete("/db", this::clearDatabase);
 
+        Spark.exception(ServerException.class, this::handleException);
+
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
@@ -35,41 +42,43 @@ public class Server {
 
 
 
-    private Object registerUser(Request request, Response response) {
-        Service registerService;
-//        try {
-//
-//        } catch () {
-//
-//        }
+    private String registerUser(Request request, Response response) throws ServerException{
+        try {
+            UserData user = new Gson().fromJson(request.body(), UserData.class);
+            user = service.register(user);
+            response.status(200);
+            return gson.toJson(user);
+
+        } catch (ServerException e) {
+            return handleException(e, response);
+        }
+    }
+
+    private String loginUser(Request request, Response response) {
         return null;
     }
 
-    private Object loginUser(Request request, Response response) {
+    private String logoutUser(Request request, Response response) {
         return null;
     }
 
-    private Object logoutUser(Request request, Response response) {
+    private String listGame(Request request, Response response) {
         return null;
     }
 
-    private Object listGame(Request request, Response response) {
+    private String createGame(Request request, Response response) {
         return null;
     }
 
-    private Object createGame(Request request, Response response) {
+    private String joinGame(Request request, Response response) {
         return null;
     }
 
-    private Object joinGame(Request request, Response response) {
+    private String clearDatabase(Request request, Response response) {
         return null;
     }
 
-    private Object clearDatabase(Request request, Response response) {
-        return null;
-    }
-
-    private Object handleException(Exception e, Response response) {
+    private String handleException(Exception e, Response response) {
         int statusCode;
         String errorMessage;
 
