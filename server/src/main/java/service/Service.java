@@ -3,7 +3,6 @@ package service;
 import Models.AuthTokenData;
 import Models.UserData;
 import dataaccess.DataAccess;
-import org.eclipse.jetty.server.Authentication;
 import server.ServerException;
 
 import java.security.SecureRandom;
@@ -11,7 +10,7 @@ import java.util.Base64;
 
 public class Service {
     DataAccess dataAccess;
-    AuthTokenData authToken;
+    AuthTokenData authTokenData;
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Base64.Encoder encoder = Base64.getUrlEncoder();
 
@@ -20,15 +19,21 @@ public class Service {
     }
 
 
+    /**
+     * Service to register a user in the database
+     * @param userData is the UserData object containing the user's data
+     * @return the AuthTokenData object created upon registration and logging in to the system
+     * @throws ServerException 403: name already taken
+     */
     public AuthTokenData register(UserData userData) throws ServerException {
         if (dataAccess.getUserData(userData.username()) == null) {
             dataAccess.addUserData(userData);
 
-            authToken = new AuthTokenData(generateAuthToken(), userData.username());
+            authTokenData = new AuthTokenData(generateAuthToken(), userData.username());
 
-            dataAccess.addAuthData(authToken);
+            dataAccess.addAuthData(authTokenData);
 
-            return authToken;
+            return authTokenData;
         }
         else {
             throw new ServerException("already taken", 403);

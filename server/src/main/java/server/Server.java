@@ -14,8 +14,8 @@ public class Server {
     private final Gson gson = new Gson();
     private final Service service;
 
-    public Server(Service service) {
-        this.service = service;
+    public Server() {
+        service = new Service();
     }
 
     public int run(int desiredPort) {
@@ -42,17 +42,20 @@ public class Server {
     }
 
 
-
+    /**
+     * registerUser takes the request JSON object, then makes it usable for Java. It then registers the user
+     * into the server's database.
+     * @param request is the JSON request to register a user
+     * @param response is the resulting response JSON object along with the serialized return information
+     * @return the AuthTokenData object, serialized as a JSON object.
+     * @throws ServerException
+     */
     private String registerUser(Request request, Response response) throws ServerException{
-        try {
+
             UserData user = new Gson().fromJson(request.body(), UserData.class);
             AuthTokenData authToken = service.register(user);
             response.status(200);
             return gson.toJson(authToken);
-
-        } catch (ServerException e) {
-            return handleException(e, response);
-        }
     }
 
     private String loginUser(Request request, Response response) {
@@ -79,7 +82,7 @@ public class Server {
         return null;
     }
 
-    private String handleException(Exception e, Response response) {
+    private String handleException(Exception e, Request request, Response response) {
         int statusCode;
         String errorMessage;
 
