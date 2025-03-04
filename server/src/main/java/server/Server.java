@@ -1,5 +1,6 @@
 package server;
 
+import Models.AuthTokenData;
 import Models.UserData;
 import org.eclipse.jetty.client.HttpResponseException;
 import service.Service;
@@ -45,9 +46,9 @@ public class Server {
     private String registerUser(Request request, Response response) throws ServerException{
         try {
             UserData user = new Gson().fromJson(request.body(), UserData.class);
-            user = service.register(user);
+            AuthTokenData authToken = service.register(user);
             response.status(200);
-            return gson.toJson(user);
+            return gson.toJson(authToken);
 
         } catch (ServerException e) {
             return handleException(e, response);
