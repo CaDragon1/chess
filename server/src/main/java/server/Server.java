@@ -46,7 +46,7 @@ public class Server {
     /**
      * registerUser takes the request JSON object, then makes it usable for Java. It then registers the user
      * into the server's database.
-     * @param request is the JSON request to register a user
+     * @param request is the JSON request to register a user. Contains username, password, and email.
      * @param response is the resulting response JSON object along with the serialized return information
      * @return the AuthTokenData object, serialized as a JSON object.
      * @throws ServerException
@@ -79,6 +79,13 @@ public class Server {
         }
     }
 
+    /**
+     * loginUser will attempt to log in the user given a username and password.
+     * @param request is the JSON request to register a user. Contains username and password.
+     * @param response is the resulting response JSON object along with the serialized return information
+     * @return the AuthTokenData object, serialized as a JSON object.
+     * @throws ServerException
+     */
     private String loginUser(Request request, Response response) throws ServerException{
         /**
          * Small record class specifically for deserializing the login request
@@ -115,6 +122,12 @@ public class Server {
         return null;
     }
 
+    /**
+     * Method to handle exceptions
+     * @param e is the exception
+     * @param request is the request
+     * @param response is the response
+     */
     private void handleException(Exception e, Request request, Response response) {
         int statusCode;
         String errorMessage;
