@@ -24,7 +24,7 @@ public class Service {
 
 
     /**
-     * Service to register a user in the database
+     * ChessService to register a user in the database
      * @param userData is the UserData object containing the user's data
      * @return the AuthTokenData object created upon registration and logging in to the system
      * @throws ServerException 403: name already taken
@@ -56,17 +56,15 @@ public class Service {
                 return authTokenData;
             }
         }
-        else {
-            throw new ServerException("unauthorized", 401)
-        }
+        throw new ServerException("unauthorized", 401);
     }
-}
 
-// The implementation for this function came from
-// https://stackoverflow.com/questions/13992972/how-to-create-an-authentication-token-using-java
-// I don't recall us talking about how to do this ourselves, so I used this implementation.
-private String generateAuthToken() {
-    byte[] randomBytes = new byte[24];
-    secureRandom.nextBytes(randomBytes);
-    return encoder.encodeToString(randomBytes);
+    // The implementation for this function came from
+    // https://stackoverflow.com/questions/13992972/how-to-create-an-authentication-token-using-java
+    // I don't recall us talking about how to do this ourselves, so I used this implementation.
+    private String generateAuthToken() {
+        byte[] randomBytes = new byte[24];
+        secureRandom.nextBytes(randomBytes);
+        return encoder.encodeToString(randomBytes);
+    }
 }

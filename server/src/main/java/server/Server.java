@@ -3,12 +3,11 @@ package server;
 import Models.AuthTokenData;
 import Models.UserData;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
-import org.eclipse.jetty.client.HttpResponseException;
 import service.Service;
 import spark.*;
 import com.google.gson.Gson;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class Server {
 
@@ -55,11 +54,26 @@ public class Server {
     private String registerUser(Request request, Response response) throws ServerException{
         try {
             // Store the user data from the request
-            UserData user = new Gson().fromJson(request.body(), UserData.class);
-            AuthTokenData authToken = service.register(user);
+            UserData submittedUser = new Gson().fromJson(request.body(), UserData.class);
 
-            response.status(200);
-            return gson.toJson(authToken);
+            // Trim the username
+            String trimmedUsername = submittedUser.username().trim();
+            UserData user = new UserData(trimmedUsername, submittedUser.password(), submittedUser.email());
+
+            // Verify inputs
+            if (!validateUsername(user.username()) || !validatePassword(user.password()) || !validateEmail(user.email())) {
+                throw new ServerException("bad request", 400);
+            }
+
+            // Register user data
+            else {
+                AuthTokenData authToken = service.register(user);
+
+                response.status(200);
+                return gson.toJson(authToken);
+            }
+
+        // Catch exception from bad request
         } catch (JsonSyntaxException e) {
             throw new ServerException("bad request", 400);
         }
@@ -101,12 +115,11 @@ public class Server {
         return null;
     }
 
-    private String handleException(Exception e, Request request, Response response) {
+    private void handleException(Exception e, Request request, Response response) {
         int statusCode;
         String errorMessage;
 
-        if (e instanceof ServerException) {
-            ServerException serverException = (ServerException) e;
+        if (e instanceof ServerException serverException) {
             statusCode = serverException.getStatusCode();
             errorMessage = serverException.getMessage();
         }
@@ -118,7 +131,46 @@ public class Server {
         response.status(statusCode);
         response.type("application/json");
         // Map.of() creates a key-value pair, which Gson can take and turn into Json.
-        return gson.toJson(Map.of("message", errorMessage) );
+        gson.toJson(Map.of("message", errorMessage));
+    }
+
+    /**
+     * validateUsername will check to see if username is null or empty.
+     * If the user tried to register a username of nothing but spaces, then the input system will trim input.
+     * Therefore, there doesn't need to be an "all spaces" check.
+     * @param username The username to check validity of
+     * @return true if the username is valid
+     */
+    private Boolean validateUsername(String username) {
+        return username != null && !username.isEmpty();
+    }
+
+    /**
+     * validatePassword will make sure that the password has SOMETHING contained in its string.
+     * Additional parameters for the password can easiliy be added here.
+     * @param password The password to check validity of
+     * @return true if the password is valid
+     */
+    private Boolean validatePassword(String password) {
+        return password != null && !password.isEmpty();
+    }
+
+    /**
+     * validateEmail will make sure that the submitted email follows correct email format.
+     * We use a regex function to accomplish this.
+     * @param email is the email to check
+     * @return true if the email is valid
+     */
+    private Boolean validateEmail(String email) {
+        // EMAIL_REGEX constant was written by amittn on Stack Overflow, with minor changes
+        // https://stackoverflow.com/questions/58189908/regex-for-email-validation-including-blank-field-valid-as-well
+        final String EMAIL_REGEX = "^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6})$";
+        final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
+
+        if (email != null) {
+            return EMAIL_PATTERN.matcher(email).matches();
+        }
+        return false;
     }
 
     public void stop() {
