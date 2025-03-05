@@ -2,6 +2,8 @@ package server;
 
 import Models.AuthTokenData;
 import Models.UserData;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import org.eclipse.jetty.client.HttpResponseException;
 import service.Service;
 import spark.*;
@@ -51,15 +53,32 @@ public class Server {
      * @throws ServerException
      */
     private String registerUser(Request request, Response response) throws ServerException{
-
+        try {
+            // Store the user data from the request
             UserData user = new Gson().fromJson(request.body(), UserData.class);
             AuthTokenData authToken = service.register(user);
+
             response.status(200);
             return gson.toJson(authToken);
+        } catch (JsonSyntaxException e) {
+            throw new ServerException("bad request", 400);
+        }
     }
 
-    private String loginUser(Request request, Response response) {
-        return null;
+    private String loginUser(Request request, Response response) throws ServerException{
+        /**
+         * Small record class specifically for deserializing the login request
+         */
+        record UserLoginCredentials(String username, String password) {}
+
+        // Store the credentials from the request
+        UserLoginCredentials userLogin = new Gson().fromJson(request.body(), UserLoginCredentials.class);
+        String username = userLogin.username;
+        String password = userLogin.password;
+
+        AuthTokenData authToken = service.login(username, password);
+        response.status(200);
+        return gson.toJson(authToken);
     }
 
     private String logoutUser(Request request, Response response) {
