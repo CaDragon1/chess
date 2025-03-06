@@ -45,7 +45,13 @@ public class Service {
         }
     }
 
-
+    /**
+     * Log in a user into the database
+     * @param username is the user's username
+     * @param password is the user's password
+     * @return the AuthTokenData object created upon login
+     * @throws ServerException 401
+     */
     public AuthTokenData login(String username, String password) throws ServerException {
         UserData userData = userDataAccess.getUserData(username);
         if (userData != null) {
@@ -55,6 +61,15 @@ public class Service {
 
                 return authTokenData;
             }
+        }
+        throw new ServerException("bad request", 401);
+    }
+
+    public AuthTokenData logOut(String authToken) throws ServerException {
+        AuthTokenData authData = authDataAccess.getAuthData(authToken);
+        if (authData != null) {
+            authDataAccess.removeAuthData(authData);
+            return authData;
         }
         throw new ServerException("unauthorized", 401);
     }
@@ -67,4 +82,5 @@ public class Service {
         secureRandom.nextBytes(randomBytes);
         return encoder.encodeToString(randomBytes);
     }
+
 }

@@ -10,7 +10,7 @@ public interface AuthDataAccess {
 
     public void removeAuthData (AuthTokenData authData);
 
-    public AuthTokenData getAuthData (AuthTokenData authData);
+    public AuthTokenData getAuthData (String authData);
 
     /**
      * Mass deletion methods

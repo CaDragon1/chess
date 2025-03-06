@@ -51,7 +51,7 @@ public class Server {
      * @return the AuthTokenData object, serialized as a JSON object.
      * @throws ServerException
      */
-    private String registerUser(Request request, Response response) throws ServerException{
+    private String registerUser(Request request, Response response) throws ServerException {
         try {
             // Store the user data from the request
             UserData submittedUser = new Gson().fromJson(request.body(), UserData.class);
@@ -86,7 +86,7 @@ public class Server {
      * @return the AuthTokenData object, serialized as a JSON object.
      * @throws ServerException
      */
-    private String loginUser(Request request, Response response) throws ServerException{
+    private String loginUser(Request request, Response response) throws ServerException {
         /**
          * Small record class specifically for deserializing the login request
          */
@@ -102,8 +102,12 @@ public class Server {
         return gson.toJson(authToken);
     }
 
-    private String logoutUser(Request request, Response response) {
-        return null;
+    private String logoutUser(Request request, Response response) throws ServerException {
+        String authToken = new Gson().fromJson(request.body(), String.class);
+
+        AuthTokenData logoutResponse = service.logOut(authToken);
+        response.status(200);
+        return gson.toJson(logoutResponse);
     }
 
     private String listGame(Request request, Response response) {
