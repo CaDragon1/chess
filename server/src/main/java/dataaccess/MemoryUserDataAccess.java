@@ -11,7 +11,7 @@ import java.util.HashSet;
 public class MemoryUserDataAccess implements UserDataAccess {
     Collection<UserData> userDatabase;
 
-    MemoryUserDataAccess() {
+    public MemoryUserDataAccess() {
         userDatabase = new HashSet<UserData>();
     }
     /**
@@ -24,6 +24,10 @@ public class MemoryUserDataAccess implements UserDataAccess {
             }
         }
         return null;
+    }
+
+    public void removeUserData(String username) {
+        userDatabase.removeIf(user -> user.username().equals(username));
     }
 
     public void addUserData(UserData userData) {
