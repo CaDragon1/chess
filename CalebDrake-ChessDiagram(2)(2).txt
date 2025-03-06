@@ -1,0 +1,127 @@
+actor Client
+participant Server
+participant Handler
+participant Service
+participant DataAccess
+database db
+
+entryspacing 0.9
+group #navy Registration #white
+Client -> Server: [POST] /user\n{"username":" ", "password":" ", "email":" "}
+Server -> Handler: {"username":" ", "password":" ", "email":" "}
+Handler -> Service: register(RegisterRequest)
+Service -> DataAccess: getUser(username)
+DataAccess -> db:Find UserData by username
+DataAccess --> Service: null
+Service -> DataAccess:createUser(userData)
+DataAccess -> db:Add UserData
+Service -> DataAccess:createAuth(authData)
+DataAccess -> db:Add AuthData
+Service --> Handler: RegisterResult
+Handler --> Server: {"username" : " ", "authToken" : " "}
+Server --> Client: 200\n{"username" : " ", "authToken" : " "}
+end
+
+group #orange Login #white
+Client -> Server: [POST] /session\n{\"username\" : \" \", \"password\" : \" \"}
+Server -> Handler: {\"username\" : \" \", \"password\" : \" \"}
+Handler -> Service: login(LoginRequest)
+Service -> DataAccess: getUser(username)
+DataAccess -> db: Find UserData by username
+db --> DataAccess: UserData
+DataAccess --> Service: UserData
+// Here is where we verify the password within the Service class
+Service -> DataAccess: createAuth(authData)
+DataAccess -> db: Add AuthData
+db --> DataAccess: AuthData
+DataAccess --> Service: AuthData
+Service --> Handler: LoginResult
+Handler --> Server: {"username" : \" \", "authToken" : \" \"}
+Server --> Client: 200\n{"username" : \" \", "authToken" : \" \"}
+end
+
+group #green Logout #white
+Client -> Server: [DELETE] /session\nauthToken
+Server -> Handler: authToken
+Handler -> Service: logout(LogoutRequest)
+// We can potentially verify that the given authData exists, though it shouldn't be necessary, as logout should only be called after login has occurred. Probably will still implement this later.
+Service -> DataAccess: removeUser(authData)
+DataAccess -> db: Remove AuthData
+DataAccess --> Service: Boolean
+Service --> Handler: LogoutResult
+Handler --> Server: {"logout" : boolean}
+Server --> Client: 200\n{"logout" : boolean}
+end
+
+group #red List Games #white
+Client -> Server: [GET] /game\nauthToken
+Server -> Handler: authToken
+Handler -> Service: listGames(ListGamesRequest)
+Service -> DataAccess: verifyToken(authData)
+DataAccess -> db: get AuthData
+DataAccess --> Service: authData
+Service -> DataAccess: getGameList()
+DataAccess -> db: get list of Game objects
+DataAccess --> Service: Collection<Game>
+Service --> Handler: ListGamesResult
+Handler --> Server: {"games" : [Game1, Game2, ...]}
+Server --> Client: 200\n{"games" : [Game1, Game2, ...]}
+end
+
+group #purple Create Game #white
+Client -> Server: [POST] /game\nauthToken\n{gameName}
+Server -> Handler: authToken\n{gameName}
+// CreateGameRequest will contain an authToken and gameName parameter.
+Handler -> Service: createGame(CreateGameRequest)
+Service -> DataAccess: verifyToken(authData)
+DataAccess -> db: get AuthData
+DataAccess --> Service: AuthData
+Service -> DataAccess: findGame(gameName)
+DataAccess -> db: Find Game by gameName
+DataAccess --> Service: null
+// We create a gameID for this specific game and create GameData, potentially assigning a playerColor to the game creator. Implementation may vary.
+Service -> DataAccess: createGame(GameData)
+DataAccess -> db: Add GameData
+DataAccess --> Service: null
+Service --> Handler: CreateGameResult
+// If we determined the playerColor in the Service class, we will also return playerColor.
+Handler --> Server: {playerColor, gameID}
+Server --> Client: 200\n{playerColor, gameID}
+end
+
+group #yellow Join Game #black
+Client -> Server: [PUT] /game\nauthToken\n{playerColor, gameID}
+Server -> Handler: authToken\n{playerColor, gameID}
+// JoinGameRequest will contain the authToken (unless we are to implement authToken verification before calling JoinGameRequest).
+Handler -> Service: joinGame(JoinGameRequest)
+// verifyToken should probably be part of the inheritance class
+Service -> DataAccess: verifyToken(authData)
+DataAccess -> db: Get AuthData
+DataAccess --> Service: AuthData
+Service -> DataAccess: findGame(gameID)
+DataAccess -> db: Find Game by gameID
+DataAccess --> Service: Game
+// Here is where I do the following:
+// - Check if there is a player already with that color
+// - If not, update existing Game
+Service -> DataAccess: joinGame(authData, playerColor, gameID)
+DataAccess -> db: Add authData to team playerColor in Game gameID
+Service --> Handler: JoinGameResult
+Handler --> Server: {gameID}
+Server --> Client: 200\n{gameID}
+end
+
+group #gray Clear application #white
+Client -> Server: [DELETE] /db
+Server -> Handler: 
+Handler -> Service: clearApp(ClearAppRequest)
+Service -> DataAccess: clearGames()
+DataAccess -> db: Remove all Games in database
+Service -> DataAccess: clearUsers()
+DataAccess -> db: Remove all Users in database
+Service -> DataAccess: clearAuthTokens()
+DataAccess -> db: Remove all AuthData in database
+Service --> Handler: ClearAppResult
+Handler --> Server: {}
+Server --> Client: 200\n{}
+end
