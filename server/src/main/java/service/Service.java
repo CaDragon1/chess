@@ -1,12 +1,15 @@
 package service;
 
 import Models.AuthTokenData;
+import Models.GameData;
 import Models.UserData;
 import dataaccess.*;
+import server.Server;
 import server.ServerException;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Collection;
 
 public class Service {
     UserDataAccess userDataAccess;
@@ -70,6 +73,14 @@ public class Service {
         if (authData != null) {
             authDataAccess.removeAuthData(authData);
             return authData;
+        }
+        throw new ServerException("unauthorized", 401);
+    }
+
+    public Collection<GameData> listGames(String authToken) throws ServerException {
+        AuthTokenData authData = authDataAccess.getAuthData(authToken);
+        if (authData != null) {
+            return gameDataAccess.getGameList();
         }
         throw new ServerException("unauthorized", 401);
     }

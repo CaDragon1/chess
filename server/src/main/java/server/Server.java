@@ -1,11 +1,14 @@
 package server;
 
 import Models.AuthTokenData;
+import Models.GameData;
 import Models.UserData;
 import com.google.gson.JsonSyntaxException;
 import service.Service;
 import spark.*;
 import com.google.gson.Gson;
+
+import java.util.Collection;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -110,8 +113,13 @@ public class Server {
         return gson.toJson(logoutResponse);
     }
 
-    private String listGame(Request request, Response response) {
-        return null;
+    private String listGame(Request request, Response response) throws ServerException {
+        String authToken = new Gson().fromJson(request.body(), String.class);
+
+        Collection<GameData> gameList = service.listGames(authToken);
+        response.status(200);
+        Map<String, Object> jsonMap = Map.of("games", gameList);
+        return gson.toJson(jsonMap);
     }
 
     private String createGame(Request request, Response response) {
