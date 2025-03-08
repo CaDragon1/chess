@@ -5,7 +5,6 @@ import Models.GameData;
 import Models.UserData;
 import chess.ChessGame;
 import dataaccess.*;
-import server.Server;
 import server.ServerException;
 
 import java.security.SecureRandom;
@@ -118,6 +117,30 @@ public class Service {
     }
 
     /**
+     * joinGame will assign the given user to the selected team color of the chosen game.
+     * @param givenAuthData is the user's authData. contains username and authToken.
+     * @param teamColor is the team we will assign the player to.
+     * @param gameID is the ID of the game we will try to join.
+     */
+    public void joinGame(AuthTokenData givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ServerException {
+        if (authDataAccess.getAuthData(givenAuthData.authToken()) != null) {
+            GameData gameData = gameDataAccess.getGameByID(gameID);
+            if (gameData != null) {
+
+                // Set the user to the specified team
+                if(teamColor.equals(ChessGame.TeamColor.WHITE) && gameData.whiteUsername() == null){
+                    gameData.setWhiteUsername(givenAuthData.username());
+                }
+                else if (teamColor.equals(ChessGame.TeamColor.BLACK) && gameData.blackUsername() == null){
+                    gameData.setBlackUsername(givenAuthData.username());
+                }
+                throw new ServerException("already taken", 403);
+            }
+        }
+        throw new ServerException("unauthorized", 403);
+    }
+
+    /**
      * The following are functions to generate IDs for our application.
      */
     // The general implementation for this function came from
@@ -148,5 +171,4 @@ public class Service {
         }
         return gameID;
     }
-
 }

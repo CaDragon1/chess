@@ -3,6 +3,7 @@ package server;
 import Models.AuthTokenData;
 import Models.GameData;
 import Models.UserData;
+import chess.ChessGame;
 import com.google.gson.JsonSyntaxException;
 import service.Service;
 import spark.*;
@@ -111,11 +112,12 @@ public class Server {
      * @param response is the resulting response JSON object along with the serialized return information
      * @throws ServerException
      */
-    private void logoutUser(Request request, Response response) throws ServerException {
+    private Object logoutUser(Request request, Response response) throws ServerException {
         String authToken = new Gson().fromJson(request.body(), String.class);
 
         service.logOut(authToken);
         response.status(200);
+        return null;
     }
 
     /**
@@ -154,21 +156,40 @@ public class Server {
 
     /**
      * joinGame will add a user to an existing GameData object in the database.
-     * @param request contains the playerColor and gameID
+     * @param request contains the authData, playerColor and gameID
      * @param response contains only the success code (or error message).
      */
-    private void joinGame(Request request, Response response) {
+    private Object joinGame(Request request, Response response) throws ServerException {
+        Map<String, String> requestBody = gson.fromJson(request.body(), Map.class);
+        ChessGame.TeamColor teamColor;
+        AuthTokenData authData;
 
+        // Assign variables for our Service function call
+        authData = new AuthTokenData(requestBody.get("authToken"), requestBody.get("username"));
+
+        if (requestBody.get("playerColor").equals("WHITE") || requestBody.get("playerColor").equals("white")
+                || requestBody.get("playerColor").equals("White")) {
+            teamColor = ChessGame.TeamColor.WHITE;
+        }
+        else {
+            teamColor = ChessGame.TeamColor.BLACK;
+        }
+        int gameID = Integer.parseInt(requestBody.get("gameID"));
+
+        service.joinGame(authData, teamColor, gameID);
+        response.status(200);
+        return null;
     }
 
     /**
      * clearDatabase will clear the database. I'm sure that doesn't come as a shock to you.
-     * @param request
+     * @param request contains really nothing as far as I could understand
      * @param response contains nothing but the success code, exception info, and my feelings of resignation at
      *                 having to make these large comment headers for every function (it's good practice)
      */
-    private void clearDatabase(Request request, Response response) {
+    private Object clearDatabase(Request request, Response response) {
 
+        return null;
     }
 
     /**
