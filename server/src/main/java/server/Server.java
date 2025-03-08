@@ -188,7 +188,8 @@ public class Server {
      *                 having to make these large comment headers for every function (it's good practice)
      */
     private Object clearDatabase(Request request, Response response) {
-
+        service.clearApp();
+        response.status(200);
         return null;
     }
 

@@ -141,6 +141,15 @@ public class Service {
     }
 
     /**
+     * guess what clearApp does to our database
+     */
+    public void clearApp() {
+        gameDataAccess.clearGames();
+        userDataAccess.clearUsers();
+        authDataAccess.clearAuthTokens();
+    }
+
+    /**
      * The following are functions to generate IDs for our application.
      */
     // The general implementation for this function came from
