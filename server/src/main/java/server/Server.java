@@ -105,14 +105,26 @@ public class Server {
         return gson.toJson(authToken);
     }
 
-    private String logoutUser(Request request, Response response) throws ServerException {
+    /**
+     * logoutUser will attempt to log out the user given the session's authtoken.
+     * @param request contains the authToken we are seeking to remove
+     * @param response is the resulting response JSON object along with the serialized return information
+     * @throws ServerException
+     */
+    private void logoutUser(Request request, Response response) throws ServerException {
         String authToken = new Gson().fromJson(request.body(), String.class);
 
-        AuthTokenData logoutResponse = service.logOut(authToken);
+        service.logOut(authToken);
         response.status(200);
-        return gson.toJson(logoutResponse);
     }
 
+    /**
+     * listGame will return a list of all current games in the database
+     * @param request contains the current user's authToken
+     * @param response is the resulting response JSON object along with the serialized return information
+     * @return the list of games in the database
+     * @throws ServerException 401
+     */
     private String listGame(Request request, Response response) throws ServerException {
         String authToken = new Gson().fromJson(request.body(), String.class);
 
@@ -122,16 +134,41 @@ public class Server {
         return gson.toJson(jsonMap);
     }
 
-    private String createGame(Request request, Response response) {
-        return null;
+    /**
+     * createGame will create a new GameData object in the database.
+     * @param request contains the user's authToken and the name of the game object they want to create.
+     * @param response is the resulting response JSON object along with the serialized return information
+     * @return the gameID of the new game object
+     * @throws ServerException 400, 401
+     */
+    private String createGame(Request request, Response response) throws ServerException {
+        Map<String, String> requestBody = gson.fromJson(request.body(), Map.class);
+        String authToken = requestBody.get("authToken");
+        String gameName = requestBody.get("gameName");
+
+        int gameID = service.createGame(authToken, gameName);
+        response.status(200);
+        Map<String, Integer> jsonMap = Map.of("gameID", gameID);
+        return gson.toJson(jsonMap);
     }
 
-    private String joinGame(Request request, Response response) {
-        return null;
+    /**
+     * joinGame will add a user to an existing GameData object in the database.
+     * @param request contains the playerColor and gameID
+     * @param response contains only the success code (or error message).
+     */
+    private void joinGame(Request request, Response response) {
+
     }
 
-    private String clearDatabase(Request request, Response response) {
-        return null;
+    /**
+     * clearDatabase will clear the database. I'm sure that doesn't come as a shock to you.
+     * @param request
+     * @param response contains nothing but the success code, exception info, and my feelings of resignation at
+     *                 having to make these large comment headers for every function (it's good practice)
+     */
+    private void clearDatabase(Request request, Response response) {
+
     }
 
     /**
