@@ -75,10 +75,10 @@ public class Service {
      */
     public void logOut(String authToken) throws ServerException {
         AuthTokenData authData = authDataAccess.getAuthData(authToken);
-        if (authData != null) {
-            authDataAccess.removeAuthData(authData);
+        if (authData == null) {
+            throw new ServerException("unauthorized", 401);
         }
-        throw new ServerException("unauthorized", 401);
+        authDataAccess.removeAuthData(authData);
     }
 
     /**
@@ -123,21 +123,22 @@ public class Service {
      * @param gameID is the ID of the game we will try to join.
      */
     public void joinGame(AuthTokenData givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ServerException {
-        if (authDataAccess.getAuthData(givenAuthData.authToken()) != null) {
-            GameData gameData = gameDataAccess.getGameByID(gameID);
-            if (gameData != null) {
+        // Check for exceptions
+        AuthTokenData auth = authDataAccess.getAuthData(givenAuthData.authToken());
+        if (auth == null) throw new ServerException("unauthorized", 403);
 
-                // Set the user to the specified team
-                if(teamColor.equals(ChessGame.TeamColor.WHITE) && gameData.whiteUsername() == null){
-                    gameData.setWhiteUsername(givenAuthData.username());
-                }
-                else if (teamColor.equals(ChessGame.TeamColor.BLACK) && gameData.blackUsername() == null){
-                    gameData.setBlackUsername(givenAuthData.username());
-                }
-                throw new ServerException("already taken", 403);
-            }
+        GameData gameData = gameDataAccess.getGameByID(gameID);
+        if (gameData == null) throw new ServerException("bad request", 400);
+
+        // Set the user to the specified team
+        if(teamColor == ChessGame.TeamColor.WHITE){
+            if (gameData.whiteUsername() != null) throw new ServerException("already taken", 403);
+            gameDataAccess.joinGame(auth, ChessGame.TeamColor.WHITE, gameID);
         }
-        throw new ServerException("unauthorized", 403);
+        else if (teamColor == ChessGame.TeamColor.BLACK){
+            if (gameData.blackUsername() == null) throw new ServerException("already taken", 403);
+            gameDataAccess.joinGame(auth, ChessGame.TeamColor.BLACK, gameID);
+        }
     }
 
     /**

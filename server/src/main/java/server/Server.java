@@ -10,6 +10,7 @@ import spark.*;
 import com.google.gson.Gson;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -59,6 +60,7 @@ public class Server {
         try {
             // Store the user data from the request
             UserData submittedUser = new Gson().fromJson(request.body(), UserData.class);
+
 
             // Trim the username
             String trimmedUsername = submittedUser.username().trim();
@@ -117,7 +119,7 @@ public class Server {
 
         service.logOut(authToken);
         response.status(200);
-        return null;
+        return "";
     }
 
     /**
@@ -178,7 +180,7 @@ public class Server {
 
         service.joinGame(authData, teamColor, gameID);
         response.status(200);
-        return null;
+        return "";
     }
 
     /**
@@ -190,7 +192,7 @@ public class Server {
     private Object clearDatabase(Request request, Response response) {
         service.clearApp();
         response.status(200);
-        return null;
+        return "";
     }
 
     /**
@@ -215,7 +217,7 @@ public class Server {
         response.status(statusCode);
         response.type("application/json");
         // Map.of() creates a key-value pair, which Gson can take and turn into Json.
-        gson.toJson(Map.of("message", errorMessage));
+        response.body(gson.toJson(Map.of("message ", errorMessage.toLowerCase())));
     }
 
     /**
