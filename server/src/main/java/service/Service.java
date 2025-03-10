@@ -109,6 +109,7 @@ public class Service {
                 ChessGame newGame = new ChessGame();
                 int gameID = generateGameID();
                 GameData newGameData = new GameData(gameID, null, null, gameName, newGame);
+                gameDataAccess.createGame(newGameData);
                 return gameID;
             }
             throw new ServerException("already taken", 403);
@@ -122,9 +123,9 @@ public class Service {
      * @param teamColor is the team we will assign the player to.
      * @param gameID is the ID of the game we will try to join.
      */
-    public void joinGame(AuthTokenData givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ServerException {
+    public void joinGame(String givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ServerException {
         // Check for exceptions
-        AuthTokenData auth = authDataAccess.getAuthData(givenAuthData.authToken());
+        AuthTokenData auth = authDataAccess.getAuthData(givenAuthData);
         if (auth == null) throw new ServerException("unauthorized", 403);
 
         GameData gameData = gameDataAccess.getGameByID(gameID);

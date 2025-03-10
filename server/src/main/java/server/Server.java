@@ -10,7 +10,6 @@ import spark.*;
 import com.google.gson.Gson;
 
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -67,7 +66,7 @@ public class Server {
             UserData user = new UserData(trimmedUsername, submittedUser.password(), submittedUser.email());
 
             // Verify inputs
-            if (!validateUsername(user.username()) || !validatePassword(user.password()) || !validateEmail(user.email())) {
+            if (!validateInput(user.username()) || !validateInput(user.password()) || !validateEmail(user.email())) {
                 throw new ServerException("bad request", 400);
             }
 
@@ -115,7 +114,7 @@ public class Server {
      * @throws ServerException
      */
     private Object logoutUser(Request request, Response response) throws ServerException {
-        String authToken = new Gson().fromJson(request.body(), String.class);
+        String authToken = request.headers("authorization");
 
         service.logOut(authToken);
         response.status(200);
@@ -130,7 +129,7 @@ public class Server {
      * @throws ServerException 401
      */
     private String listGame(Request request, Response response) throws ServerException {
-        String authToken = new Gson().fromJson(request.body(), String.class);
+        String authToken = request.headers("authorization");
 
         Collection<GameData> gameList = service.listGames(authToken);
         response.status(200);
@@ -147,7 +146,7 @@ public class Server {
      */
     private String createGame(Request request, Response response) throws ServerException {
         Map<String, String> requestBody = gson.fromJson(request.body(), Map.class);
-        String authToken = requestBody.get("authToken");
+        String authToken = request.headers("authorization");
         String gameName = requestBody.get("gameName");
 
         int gameID = service.createGame(authToken, gameName);
@@ -162,24 +161,29 @@ public class Server {
      * @param response contains only the success code (or error message).
      */
     private Object joinGame(Request request, Response response) throws ServerException {
-        Map<String, String> requestBody = gson.fromJson(request.body(), Map.class);
+        Map<String, Object> requestBody = gson.fromJson(request.body(), Map.class);
         ChessGame.TeamColor teamColor;
-        AuthTokenData authData;
+        String authData;
 
         // Assign variables for our Service function call
-        authData = new AuthTokenData(requestBody.get("authToken"), requestBody.get("username"));
+        authData = request.headers("authorization");
 
-        if (requestBody.get("playerColor").equals("WHITE") || requestBody.get("playerColor").equals("white")
-                || requestBody.get("playerColor").equals("White")) {
-            teamColor = ChessGame.TeamColor.WHITE;
+        if (validateInput((String)requestBody.get("playerColor"))) {
+            if (requestBody.get("playerColor").equals("WHITE") || requestBody.get("playerColor").equals("white")
+                    || requestBody.get("playerColor").equals("White")) {
+                teamColor = ChessGame.TeamColor.WHITE;
+            } else {
+                teamColor = ChessGame.TeamColor.BLACK;
+            }
+            double gameIDDouble = (double) requestBody.get("gameID");
+            int gameID = (int) gameIDDouble;
+
+            service.joinGame(authData, teamColor, gameID);
+            response.status(200);
         }
         else {
-            teamColor = ChessGame.TeamColor.BLACK;
+            throw new ServerException("bad request", 400);
         }
-        int gameID = Integer.parseInt(requestBody.get("gameID"));
-
-        service.joinGame(authData, teamColor, gameID);
-        response.status(200);
         return "";
     }
 
@@ -221,24 +225,12 @@ public class Server {
     }
 
     /**
-     * validateUsername will check to see if username is null or empty.
-     * If the user tried to register a username of nothing but spaces, then the input system will trim input.
-     * Therefore, there doesn't need to be an "all spaces" check.
-     * @param username The username to check validity of
-     * @return true if the username is valid
+     * validateUsername will check to see if an input string is null or empty.
+     * @param input The input to check validity of
+     * @return true if the input is valid
      */
-    private Boolean validateUsername(String username) {
-        return username != null && !username.isEmpty();
-    }
-
-    /**
-     * validatePassword will make sure that the password has SOMETHING contained in its string.
-     * Additional parameters for the password can easiliy be added here.
-     * @param password The password to check validity of
-     * @return true if the password is valid
-     */
-    private Boolean validatePassword(String password) {
-        return password != null && !password.isEmpty();
+    private Boolean validateInput(String input) {
+        return input != null && !input.isEmpty();
     }
 
     /**
