@@ -13,7 +13,7 @@ public record GameData(int gameID, String whiteUsername, String blackUsername, S
         return new GameData(this.gameID, whiteUsername, this.blackUsername, this.gameName, this.game);
     }
 
-    public GameData setBlackUsername(String whiteUsername) {
+    public GameData setBlackUsername(String blackUsername) {
         return new GameData(this.gameID, this.whiteUsername, blackUsername, this.gameName, this.game);
     }
 

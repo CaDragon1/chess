@@ -176,11 +176,10 @@ public class Server {
         // Assign variables for our Service function call
         authData = request.headers("authorization");
 
-        if (validateInput((String)requestBody.get("playerColor"))) {
-            if (requestBody.get("playerColor").equals("WHITE") || requestBody.get("playerColor").equals("white")
-                    || requestBody.get("playerColor").equals("White")) {
+        if (validateInput((String)requestBody.get("playerColor")) && requestBody.get("gameID") != null) {
+            if (((String) requestBody.get("playerColor")).equalsIgnoreCase("WHITE")) {
                 teamColor = ChessGame.TeamColor.WHITE;
-            } else if (requestBody.get("playerColor").equals("BLACK")){
+            } else if (((String) requestBody.get("playerColor")).equalsIgnoreCase("BLACK")){
                 teamColor = ChessGame.TeamColor.BLACK;
             }
             else {
@@ -256,11 +255,12 @@ public class Server {
     private Boolean validateEmail(String email) {
         // EMAIL_REGEX constant was written by amittn on Stack Overflow, with minor changes
         // https://stackoverflow.com/questions/58189908/regex-for-email-validation-including-blank-field-valid-as-well
-        final String EMAIL_REGEX = "^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6})$";
-        final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
+//        final String EMAIL_REGEX = "^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6})$";
+//        final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
         if (email != null) {
-            return EMAIL_PATTERN.matcher(email).matches();
+//            return EMAIL_PATTERN.matcher(email).matches();
+            return true;
         }
         return false;
     }

@@ -135,7 +135,7 @@ public class Service {
             gameDataAccess.joinGame(auth, ChessGame.TeamColor.WHITE, gameID);
         }
         else if (teamColor == ChessGame.TeamColor.BLACK){
-            if (gameData.blackUsername() == null) throw new ServerException("already taken", 403);
+            if (gameData.blackUsername() != null) throw new ServerException("already taken", 403);
             gameDataAccess.joinGame(auth, ChessGame.TeamColor.BLACK, gameID);
         }
     }
