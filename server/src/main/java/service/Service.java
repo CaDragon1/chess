@@ -16,8 +16,8 @@ public class Service {
     AuthDataAccess authDataAccess;
     GameDataAccess gameDataAccess;
     AuthTokenData authTokenData;
-    private static final SecureRandom secureRandom = new SecureRandom();
-    private static final Base64.Encoder encoder = Base64.getUrlEncoder();
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final Base64.Encoder ENCODER = Base64.getUrlEncoder();
 
     public Service() {
         userDataAccess = new MemoryUserDataAccess();
@@ -157,8 +157,8 @@ public class Service {
     // I don't recall us talking about how to do this ourselves, so I used this implementation.
     private String generateAuthToken() {
         byte[] randomBytes = new byte[24];
-        secureRandom.nextBytes(randomBytes);
-        String authToken = encoder.encodeToString(randomBytes);
+        SECURE_RANDOM.nextBytes(randomBytes);
+        String authToken = ENCODER.encodeToString(randomBytes);
 
         // Verify uniqueness
         if (authDataAccess.getAuthData(authToken) != null) {
@@ -169,13 +169,13 @@ public class Service {
 
     private int generateGameID() {
         byte[] randomBytes = new byte[4];
-        secureRandom.nextBytes(randomBytes);
+        SECURE_RANDOM.nextBytes(randomBytes);
         // Turn bytes into integer
         int gameID = Math.abs(java.nio.ByteBuffer.wrap(randomBytes).getInt());
 
         // Verify uniqueness
         while (gameDataAccess.getGameByID(gameID) != null) {
-            secureRandom.nextBytes(randomBytes);
+            SECURE_RANDOM.nextBytes(randomBytes);
             gameID = java.nio.ByteBuffer.wrap(randomBytes).getInt();
         }
         return gameID;

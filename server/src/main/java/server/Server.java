@@ -222,7 +222,6 @@ public class Server {
 
         if (e instanceof ServerException serverException) {
             statusCode = ((ServerException) e).getStatusCode();
-            System.out.println(statusCode);
             errorMessage = "Error: " + e.getMessage();
             messageResponse = new MessageResponse(errorMessage);
         }
@@ -258,11 +257,8 @@ public class Server {
 //        final String EMAIL_REGEX = "^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6})$";
 //        final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
-        if (email != null) {
-//            return EMAIL_PATTERN.matcher(email).matches();
-            return true;
-        }
-        return false;
+        //            return EMAIL_PATTERN.matcher(email).matches();
+        return email != null;
     }
 
     public void stop() {

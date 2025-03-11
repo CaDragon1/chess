@@ -8,9 +8,9 @@ public class PawnMoves extends PieceMoves {
     /**
      * Because pawns are directionally variable depending on the team color, we need a variable to store the pawn's color.
      */
-    private ChessGame.TeamColor pieceColor;
-    private int direction;
-    private int endzone;
+    private final ChessGame.TeamColor pieceColor;
+    private final int direction;
+    private final int endzone;
 
     public PawnMoves(ChessBoard gameBoard, ChessPosition startPosition) {
         super(gameBoard, startPosition);
@@ -35,12 +35,7 @@ public class PawnMoves extends PieceMoves {
         if (pieceColor == ChessGame.TeamColor.BLACK && startPosition.getRow() == 7) {
             return true;
         }
-        else if (pieceColor == ChessGame.TeamColor.WHITE && startPosition.getRow() == 2) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        else return pieceColor == ChessGame.TeamColor.WHITE && startPosition.getRow() == 2;
     }
 
     /**

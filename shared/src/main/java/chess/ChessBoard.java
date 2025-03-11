@@ -10,7 +10,7 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private ChessPiece[][] gameBoard;
+    private final ChessPiece[][] gameBoard;
 
     public ChessBoard() {
         gameBoard = new ChessPiece[8][8];
@@ -60,7 +60,6 @@ public class ChessBoard {
                     break;
                 default:
                     setNullSpaces(i);
-                    System.out.println();
             }
         }
     }
@@ -101,8 +100,6 @@ public class ChessBoard {
                 case 5:
                     addPiece(new ChessPosition(row, i), new ChessPiece(teamColor, ChessPiece.PieceType.KING));
                     break;
-                default:
-                    System.out.print("Invalid board index");
             }
         }
     }
@@ -134,25 +131,6 @@ public class ChessBoard {
             }
             System.out.println();
         }
-    }
-
-    public ChessBoard copyBoard(){
-        ChessBoard boardCopy = new ChessBoard();
-        ChessPosition targetPosition;
-        ChessPiece targetPiece;
-        for (int row = 1; row <= 8; row++) {
-            for (int col = 1; col <= 8; col++) {
-                targetPosition = new ChessPosition(row, col);
-                targetPiece = getPiece(targetPosition);
-                if (getPiece(targetPosition) != null) {
-                    boardCopy.addPiece(targetPosition, new ChessPiece(targetPiece.getTeamColor(), targetPiece.getPieceType()));
-                }
-                else {
-                    boardCopy.addPiece(targetPosition, null);
-                }
-            }
-        }
-        return boardCopy;
     }
 
     /**

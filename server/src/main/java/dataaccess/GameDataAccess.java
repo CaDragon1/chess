@@ -10,18 +10,18 @@ public interface GameDataAccess {
     /**
      * GameData methods
      */
-    public Collection<GameData> getGameList();
+    Collection<GameData> getGameList();
 
-    public GameData getGameByName(String gameName);
+    GameData getGameByName(String gameName);
 
-    public GameData getGameByID(int gameID);
+    GameData getGameByID(int gameID);
 
-    public void createGame(GameData gameData);
+    void createGame(GameData gameData);
 
-    public void joinGame(AuthTokenData authData, ChessGame.TeamColor team, int gameID);
+    void joinGame(AuthTokenData authData, ChessGame.TeamColor team, int gameID);
 
     /**
      * Mass deletion methods
      */
-    public void clearGames();
+    void clearGames();
 }

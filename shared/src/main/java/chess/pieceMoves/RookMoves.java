@@ -92,10 +92,6 @@ public class RookMoves extends PieceMoves {
         else if (right != 0) {
             checkHorizontal(right);
         }
-        else {
-            System.out.println("checkStraight bounds exceeded");
-        }
-
     }
 
     @Override

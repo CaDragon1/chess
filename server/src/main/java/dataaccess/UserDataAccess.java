@@ -11,12 +11,12 @@ public interface UserDataAccess {
     /**
      * UserData methods
      */
-    public UserData getUserData(String username);
+    UserData getUserData(String username);
 
-    public void addUserData(UserData userData);
+    void addUserData(UserData userData);
 
     /**
      * Mass deletion methods
      */
-    public void clearUsers();
+    void clearUsers();
 }
