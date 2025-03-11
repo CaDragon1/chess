@@ -138,25 +138,33 @@ public class ChessBoard {
      * @param selectedPiece is the current piece selected by printBoard().
      */
     private void printPiece(ChessPiece selectedPiece){
-        if (selectedPiece.getTeamColor() == ChessGame.TeamColor.BLACK)
+        if (selectedPiece.getTeamColor() == ChessGame.TeamColor.BLACK) {
             System.out.print("[B");
-        else
+        }
+        else {
             System.out.print("[W");
-
-        if (selectedPiece.getPieceType() == ChessPiece.PieceType.PAWN)
+        }
+        if (selectedPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
             System.out.print(" P]");
-        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.ROOK)
+        }
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
             System.out.print(" R]");
-        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.KNIGHT)
+        }
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.KNIGHT) {
             System.out.print("Kn]");
-        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.BISHOP)
+        }
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.BISHOP) {
             System.out.print(" B]");
-        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.QUEEN)
+        }
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.QUEEN) {
             System.out.print(" Q]");
-        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.KING)
+        }
+        else if (selectedPiece.getPieceType() == ChessPiece.PieceType.KING) {
             System.out.print(" K]");
-        else
+        }
+        else {
             System.out.print("  ]");
+        }
     }
 
     @Override

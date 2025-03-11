@@ -57,8 +57,12 @@ public class Service {
      */
     public AuthTokenData login(String username, String password) throws ServerException {
         UserData userData = userDataAccess.getUserData(username);
-        if (userData == null) throw new ServerException("unauthorized", 401);
-        if(!userData.password().equals(password)) throw new ServerException("unauthorized", 401);
+        if (userData == null) {
+            throw new ServerException("unauthorized", 401);
+        }
+        if(!userData.password().equals(password)) {
+            throw new ServerException("unauthorized", 401);
+        }
 
         authTokenData = new AuthTokenData(generateAuthToken(), username);
         authDataAccess.addAuthData(authTokenData);
@@ -124,18 +128,26 @@ public class Service {
     public void joinGame(String givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ServerException {
         // Check for exceptions
         AuthTokenData auth = authDataAccess.getAuthData(givenAuthData);
-        if (auth == null) throw new ServerException("unauthorized", 401);
+        if (auth == null) {
+            throw new ServerException("unauthorized", 401);
+        }
 
         GameData gameData = gameDataAccess.getGameByID(gameID);
-        if (gameData == null) throw new ServerException("bad request", 400);
+        if (gameData == null) {
+            throw new ServerException("bad request", 400);
+        }
 
         // Set the user to the specified team
         if(teamColor == ChessGame.TeamColor.WHITE){
-            if (gameData.whiteUsername() != null) throw new ServerException("already taken", 403);
+            if (gameData.whiteUsername() != null) {
+                throw new ServerException("already taken", 403);
+            }
             gameDataAccess.joinGame(auth, ChessGame.TeamColor.WHITE, gameID);
         }
         else if (teamColor == ChessGame.TeamColor.BLACK){
-            if (gameData.blackUsername() != null) throw new ServerException("already taken", 403);
+            if (gameData.blackUsername() != null) {
+                throw new ServerException("already taken", 403);
+            }
             gameDataAccess.joinGame(auth, ChessGame.TeamColor.BLACK, gameID);
         }
     }
