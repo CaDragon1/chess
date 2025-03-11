@@ -124,7 +124,7 @@ public class Service {
     public void joinGame(String givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ServerException {
         // Check for exceptions
         AuthTokenData auth = authDataAccess.getAuthData(givenAuthData);
-        if (auth == null) throw new ServerException("unauthorized", 403);
+        if (auth == null) throw new ServerException("unauthorized", 401);
 
         GameData gameData = gameDataAccess.getGameByID(gameID);
         if (gameData == null) throw new ServerException("bad request", 400);
@@ -171,7 +171,7 @@ public class Service {
         byte[] randomBytes = new byte[4];
         secureRandom.nextBytes(randomBytes);
         // Turn bytes into integer
-        int gameID = java.nio.ByteBuffer.wrap(randomBytes).getInt();
+        int gameID = Math.abs(java.nio.ByteBuffer.wrap(randomBytes).getInt());
 
         // Verify uniqueness
         while (gameDataAccess.getGameByID(gameID) != null) {

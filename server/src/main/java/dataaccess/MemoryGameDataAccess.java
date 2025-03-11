@@ -17,6 +17,10 @@ public class MemoryGameDataAccess implements GameDataAccess {
 
     @Override
     public Collection<GameData> getGameList() {
+//        Collection<String> gameList = new HashSet<String>();
+//        for (GameData game : gameDatabase) {
+//            gameList.add(game.gameName());
+//        }
         return gameDatabase;
     }
 
@@ -47,11 +51,17 @@ public class MemoryGameDataAccess implements GameDataAccess {
 
     @Override
     public void joinGame(AuthTokenData authData, ChessGame.TeamColor team, int gameID) {
+        GameData savedGame = getGameByID(gameID);
+        GameData updateGame = null;
+
         if (team == ChessGame.TeamColor.WHITE) {
-            getGameByID(gameID).setWhiteUsername(authData.username());
+            updateGame = savedGame.setWhiteUsername(authData.username());
         } else if (team == ChessGame.TeamColor.BLACK) {
-            getGameByID(gameID).setBlackUsername(authData.username());
+            updateGame = savedGame.setBlackUsername(authData.username());
         }
+
+        gameDatabase.remove(savedGame);
+        gameDatabase.add(updateGame);
     }
 
     @Override

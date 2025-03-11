@@ -180,8 +180,11 @@ public class Server {
             if (requestBody.get("playerColor").equals("WHITE") || requestBody.get("playerColor").equals("white")
                     || requestBody.get("playerColor").equals("White")) {
                 teamColor = ChessGame.TeamColor.WHITE;
-            } else {
+            } else if (requestBody.get("playerColor").equals("BLACK")){
                 teamColor = ChessGame.TeamColor.BLACK;
+            }
+            else {
+                throw new ServerException("bad request", 400);
             }
             double gameIDDouble = (double) requestBody.get("gameID");
             int gameID = (int) gameIDDouble;
@@ -232,7 +235,6 @@ public class Server {
 
         response.status(statusCode);
         response.type("application/json");
-        // Map.of() creates a key-value pair, which Gson can take and turn into Json.
         response.body(gson.toJson(messageResponse));
     }
 
