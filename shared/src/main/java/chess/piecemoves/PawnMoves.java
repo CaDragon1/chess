@@ -35,7 +35,9 @@ public class PawnMoves extends PieceMoves {
         if (pieceColor == ChessGame.TeamColor.BLACK && startPosition.getRow() == 7) {
             return true;
         }
-        else return pieceColor == ChessGame.TeamColor.WHITE && startPosition.getRow() == 2;
+        else {
+            return pieceColor == ChessGame.TeamColor.WHITE && startPosition.getRow() == 2;
+        }
     }
 
     /**

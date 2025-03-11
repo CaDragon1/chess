@@ -48,40 +48,55 @@ public class CheckStalemate {
                 return true;
             }
             else {
-                Collection<ChessPosition> whiteBishops = extractPieces(whitePieces, ChessPiece.PieceType.BISHOP);
-                Collection<ChessPosition> blackBishops = extractPieces(blackPieces, ChessPiece.PieceType.BISHOP);
-                whitePieces.removeAll(whiteBishops);
-                blackPieces.removeAll(blackBishops);
-
-                Collection<ChessPosition> whiteKnights = extractPieces(whitePieces, ChessPiece.PieceType.KNIGHT);
-                Collection<ChessPosition> blackKnights = extractPieces(blackPieces, ChessPiece.PieceType.KNIGHT);
-                whitePieces.removeAll(whiteKnights);
-                blackPieces.removeAll(blackKnights);
-                // The remaining piece in whitePieces and blackPieces is the king.
-
-                // board state: King vs King and Bishop OR King vs King and Knight
-                if (totalPieces == 3 && (whiteBishops.size() + blackBishops.size() +
-                        whiteKnights.size() + blackKnights.size() == 1)) return true;
-
-                    // board state: King vs King and all bishops are on the same color
-                else if (whiteKnights.isEmpty() && blackKnights.isEmpty()){
-                    boolean blackBishopsSameColor = onSameColor(blackBishops);
-                    boolean whiteBishopsSameColor = onSameColor(whiteBishops);
-                    if (whiteBishops.isEmpty() && !blackBishops.isEmpty() && onSameColor(blackBishops)) {
-                        return true;
-                    }
-                    else if (blackBishops.isEmpty() && !whiteBishops.isEmpty() &&onSameColor(whiteBishops)) {
-                        return true;
-                    }
-                    else return !blackBishops.isEmpty() && onSameColor(whiteBishops) && onSameColor(blackBishops);
-                }
-
-                // board state: King and two knights vs king
-                else {
-                    return (whiteKnights.size() == 2 && whiteBishops.isEmpty() && blackKnights.isEmpty() && blackBishops.isEmpty()) ||
-                            (blackKnights.size() == 2 && blackBishops.isEmpty() && whiteKnights.isEmpty() && whiteBishops.isEmpty());
-                }
+                return pieceExtraction(whitePieces, blackPieces, totalPieces);
             }
+        }
+    }
+
+    /**
+     * This is why the previous function is hideous. This is one ugly chunk of code.
+     * @param whitePieces is a list of all remaining white pieces
+     * @param blackPieces is a list of all remaining black pieces
+     * @param totalPieces is the total number of pieces remaining on the board
+     * @return true if the board state is truly abhorrent
+     */
+    private boolean pieceExtraction(Collection<ChessPosition> whitePieces, Collection<ChessPosition> blackPieces, int totalPieces) {
+        Collection<ChessPosition> whiteBishops = extractPieces(whitePieces, ChessPiece.PieceType.BISHOP);
+        Collection<ChessPosition> blackBishops = extractPieces(blackPieces, ChessPiece.PieceType.BISHOP);
+        whitePieces.removeAll(whiteBishops);
+        blackPieces.removeAll(blackBishops);
+
+        Collection<ChessPosition> whiteKnights = extractPieces(whitePieces, ChessPiece.PieceType.KNIGHT);
+        Collection<ChessPosition> blackKnights = extractPieces(blackPieces, ChessPiece.PieceType.KNIGHT);
+        whitePieces.removeAll(whiteKnights);
+        blackPieces.removeAll(blackKnights);
+        // The remaining piece in whitePieces and blackPieces is the king.
+
+        // board state: King vs King and Bishop OR King vs King and Knight
+        if (totalPieces == 3 && (whiteBishops.size() + blackBishops.size() +
+                whiteKnights.size() + blackKnights.size() == 1)) {
+            return true;
+        }
+
+            // board state: King vs King and all bishops are on the same color
+        else if (whiteKnights.isEmpty() && blackKnights.isEmpty()){
+            boolean blackBishopsSameColor = onSameColor(blackBishops);
+            boolean whiteBishopsSameColor = onSameColor(whiteBishops);
+            if (whiteBishops.isEmpty() && !blackBishops.isEmpty() && onSameColor(blackBishops)) {
+                return true;
+            }
+            else if (blackBishops.isEmpty() && !whiteBishops.isEmpty() &&onSameColor(whiteBishops)) {
+                return true;
+            }
+            else {
+                return !blackBishops.isEmpty() && onSameColor(whiteBishops) && onSameColor(blackBishops);
+            }
+        }
+
+        // board state: King and two knights vs king
+        else {
+            return (whiteKnights.size() == 2 && whiteBishops.isEmpty() && blackKnights.isEmpty() && blackBishops.isEmpty()) ||
+                    (blackKnights.size() == 2 && blackBishops.isEmpty() && whiteKnights.isEmpty() && whiteBishops.isEmpty());
         }
     }
 
