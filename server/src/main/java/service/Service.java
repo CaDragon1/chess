@@ -1,8 +1,8 @@
 package service;
 
-import Models.AuthTokenData;
-import Models.GameData;
-import Models.UserData;
+import models.AuthTokenData;
+import models.GameData;
+import models.UserData;
 import chess.ChessGame;
 import dataaccess.*;
 import server.ServerException;
