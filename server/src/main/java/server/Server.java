@@ -2,6 +2,7 @@ package server;
 
 import Models.AuthTokenData;
 import Models.GameData;
+import Models.MessageResponse;
 import Models.UserData;
 import chess.ChessGame;
 import com.google.gson.JsonSyntaxException;
@@ -102,9 +103,16 @@ public class Server {
         String username = userLogin.username;
         String password = userLogin.password;
 
-        AuthTokenData authToken = service.login(username, password);
-        response.status(200);
-        return gson.toJson(authToken);
+        try {
+            AuthTokenData authToken = service.login(username, password);
+            response.status(200);
+            return gson.toJson(authToken);
+        } catch(ServerException e) {
+            response.status(e.getStatusCode());
+            response.body(gson.toJson(new MessageResponse("Error: " + e.getMessage())));
+            return response.body();
+        }
+
     }
 
     /**
@@ -208,20 +216,24 @@ public class Server {
     private void handleException(Exception e, Request request, Response response) {
         int statusCode;
         String errorMessage;
+        MessageResponse messageResponse;
 
         if (e instanceof ServerException serverException) {
-            statusCode = serverException.getStatusCode();
-            errorMessage = serverException.getMessage();
+            statusCode = ((ServerException) e).getStatusCode();
+            System.out.println(statusCode);
+            errorMessage = "Error: " + e.getMessage();
+            messageResponse = new MessageResponse(errorMessage);
         }
         else {
             statusCode = 500;
             errorMessage = "Error: " + e.getMessage();
+            messageResponse = new MessageResponse(errorMessage);
         }
 
         response.status(statusCode);
         response.type("application/json");
         // Map.of() creates a key-value pair, which Gson can take and turn into Json.
-        response.body(gson.toJson(Map.of("message ", errorMessage.toLowerCase())));
+        response.body(gson.toJson(messageResponse));
     }
 
     /**

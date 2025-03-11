@@ -57,15 +57,13 @@ public class Service {
      */
     public AuthTokenData login(String username, String password) throws ServerException {
         UserData userData = userDataAccess.getUserData(username);
-        if (userData != null) {
-            if(userData.password().equals(password)) {
-                authTokenData = new AuthTokenData(generateAuthToken(), username);
-                authDataAccess.addAuthData(authTokenData);
+        if (userData == null) throw new ServerException("unauthorized", 401);
+        if(!userData.password().equals(password)) throw new ServerException("unauthorized", 401);
 
-                return authTokenData;
-            }
-        }
-        throw new ServerException("unauthorized", 401);
+        authTokenData = new AuthTokenData(generateAuthToken(), username);
+        authDataAccess.addAuthData(authTokenData);
+
+        return authTokenData;
     }
 
     /**

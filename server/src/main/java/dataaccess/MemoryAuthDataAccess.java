@@ -24,9 +24,9 @@ public class MemoryAuthDataAccess implements AuthDataAccess{
     }
 
     @Override
-    public AuthTokenData getAuthData(String authData) {
+    public AuthTokenData getAuthData(String authToken) {
         for (AuthTokenData token : authTokenDatabase) {
-            if (token.authToken().equals(authData)) {
+            if (token.authToken().equals(authToken)) {
                 return token;
             }
         }
