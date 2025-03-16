@@ -1,8 +1,9 @@
 package dataaccess;
 
 import models.AuthTokenData;
+import server.ServerException;
 
-public class SqlAuthDataAccess implements AuthDataAccess {
+public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
     @Override
     public void addAuthData(AuthTokenData authData) {
 
@@ -20,6 +21,16 @@ public class SqlAuthDataAccess implements AuthDataAccess {
 
     @Override
     public void clearAuthTokens() {
+
+    }
+
+    @Override
+    public int executeUpdate(String statement, Object... params) throws ServerException {
+        return 0;
+    }
+
+    @Override
+    public void configureDatabase() throws ServerException {
 
     }
 }

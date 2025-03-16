@@ -3,11 +3,12 @@ package dataaccess;
 import chess.ChessGame;
 import models.AuthTokenData;
 import models.GameData;
+import server.ServerException;
 
 import java.util.Collection;
 import java.util.List;
 
-public class SqlGameDataAccess implements GameDataAccess {
+public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     @Override
     public Collection<GameData> getGameList() {
         return List.of();
@@ -35,6 +36,16 @@ public class SqlGameDataAccess implements GameDataAccess {
 
     @Override
     public void clearGames() {
+
+    }
+
+    @Override
+    public int executeUpdate(String statement, Object... params) throws ServerException {
+        return 0;
+    }
+
+    @Override
+    public void configureDatabase() throws ServerException {
 
     }
 }
