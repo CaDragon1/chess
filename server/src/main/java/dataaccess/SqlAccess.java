@@ -1,8 +1,6 @@
 package dataaccess;
 
-import server.ServerException;
-
 public interface SqlAccess {
-    int executeUpdate(String statement, Object... params) throws ServerException;
+    int executeUpdate(String statement, Object... params) throws server.ServerException;
     void configureDatabase() throws ServerException;
 }

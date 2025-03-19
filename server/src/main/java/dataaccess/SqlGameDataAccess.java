@@ -3,7 +3,6 @@ package dataaccess;
 import chess.ChessGame;
 import models.AuthTokenData;
 import models.GameData;
-import server.ServerException;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,9 +39,22 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     }
 
     @Override
-    public int executeUpdate(String statement, Object... params) throws ServerException {
+    public int executeUpdate(String statement, Object... params) throws server.ServerException {
         return 0;
     }
+
+    private final String[] createStatements = {
+            """
+                CREATE TABLE IF NOT EXISTS GameData (
+                `gameID` INT UNSIGNED PRIMARY KEY,
+                `whiteUsername` VARCHAR(255),
+                `blackUsername` VARCHAR(255),
+                `gameName` VARCHAR(255) NOT NULL,
+                `game` TEXT NOT NULL,
+                FOREIGN KEY (whiteUsername) REFERENCES UserData(username) ON DELETE SET NULL,
+                FOREIGN KEY (blackUsername) REFERENCES UserData(username) ON DELETE SET NULL
+                );"""
+    };
 
     @Override
     public void configureDatabase() throws ServerException {

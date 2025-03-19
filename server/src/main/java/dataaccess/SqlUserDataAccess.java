@@ -1,8 +1,8 @@
 package dataaccess;
 
 import models.UserData;
-import server.ServerException;
-import java.sql.DriverManager;
+
+import java.sql.SQLException;
 
 public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
     @Override
@@ -22,23 +22,27 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
 
     private final String[] createStatements = {
             """
-CREATE TABLE IF NOT EXISTS  userdata (
-'username' varChar(256) NOT NULL,
-'password' varChar(256) NOT NULL,
-'email' varChar(256) NOT NULL,
-PRIMARY KEY 'username',
-
-"""
-    }
+                CREATE TABLE IF NOT EXISTS  UserData (
+                `username` varChar(256) NOT NULL PRIMARY KEY,
+                `password` varChar(60) NOT NULL,
+                `email` varChar(256) NOT NULL UNIQUE
+                )
+            """
+    };
 
     @Override
-    public int executeUpdate(String statement, Object... params) throws ServerException {
+    public int executeUpdate(String statement, Object... params) throws server.ServerException {
         return 0;
     }
 
     @Override
     public void configureDatabase() throws ServerException {
-        try (var conn = DriverManager.getConnection())
+        DatabaseManager.createDatabase();
+        try (var conn = DatabaseManager.getConnection()) {
+
+        } catch (SQLException e) {
+            throw new ServerException(e.getMessage());
+        }
 
     }
 }

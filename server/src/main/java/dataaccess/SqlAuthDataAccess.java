@@ -1,7 +1,6 @@
 package dataaccess;
 
 import models.AuthTokenData;
-import server.ServerException;
 
 public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
     @Override
@@ -25,9 +24,19 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
     }
 
     @Override
-    public int executeUpdate(String statement, Object... params) throws ServerException {
+    public int executeUpdate(String statement, Object... params) throws server.ServerException {
         return 0;
     }
+
+    private final String[] createStatements = {
+            """
+                CREATE TABLE IF NOT EXISTS  AuthData (
+                `authToken` INT NOT NULL PRIMARY KEY,
+                `username` varChar(256) NOT NULL,
+                FOREIGN KEY (username) REFERENCES UserData(username) ON DELETE SET NULL,
+                )
+            """
+    };
 
     @Override
     public void configureDatabase() throws ServerException {
