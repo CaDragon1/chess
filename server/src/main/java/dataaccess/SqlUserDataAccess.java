@@ -39,7 +39,11 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
     public void configureDatabase() throws ServerException {
         DatabaseManager.createDatabase();
         try (var conn = DatabaseManager.getConnection()) {
-
+            for (var statement : createStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
         } catch (SQLException e) {
             throw new ServerException(e.getMessage());
         }

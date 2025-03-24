@@ -4,6 +4,7 @@ import chess.ChessGame;
 import models.AuthTokenData;
 import models.GameData;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
@@ -58,6 +59,16 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
 
     @Override
     public void configureDatabase() throws ServerException {
+        DatabaseManager.createDatabase();
+        try (var conn = DatabaseManager.getConnection()) {
+            for (var statement : createStatements) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            throw new ServerException(e.getMessage());
+        }
 
     }
 }
