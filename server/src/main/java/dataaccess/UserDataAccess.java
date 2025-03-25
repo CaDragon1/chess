@@ -6,12 +6,12 @@ public interface UserDataAccess {
     /**
      * UserData methods
      */
-    UserData getUserData(String username);
+    UserData getUserData(String username) throws ServerException;
 
-    void addUserData(UserData userData);
+    void addUserData(UserData userData) throws ServerException;
 
     /**
      * Mass deletion methods
      */
-    void clearUsers();
+    void clearUsers() throws ServerException;
 }

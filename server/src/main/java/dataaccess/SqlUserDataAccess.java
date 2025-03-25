@@ -1,23 +1,59 @@
 package dataaccess;
 
+import models.AuthTokenData;
 import models.UserData;
 
 import java.sql.SQLException;
 
 public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
     @Override
-    public UserData getUserData(String username) {
-        return null;
+    public UserData getUserData(String username) throws ServerException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var fetch = "SELECT * FROM UserData WHERE username = ?";
+
+            try (var preparedStatement = conn.prepareStatement(fetch)) {
+                preparedStatement.setString(1, username);
+
+                try (var response = preparedStatement.executeQuery()) {
+                    if (response.next()) {
+                        return new UserData(response.getString("username"),
+                                response.getString("password"),
+                                response.getString("email"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new ServerException("Userdata get failed: " + e.getMessage());
+        }
     }
 
     @Override
-    public void addUserData(UserData userData) {
+    public void addUserData(UserData userData) throws ServerException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var insert = "INSERT INTO UserData (username, password, email) VALUES (?, ?, ?)";
 
+            try (var preparedStatement = conn.prepareStatement(insert)) {
+                preparedStatement.setString(1, userData.username());
+                preparedStatement.setString(2, userData.password());
+                preparedStatement.setString(3, userData.email());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new ServerException("Userdata add failed: " + e.getMessage());
+        }
     }
 
     @Override
-    public void clearUsers() {
+    public void clearUsers() throws ServerException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var clear = "DELETE TABLE UserData";
 
+            try (var preparedStatement = conn.prepareStatement(clear)) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new ServerException("UserData clear failed: " + e.getMessage());
+        }
     }
 
     private final String[] createStatements = {
@@ -31,8 +67,17 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
     };
 
     @Override
-    public int executeUpdate(String statement, Object... params) throws server.ServerException {
-        return 0;
+    public int executeUpdate(String statement, Object... params) throws server.ServerException, ServerException {
+        try (var conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                for (int i = 0; i < params.length; i++) {
+                    preparedStatement.setObject(i + 1, params[i]);
+                }
+                return preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new ServerException("Update failed: " + e.getMessage());
+        }
     }
 
     @Override
