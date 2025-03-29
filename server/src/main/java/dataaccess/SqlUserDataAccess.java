@@ -25,6 +25,7 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
         } catch (SQLException e) {
             throw new ServerException("Userdata get failed: " + e.getMessage());
         }
+        return null;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
     };
 
     @Override
-    public int executeUpdate(String statement, Object... params) throws server.ServerException, ServerException {
+    public int executeUpdate(String statement, Object... params) throws ServerException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 for (int i = 0; i < params.length; i++) {

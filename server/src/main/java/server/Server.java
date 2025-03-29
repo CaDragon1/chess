@@ -1,5 +1,9 @@
 package server;
 
+import dataaccess.DatabaseManager;
+import dataaccess.SqlAuthDataAccess;
+import dataaccess.SqlGameDataAccess;
+import dataaccess.SqlUserDataAccess;
 import models.AuthTokenData;
 import models.GameData;
 import models.MessageResponse;
@@ -9,6 +13,7 @@ import com.google.gson.JsonSyntaxException;
 import service.Service;
 import spark.*;
 import com.google.gson.Gson;
+//import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Collection;
 import java.util.Map;
@@ -21,6 +26,7 @@ public class Server {
 
     public Server() {
         service = new Service();
+        initializeDatabase();
     }
 
     public int run(int desiredPort) {
@@ -59,7 +65,6 @@ public class Server {
         try {
             // Store the user data from the request
             UserData submittedUser = new Gson().fromJson(request.body(), UserData.class);
-
 
             // Trim the username
             String trimmedUsername = submittedUser.username().trim();
@@ -202,7 +207,7 @@ public class Server {
      * @param response contains nothing but the success code, exception info, and my feelings of resignation at
      *                 having to make these large comment headers for every function (it's good practice)
      */
-    private Object clearDatabase(Request request, Response response) {
+    private Object clearDatabase(Request request, Response response) throws ServerException {
         service.clearApp();
         response.status(200);
         return "";
@@ -258,6 +263,20 @@ public class Server {
 
         //            return EMAIL_PATTERN.matcher(email).matches();
         return email != null;
+    }
+
+    private void initializeDatabase() {
+        try {
+            SqlAuthDataAccess authDataAccess = new SqlAuthDataAccess();
+            SqlGameDataAccess gameDataAccess = new SqlGameDataAccess();
+            SqlUserDataAccess userDataAccess = new SqlUserDataAccess();
+
+            authDataAccess.configureDatabase();
+            gameDataAccess.configureDatabase();
+            userDataAccess.configureDatabase();
+        } catch (dataaccess.ServerException e) {
+            throw new RuntimeException("Database initialization failed: " + e.getMessage());
+        }
     }
 
     public void stop() {

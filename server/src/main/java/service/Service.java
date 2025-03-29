@@ -5,6 +5,7 @@ import models.GameData;
 import models.UserData;
 import chess.ChessGame;
 import dataaccess.*;
+import org.mindrot.jbcrypt.BCrypt;
 import server.ServerException;
 
 import java.security.SecureRandom;
@@ -20,9 +21,9 @@ public class Service {
     private static final Base64.Encoder ENCODER = Base64.getUrlEncoder();
 
     public Service() {
-        userDataAccess = new MemoryUserDataAccess();
-        authDataAccess = new MemoryAuthDataAccess();
-        gameDataAccess = new MemoryGameDataAccess();
+        userDataAccess = new SqlUserDataAccess();
+        authDataAccess = new SqlAuthDataAccess();
+        gameDataAccess = new SqlGameDataAccess();
     }
 
 
@@ -33,18 +34,23 @@ public class Service {
      * @throws ServerException 403: name already taken
      */
     public AuthTokenData register(UserData userData) throws ServerException {
-        if (userDataAccess.getUserData(userData.username()) == null) {
+        try {
+            if (userDataAccess.getUserData(userData.username()) == null) {
+                // Hash password
+                String hashedPW = BCrypt.hashpw(userData.password(), BCrypt.gensalt());
+                UserData hashedData = new UserData(userData.username(), hashedPW, userData.email());
 
-            userDataAccess.addUserData(userData);
+                userDataAccess.addUserData(hashedData);
+                authTokenData = new AuthTokenData(generateAuthToken(), hashedData.username());
+                authDataAccess.addAuthData(authTokenData);
 
-            authTokenData = new AuthTokenData(generateAuthToken(), userData.username());
-
-            authDataAccess.addAuthData(authTokenData);
-
-            return authTokenData;
-        }
-        else {
-            throw new ServerException("already taken", 403);
+                return authTokenData;
+            }
+            else {
+                throw new ServerException("already taken", 403);
+            }
+        } catch (ServerException | dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
         }
     }
 
@@ -56,18 +62,22 @@ public class Service {
      * @throws ServerException 401
      */
     public AuthTokenData login(String username, String password) throws ServerException {
-        UserData userData = userDataAccess.getUserData(username);
-        if (userData == null) {
-            throw new ServerException("unauthorized", 401);
-        }
-        if(!userData.password().equals(password)) {
-            throw new ServerException("unauthorized", 401);
-        }
+        try {
+            UserData userData = userDataAccess.getUserData(username);
+            if (userData == null) {
+                throw new ServerException("unauthorized", 401);
+            }
+            if (!BCrypt.checkpw(password, userData.password())) {
+                throw new ServerException("unauthorized", 401);
+            }
 
-        authTokenData = new AuthTokenData(generateAuthToken(), username);
-        authDataAccess.addAuthData(authTokenData);
+            authTokenData = new AuthTokenData(generateAuthToken(), username);
+            authDataAccess.addAuthData(authTokenData);
 
-        return authTokenData;
+            return authTokenData;
+        } catch (ServerException | dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
+        }
     }
 
     /**
@@ -76,11 +86,15 @@ public class Service {
      * @throws ServerException 401
      */
     public void logOut(String authToken) throws ServerException {
-        AuthTokenData authData = authDataAccess.getAuthData(authToken);
-        if (authData == null) {
-            throw new ServerException("unauthorized", 401);
+        try {
+            AuthTokenData authData = authDataAccess.getAuthData(authToken);
+            if (authData == null) {
+                throw new ServerException("unauthorized", 401);
+            }
+            authDataAccess.removeAuthData(authData);
+        } catch (ServerException | dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
         }
-        authDataAccess.removeAuthData(authData);
     }
 
     /**
@@ -90,11 +104,15 @@ public class Service {
      * @throws ServerException 401
      */
     public Collection<GameData> listGames(String authToken) throws ServerException {
-        AuthTokenData authData = authDataAccess.getAuthData(authToken);
-        if (authData != null) {
-            return gameDataAccess.getGameList();
+        try {
+            AuthTokenData authData = authDataAccess.getAuthData(authToken);
+            if (authData != null) {
+                return gameDataAccess.getGameList();
+            }
+            throw new ServerException("unauthorized", 401);
+        } catch (dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
         }
-        throw new ServerException("unauthorized", 401);
     }
 
     /**
@@ -105,18 +123,22 @@ public class Service {
      * @throws ServerException
      */
     public int createGame(String authToken, String gameName) throws ServerException {
-        AuthTokenData authData = authDataAccess.getAuthData(authToken);
-        if (authData != null) {
-            if (gameDataAccess.getGameByName(gameName) == null) {
-                ChessGame newGame = new ChessGame();
-                int gameID = generateGameID();
-                GameData newGameData = new GameData(gameID, null, null, gameName, newGame);
-                gameDataAccess.createGame(newGameData);
-                return gameID;
+        try {
+            AuthTokenData authData = authDataAccess.getAuthData(authToken);
+            if (authData != null) {
+                if (gameDataAccess.getGameByName(gameName) == null) {
+                    ChessGame newGame = new ChessGame();
+                    int gameID = generateGameID();
+                    GameData newGameData = new GameData(gameID, null, null, gameName, newGame);
+                    gameDataAccess.createGame(newGameData);
+                    return gameID;
+                }
+                throw new ServerException("already taken", 403);
             }
-            throw new ServerException("already taken", 403);
+            throw new ServerException("unauthorized", 401);
+        } catch (dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
         }
-        throw new ServerException("unauthorized", 401);
     }
 
     /**
@@ -126,39 +148,46 @@ public class Service {
      * @param gameID is the ID of the game we will try to join.
      */
     public void joinGame(String givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ServerException {
-        // Check for exceptions
-        AuthTokenData auth = authDataAccess.getAuthData(givenAuthData);
-        if (auth == null) {
-            throw new ServerException("unauthorized", 401);
-        }
-
-        GameData gameData = gameDataAccess.getGameByID(gameID);
-        if (gameData == null) {
-            throw new ServerException("bad request", 400);
-        }
-
-        // Set the user to the specified team
-        if(teamColor == ChessGame.TeamColor.WHITE){
-            if (gameData.whiteUsername() != null) {
-                throw new ServerException("already taken", 403);
+        try {
+            // Check for exceptions
+            AuthTokenData auth = authDataAccess.getAuthData(givenAuthData);
+            if (auth == null) {
+                throw new ServerException("unauthorized", 401);
             }
-            gameDataAccess.joinGame(auth, ChessGame.TeamColor.WHITE, gameID);
-        }
-        else if (teamColor == ChessGame.TeamColor.BLACK){
-            if (gameData.blackUsername() != null) {
-                throw new ServerException("already taken", 403);
+
+            GameData gameData = gameDataAccess.getGameByID(gameID);
+            if (gameData == null) {
+                throw new ServerException("bad request", 400);
             }
-            gameDataAccess.joinGame(auth, ChessGame.TeamColor.BLACK, gameID);
+
+            // Set the user to the specified team
+            if (teamColor == ChessGame.TeamColor.WHITE) {
+                if (gameData.whiteUsername() != null) {
+                    throw new ServerException("already taken", 403);
+                }
+                gameDataAccess.joinGame(auth, ChessGame.TeamColor.WHITE, gameID);
+            } else if (teamColor == ChessGame.TeamColor.BLACK) {
+                if (gameData.blackUsername() != null) {
+                    throw new ServerException("already taken", 403);
+                }
+                gameDataAccess.joinGame(auth, ChessGame.TeamColor.BLACK, gameID);
+            }
+        } catch (dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
         }
     }
 
     /**
      * guess what clearApp does to our database
      */
-    public void clearApp() {
-        gameDataAccess.clearGames();
-        userDataAccess.clearUsers();
-        authDataAccess.clearAuthTokens();
+    public void clearApp() throws ServerException {
+        try {
+            gameDataAccess.clearGames();
+            userDataAccess.clearUsers();
+            authDataAccess.clearAuthTokens();
+        } catch (dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
+        }
     }
 
     /**
@@ -167,28 +196,36 @@ public class Service {
     // The general implementation for this function came from
     // https://stackoverflow.com/questions/13992972/how-to-create-an-authentication-token-using-java
     // I don't recall us talking about how to do this ourselves, so I used this implementation.
-    private String generateAuthToken() {
+    private String generateAuthToken() throws ServerException {
         byte[] randomBytes = new byte[24];
         SECURE_RANDOM.nextBytes(randomBytes);
         String authToken = ENCODER.encodeToString(randomBytes);
 
-        // Verify uniqueness
-        if (authDataAccess.getAuthData(authToken) != null) {
-            return generateAuthToken();
+        try {
+            // Verify uniqueness
+            if (authDataAccess.getAuthData(authToken) != null) {
+                return generateAuthToken();
+            }
+        } catch (dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
         }
         return authToken;
     }
 
-    private int generateGameID() {
+    private int generateGameID() throws ServerException {
         byte[] randomBytes = new byte[4];
         SECURE_RANDOM.nextBytes(randomBytes);
         // Turn bytes into integer
         int gameID = Math.abs(java.nio.ByteBuffer.wrap(randomBytes).getInt());
 
-        // Verify uniqueness
-        while (gameDataAccess.getGameByID(gameID) != null) {
-            SECURE_RANDOM.nextBytes(randomBytes);
-            gameID = java.nio.ByteBuffer.wrap(randomBytes).getInt();
+        try {
+            // Verify uniqueness
+            while (gameDataAccess.getGameByID(gameID) != null) {
+                SECURE_RANDOM.nextBytes(randomBytes);
+                gameID = java.nio.ByteBuffer.wrap(randomBytes).getInt();
+            }
+        } catch (dataaccess.ServerException e) {
+            throw new ServerException(e.getMessage(), 500);
         }
         return gameID;
     }

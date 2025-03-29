@@ -138,7 +138,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     }
 
     @Override
-    public int executeUpdate(String statement, Object... params) throws server.ServerException, ServerException {
+    public int executeUpdate(String statement, Object... params) throws ServerException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 for (int i = 0; i < params.length; i++) {

@@ -17,7 +17,7 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
                 preparedStatement.setString(2, authData.username());
                 preparedStatement.executeUpdate();
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ServerException e) {
             throw new ServerException("Authdata add failed: " + e.getMessage());
         }
     }
@@ -31,7 +31,7 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
                 preparedStatement.setString(1, authData.authToken());
                 preparedStatement.executeUpdate();
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ServerException e) {
             throw new ServerException("Authdata remove failed: " + e.getMessage());
         }
 
@@ -52,7 +52,7 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ServerException e) {
             throw new ServerException("Authdata get failed: " + e.getMessage());
         }
         return null;
@@ -80,7 +80,7 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
                 }
                 return preparedStatement.executeUpdate();
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ServerException e) {
             throw new ServerException("Update failed: " + e.getMessage());
         }
     }
