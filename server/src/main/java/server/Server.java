@@ -267,13 +267,13 @@ public class Server {
 
     private void initializeDatabase() {
         try {
-            SqlAuthDataAccess authDataAccess = new SqlAuthDataAccess();
-            SqlGameDataAccess gameDataAccess = new SqlGameDataAccess();
             SqlUserDataAccess userDataAccess = new SqlUserDataAccess();
+            SqlGameDataAccess gameDataAccess = new SqlGameDataAccess();
+            SqlAuthDataAccess authDataAccess = new SqlAuthDataAccess();
 
+            userDataAccess.configureDatabase();
             authDataAccess.configureDatabase();
             gameDataAccess.configureDatabase();
-            userDataAccess.configureDatabase();
         } catch (dataaccess.ServerException e) {
             throw new RuntimeException("Database initialization failed: " + e.getMessage());
         }

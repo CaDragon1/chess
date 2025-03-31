@@ -47,7 +47,7 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
     @Override
     public void clearUsers() throws ServerException {
         try (var conn = DatabaseManager.getConnection()) {
-            var clear = "DELETE TABLE UserData";
+            var clear = "DELETE FROM UserData";
 
             try (var preparedStatement = conn.prepareStatement(clear)) {
                 preparedStatement.executeUpdate();

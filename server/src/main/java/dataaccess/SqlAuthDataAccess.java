@@ -61,7 +61,7 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
     @Override
     public void clearAuthTokens() throws ServerException {
         try (var conn = DatabaseManager.getConnection()) {
-            var clear = "DELETE TABLE AuthData";
+            var clear = "DELETE FROM AuthData";
 
             try (var preparedStatement = conn.prepareStatement(clear)) {
                 preparedStatement.executeUpdate();
@@ -87,10 +87,10 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
 
     private final String[] createStatements = {
             """
-                CREATE TABLE IF NOT EXISTS  AuthData (
+                CREATE TABLE IF NOT EXISTS AuthData (
                 `authToken` INT NOT NULL PRIMARY KEY,
-                `username` varChar(256) NOT NULL,
-                FOREIGN KEY (username) REFERENCES UserData(username) ON DELETE SET NULL,
+                `username` varChar(256),
+                FOREIGN KEY (username) REFERENCES UserData(username) ON DELETE SET NULL
                 )
             """
     };

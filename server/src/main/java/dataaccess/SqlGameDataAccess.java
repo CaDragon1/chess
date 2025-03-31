@@ -127,7 +127,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     @Override
     public void clearGames() throws ServerException {
         try (var conn = DatabaseManager.getConnection()) {
-            var clear = "DELETE TABLE GameData";
+            var clear = "DELETE FROM GameData";
 
             try (var preparedStatement = conn.prepareStatement(clear)) {
                 preparedStatement.executeUpdate();
