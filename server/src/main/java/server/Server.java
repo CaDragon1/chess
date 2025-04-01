@@ -267,11 +267,13 @@ public class Server {
 
     private void initializeDatabase() {
         try {
+            // User data initialized first
             SqlUserDataAccess userDataAccess = new SqlUserDataAccess();
+            userDataAccess.configureDatabase();
+
             SqlGameDataAccess gameDataAccess = new SqlGameDataAccess();
             SqlAuthDataAccess authDataAccess = new SqlAuthDataAccess();
 
-            userDataAccess.configureDatabase();
             authDataAccess.configureDatabase();
             gameDataAccess.configureDatabase();
         } catch (dataaccess.ServerException e) {

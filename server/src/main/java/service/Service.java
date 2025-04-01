@@ -34,6 +34,10 @@ public class Service {
      * @throws ServerException 403: name already taken
      */
     public AuthTokenData register(UserData userData) throws ServerException {
+        // Input validation on the service level
+        if (userData.username() == null || userData.password() == null || userData.email() == null) {
+            throw new ServerException("bad request", 400);
+        }
         try {
             if (userDataAccess.getUserData(userData.username()) == null) {
                 // Hash password
@@ -49,7 +53,7 @@ public class Service {
             else {
                 throw new ServerException("already taken", 403);
             }
-        } catch (ServerException | dataaccess.ServerException e) {
+        } catch (dataaccess.ServerException e) {
             throw new ServerException(e.getMessage(), 500);
         }
     }
@@ -229,4 +233,5 @@ public class Service {
         }
         return gameID;
     }
+
 }

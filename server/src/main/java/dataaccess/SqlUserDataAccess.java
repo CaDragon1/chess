@@ -3,29 +3,48 @@ package dataaccess;
 import models.AuthTokenData;
 import models.UserData;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
     @Override
-    public UserData getUserData(String username) throws ServerException {
+    public UserData getUserData(String username) throws ServerException, server.ServerException {
         try (var conn = DatabaseManager.getConnection()) {
             var fetch = "SELECT * FROM UserData WHERE username = ?";
 
-            try (var preparedStatement = conn.prepareStatement(fetch)) {
-                preparedStatement.setString(1, username);
-
-                try (var response = preparedStatement.executeQuery()) {
-                    if (response.next()) {
-                        return new UserData(response.getString("username"),
-                                response.getString("password"),
-                                response.getString("email"));
-                    }
-                }
+            UserData response = getUserDataFetch(username, conn, fetch);
+            if (response.username() != null && response.password() != null && response.email() != null) {
+                return response;
             }
         } catch (SQLException e) {
-            throw new ServerException("Userdata get failed: " + e.getMessage());
+            throw new server.ServerException("Userdata get failed: " + e.getMessage(), 500);
         }
         return null;
+    }
+
+    /**
+     * Helper method to assist in getting the user data
+     * @param username is the given username to search for
+     * @param conn is the database connection
+     * @param fetch is the fetch statement
+     * @return the userdata if it exists
+     * @throws SQLException if no userdata exists
+     */
+    private static UserData getUserDataFetch(String username, Connection conn, String fetch) throws SQLException {
+        try (var preparedStatement = conn.prepareStatement(fetch)) {
+            preparedStatement.setString(1, username);
+
+            try (var response = preparedStatement.executeQuery()) {
+                if (response.next()) {
+                    return new UserData(response.getString("username"),
+                            response.getString("password"),
+                            response.getString("email"));
+                }
+                else {
+                    throw new SQLException("User not found");
+                }
+            }
+        }
     }
 
     @Override

@@ -6,7 +6,7 @@ public interface UserDataAccess {
     /**
      * UserData methods
      */
-    UserData getUserData(String username) throws ServerException;
+    UserData getUserData(String username) throws ServerException, server.ServerException;
 
     void addUserData(UserData userData) throws ServerException;
 
