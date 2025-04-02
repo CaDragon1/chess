@@ -29,7 +29,12 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
 
             try (var preparedStatement = conn.prepareStatement(remove)) {
                 preparedStatement.setString(1, authData.authToken());
-                preparedStatement.executeUpdate();
+                // Learned that executeUpdate returns an int! Exciting
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected == 0) {
+                    throw new ServerException("Auth token not found");
+                }
             }
         } catch (SQLException | ServerException e) {
             throw new ServerException("Authdata remove failed: " + e.getMessage());
@@ -46,16 +51,16 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
                 preparedStatement.setString(1, authData);
 
                 try (var response = preparedStatement.executeQuery()) {
-                    if (response.next()) {
-                        return new AuthTokenData(response.getString("authToken"),
-                                response.getString("username"));
+                    if (!response.next()) {
+                        throw new ServerException("Authentication token not found");
                     }
+                    return new AuthTokenData(response.getString("authToken"),
+                            response.getString("username"));
                 }
             }
         } catch (SQLException | ServerException e) {
             throw new ServerException("Authdata get failed: " + e.getMessage());
         }
-        return null;
     }
 
     @Override
@@ -88,9 +93,8 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
     private final String[] createStatements = {
             """
                 CREATE TABLE IF NOT EXISTS AuthData (
-                `authToken` INT NOT NULL PRIMARY KEY,
-                `username` varChar(256),
-                FOREIGN KEY (username) REFERENCES UserData(username) ON DELETE SET NULL
+                `authToken` varChar(64) NOT NULL PRIMARY KEY,
+                `username` varChar(256) NOT NULL
                 )
             """
     };
