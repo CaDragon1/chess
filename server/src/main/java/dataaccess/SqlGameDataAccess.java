@@ -44,35 +44,35 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
                 preparedStatement.setString(1, gameName);
 
                 try (var response = preparedStatement.executeQuery()) {
-                    if (response.next()) {
-                        return deserializeGameData(response);
+                    if (!response.next()) {
+                        throw new ServerException("Invalid game name");
                     }
+                    return deserializeGameData(response);
                 }
             }
         } catch (SQLException e) {
             throw new ServerException("gameData getGameByName failed: " + e.getMessage());
         }
-        return null;
     }
 
     @Override
     public GameData getGameByID(int gameID) throws ServerException {
         try (var conn = DatabaseManager.getConnection()) {
-            String fetch = "SELECT * FROM GameData WHERE gameName = ?";
+            String fetch = "SELECT * FROM GameData WHERE gameID = ?";
 
             try (var preparedStatement = conn.prepareStatement(fetch)) {
                 preparedStatement.setInt(1, gameID);
 
                 try (var response = preparedStatement.executeQuery()) {
-                    if (response.next()) {
-                        return deserializeGameData(response);
+                    if (!response.next()) {
+                        throw new ServerException("Invalid game ID");
                     }
+                    return deserializeGameData(response);
                 }
             }
         } catch (SQLException e) {
             throw new ServerException("gameData getGameByID failed: " + e.getMessage());
         }
-        return null;
     }
 
     @Override
