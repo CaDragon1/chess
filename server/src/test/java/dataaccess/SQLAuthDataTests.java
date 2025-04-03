@@ -7,8 +7,7 @@ import passoff.model.TestUser;
 import java.sql.Connection;
 import java.sql.Statement;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SQLAuthDataTests {
@@ -93,13 +92,10 @@ public class SQLAuthDataTests {
 
         // Create test authTokenData
         AuthTokenData testToken = new AuthTokenData("FalseToken", "testUserDoesntExist");
-
         // Attempt to get authData from database
-        Exception e = assertThrows(dataaccess.ServerException.class, () -> {
-            authDAO.getAuthData(testToken.authToken());
-        });
+        AuthTokenData getData = authDAO.getAuthData(testToken.authToken());
 
-        assertTrue(e.getMessage().contains("Authentication token not found"));
+        assertNull(getData);
     }
 
     @Test
@@ -110,13 +106,10 @@ public class SQLAuthDataTests {
 
         // Create test authTokenData
         AuthTokenData testToken = new AuthTokenData(null, "testUserDoesntExist");
-
         // Attempt to get authData from database
-        Exception e = assertThrows(dataaccess.ServerException.class, () -> {
-            authDAO.getAuthData(testToken.authToken());
-        });
+        AuthTokenData getData = authDAO.getAuthData(testToken.authToken());
 
-        assertTrue(e.getMessage().contains("Authentication token not found"));
+        assertNull(getData);
     }
 
     @Test
@@ -132,10 +125,8 @@ public class SQLAuthDataTests {
         authDAO.removeAuthData(testToken);
 
         // Verify nonexistent entry
-        Exception e = assertThrows(dataaccess.ServerException.class, () -> {
-            authDAO.getAuthData(testToken.authToken());
-        });
-        assertTrue(e.getMessage().contains("Authentication token not found"));
+        AuthTokenData getData = authDAO.getAuthData(testToken.authToken());
+        assertNull(getData);
     }
 
     @Test

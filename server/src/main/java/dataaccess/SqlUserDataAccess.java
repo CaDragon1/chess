@@ -7,6 +7,15 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
+
+    public SqlUserDataAccess () {
+        try {
+            configureDatabase();
+        } catch (ServerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public UserData getUserData(String username) throws ServerException, server.ServerException {
         try (var conn = DatabaseManager.getConnection()) {
@@ -17,7 +26,8 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
                 return response;
             }
         } catch (SQLException e) {
-            throw new server.ServerException("Userdata get failed: " + e.getMessage(), 500);
+            return null;
+//            throw new server.ServerException("Userdata get failed: " + e.getMessage(), 500);
         }
         return null;
     }

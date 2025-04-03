@@ -133,6 +133,9 @@ public class Service {
                 if (gameDataAccess.getGameByName(gameName) == null) {
                     ChessGame newGame = new ChessGame();
                     int gameID = generateGameID();
+                    while (gameDataAccess.getGameByID(gameID) != null) {
+                        gameID = generateGameID();
+                    }
                     GameData newGameData = new GameData(gameID, null, null, gameName, newGame);
                     gameDataAccess.createGame(newGameData);
                     return gameID;
@@ -216,22 +219,22 @@ public class Service {
         return authToken;
     }
 
-    private int generateGameID() throws ServerException {
+    private int generateGameID() {
         byte[] randomBytes = new byte[4];
         SECURE_RANDOM.nextBytes(randomBytes);
         // Turn bytes into integer
         int gameID = Math.abs(java.nio.ByteBuffer.wrap(randomBytes).getInt());
 
-        try {
-            // Verify uniqueness
-            while (gameDataAccess.getGameByID(gameID) != null) {
-                SECURE_RANDOM.nextBytes(randomBytes);
-                gameID = java.nio.ByteBuffer.wrap(randomBytes).getInt();
-            }
-        } catch (dataaccess.ServerException e) {
-            throw new ServerException(e.getMessage(), 500);
-        }
         return gameID;
+//        try {
+//            // Verify uniqueness
+//            while (gameDataAccess.getGameByID(gameID) != null) {
+//                SECURE_RANDOM.nextBytes(randomBytes);
+//                gameID = java.nio.ByteBuffer.wrap(randomBytes).getInt();
+//            }
+//            return gameID;
+//        } catch (dataaccess.ServerException e) {
+//            throw new ServerException(e.getMessage(), 500);
+//        }
     }
-
 }

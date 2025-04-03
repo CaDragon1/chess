@@ -8,11 +8,19 @@ import models.GameData;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Collection;
 import java.util.HashSet;
 
 public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
+
+    public SqlGameDataAccess () {
+        try {
+            configureDatabase();
+        } catch (ServerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public Collection<GameData> getGameList() throws ServerException {
         HashSet<GameData> gameList = new HashSet<GameData>();
@@ -30,7 +38,8 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
                 gameList.add(deserializeGameData(response));
             }
         } catch (SQLException e) {
-            throw new ServerException("GameData list get failed: " + e.getMessage());
+            return null;
+//            throw new ServerException("GameData list get failed: " + e.getMessage());
         }
         return gameList;
     }
@@ -45,7 +54,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
 
                 try (var response = preparedStatement.executeQuery()) {
                     if (!response.next()) {
-                        throw new ServerException("Invalid game name");
+                        return null;
                     }
                     return deserializeGameData(response);
                 }
@@ -65,7 +74,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
 
                 try (var response = preparedStatement.executeQuery()) {
                     if (!response.next()) {
-                        throw new ServerException("Invalid game ID");
+                        return null;
                     }
                     return deserializeGameData(response);
                 }

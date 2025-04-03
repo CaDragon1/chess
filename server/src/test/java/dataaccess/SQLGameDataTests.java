@@ -70,20 +70,16 @@ public class SQLGameDataTests {
     @DisplayName("Get Game By Name - Failure")
     @Order(2)
     public void getGameByName_Failure() throws Exception {
-        Exception e = assertThrows(dataaccess.ServerException.class, () -> {
-            GameData fetchGame = gameDataAccess.getGameByName(testGameData.gameName());
-        });
-        assertTrue(e.getMessage().contains("Invalid game name"));
+        GameData fetchGame = gameDataAccess.getGameByName(testGameData.gameName());
+        assertNull(fetchGame);
     }
 
     @Test
     @DisplayName("Get Game By ID - Failure")
     @Order(2)
     public void getGameByID_Failure() throws Exception {
-        Exception e = assertThrows(dataaccess.ServerException.class, () -> {
-            GameData fetchGame = gameDataAccess.getGameByID(testGameData.gameID());
-        });
-        assertTrue(e.getMessage().contains("Invalid game ID"));
+        GameData fetchGame = gameDataAccess.getGameByID(testGameData.gameID());
+        assertNull(fetchGame);
     }
 
     @Test
@@ -230,9 +226,7 @@ public class SQLGameDataTests {
 
         gameDataAccess.clearGames();
 
-        Exception e = assertThrows(ServerException.class, () -> {
-            gameDataAccess.getGameByID(testGameData.gameID());
-        });
-        assertTrue(e.getMessage().contains("Invalid game ID"));
+        GameData fetchGame = gameDataAccess.getGameByID(testGameData.gameID());
+        assertNull(fetchGame);
     }
 }

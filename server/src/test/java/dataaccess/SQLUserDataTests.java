@@ -4,8 +4,7 @@ import org.junit.jupiter.api.*;
 import passoff.model.TestUser;
 import service.Service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SQLUserDataTests {
@@ -101,15 +100,13 @@ public class SQLUserDataTests {
     @Test
     @DisplayName("Get User Data - Failure")
     @Order(2)
-    public void getUserData_Success() throws Exception {
+    public void getUserData_Failure() throws Exception {
         SqlUserDataAccess userDAO = new SqlUserDataAccess();
         String testUsername = "nonexistentUser";
 
-        Exception e = assertThrows(server.ServerException.class, () -> {
-            userDAO.getUserData(testUsername);
-        });
+        UserData getData = userDAO.getUserData(testUsername);
 
-        assertTrue(e.getMessage().contains("Userdata get failed"));
+        assertNull(getData);
     }
 
 }

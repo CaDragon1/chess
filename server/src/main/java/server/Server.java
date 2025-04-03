@@ -1,6 +1,5 @@
 package server;
 
-import dataaccess.DatabaseManager;
 import dataaccess.SqlAuthDataAccess;
 import dataaccess.SqlGameDataAccess;
 import dataaccess.SqlUserDataAccess;
@@ -13,7 +12,6 @@ import com.google.gson.JsonSyntaxException;
 import service.Service;
 import spark.*;
 import com.google.gson.Gson;
-//import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Collection;
 import java.util.Map;

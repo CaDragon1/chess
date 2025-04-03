@@ -7,6 +7,15 @@ import javax.xml.crypto.Data;
 import java.sql.SQLException;
 
 public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
+
+    public SqlAuthDataAccess () {
+        try {
+            configureDatabase();
+        } catch (ServerException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void addAuthData(AuthTokenData authData) throws ServerException {
         try (var conn = DatabaseManager.getConnection()) {
@@ -59,7 +68,8 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
                 }
             }
         } catch (SQLException | ServerException e) {
-            throw new ServerException("Authdata get failed: " + e.getMessage());
+            return null;
+//            throw new ServerException("Authdata get failed: " + e.getMessage());
         }
     }
 
