@@ -27,7 +27,6 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
             }
         } catch (SQLException e) {
             return null;
-//            throw new server.ServerException("Userdata get failed: " + e.getMessage(), 500);
         }
         return null;
     }

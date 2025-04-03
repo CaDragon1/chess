@@ -54,6 +54,9 @@ public class Service {
                 throw new ServerException("already taken", 403);
             }
         } catch (dataaccess.ServerException e) {
+            if (e.getMessage().contains("unauthorized")) {
+                throw new ServerException(e.getMessage(), 401);
+            }
             throw new ServerException(e.getMessage(), 500);
         }
     }
@@ -80,6 +83,9 @@ public class Service {
 
             return authTokenData;
         } catch (ServerException | dataaccess.ServerException e) {
+            if (e.getMessage().contains("unauthorized")) {
+                throw new ServerException(e.getMessage(), 401);
+            }
             throw new ServerException(e.getMessage(), 500);
         }
     }
@@ -97,6 +103,9 @@ public class Service {
             }
             authDataAccess.removeAuthData(authData);
         } catch (ServerException | dataaccess.ServerException e) {
+            if (e.getMessage().contains("unauthorized")) {
+                throw new ServerException(e.getMessage(), 401);
+            }
             throw new ServerException(e.getMessage(), 500);
         }
     }
