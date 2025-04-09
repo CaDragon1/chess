@@ -1,8 +1,8 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
-import models.AuthTokenData;
-import models.UserData;
+import models.*;
 import exception.ResponseException;
 
 import java.io.IOException;
@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.Collection;
 
 public class ServerFacade {
 
@@ -24,6 +25,40 @@ public class ServerFacade {
     public AuthTokenData registerUser(UserData userData) throws ResponseException {
         var path = "/user";
         return this.makeRequest("POST", path, userData, AuthTokenData.class);
+    }
+
+    public AuthTokenData loginUser(String username, String password) throws ResponseException {
+        var path = "/session";
+        LoginRequest loginRequest = new LoginRequest(username, password);
+        return this.makeRequest("POST", path, loginRequest, AuthTokenData.class);
+    }
+
+    public void logoutUser(String authToken) throws ResponseException {
+        var path = "/user";
+        this.makeRequest("DELETE", path, authToken, null);
+    }
+
+    public Collection<GameData> listGame(String authToken) throws ResponseException {
+        var path = "/game";
+        return this.makeRequest("GET", path, authToken, Collection.class);
+    }
+
+    public int createGame(String authToken, String gameName) throws ResponseException {
+        var path = "/game";
+        CreateGameRequest createRequest = new CreateGameRequest(authToken, gameName);
+        return this.makeRequest("POST", path, createRequest, int.class);
+    }
+
+    public void joinGame(String givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ResponseException {
+        var path = "/game";
+        JoinGameRequest joinRequest = new JoinGameRequest(givenAuthData, teamColor, gameID);
+        this.makeRequest("PUT", path, joinRequest, null);
+    }
+
+    public void clearDatabase() throws ResponseException {
+        var path = "/db";
+        this.makeRequest("DELETE", path, null, null);
+
     }
 
     // These helper functions were written by examining how the petshop example managed its own helper functions.
