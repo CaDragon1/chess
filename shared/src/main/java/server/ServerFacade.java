@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Map;
 
 public class ServerFacade {
 
@@ -24,51 +25,61 @@ public class ServerFacade {
 
     public AuthTokenData registerUser(UserData userData) throws ResponseException {
         var path = "/user";
-        return this.makeRequest("POST", path, userData, AuthTokenData.class);
+        return this.makeRequest("POST", path, userData, AuthTokenData.class, null);
     }
 
     public AuthTokenData loginUser(String username, String password) throws ResponseException {
         var path = "/session";
         LoginRequest loginRequest = new LoginRequest(username, password);
-        return this.makeRequest("POST", path, loginRequest, AuthTokenData.class);
+        return this.makeRequest("POST", path, loginRequest, AuthTokenData.class, null);
     }
 
     public void logoutUser(String authToken) throws ResponseException {
-        var path = "/user";
-        this.makeRequest("DELETE", path, authToken, null);
+        var path = "/session";
+        this.makeRequest("DELETE", path, null, null, authToken);
     }
 
     public Collection<GameData> listGame(String authToken) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("GET", path, authToken, Collection.class);
+        // Record for the game collection
+        record ListedGames(Collection<GameData> gameList) {}
+        // Convert return into GameData collection
+        return this.makeRequest("GET", path, null, ListedGames.class, authToken).gameList;
     }
 
     public int createGame(String authToken, String gameName) throws ResponseException {
         var path = "/game";
-        CreateGameRequest createRequest = new CreateGameRequest(authToken, gameName);
-        return this.makeRequest("POST", path, createRequest, int.class);
+        var requestBody = Map.of("gameName", gameName);
+        // Record for int response conversion
+        record createdGame(int gameID) {}
+        return this.makeRequest("POST", path, requestBody, createdGame.class, authToken).gameID;
     }
 
     public void joinGame(String givenAuthData, ChessGame.TeamColor teamColor, int gameID) throws ResponseException {
         var path = "/game";
-        JoinGameRequest joinRequest = new JoinGameRequest(givenAuthData, teamColor, gameID);
-        this.makeRequest("PUT", path, joinRequest, null);
+        var requestBody = Map.of("playerColor", teamColor, "gameID", gameID);
+        this.makeRequest("PUT", path, requestBody, null, givenAuthData);
     }
 
     public void clearDatabase() throws ResponseException {
         var path = "/db";
-        this.makeRequest("DELETE", path, null, null);
+        this.makeRequest("DELETE", path, null, null, null);
 
     }
 
     // These helper functions were written by examining how the petshop example managed its own helper functions.
-    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException {
+    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass, String authToken) throws ResponseException {
         try {
             // set URL connection
             URL reqUrl = (new URI(serverUrl + path)).toURL();
             HttpURLConnection connection = (HttpURLConnection) reqUrl.openConnection();
             connection.setRequestMethod(method);
             connection.setDoOutput(true);
+
+            // Set authToken in header
+            if (authToken != null) {
+                connection.setRequestProperty("Authorization", authToken);
+            }
 
             // turn params into a request object
             writeJsonBody(request, connection);
