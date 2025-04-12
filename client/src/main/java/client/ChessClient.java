@@ -1,3 +1,5 @@
+package client;
+
 import chess.ChessGame;
 import com.sun.nio.sctp.NotificationHandler;
 import exception.ResponseException;
@@ -7,6 +9,7 @@ import models.UserData;
 import server.ServerFacade;
 import ui.DataCache;
 import ui.EscapeSequences;
+
 
 import java.util.Collection;
 
@@ -24,6 +27,8 @@ public class ChessClient {
         this.notificationHandler = notificationHandler;
         isLoggedIn = Boolean.FALSE;
         dataCache = new DataCache();
+
+
     }
 
     public String eval(String input) {
@@ -47,8 +52,7 @@ public class ChessClient {
         }
     }
 
-    private String register(String... parameters) throws ResponseException {
-        validateParameterLength(parameters, 3);
+    public String register(String... parameters) throws ResponseException {
 
         UserData user = new UserData(parameters[1], parameters[2], parameters[3]);
 
@@ -60,16 +64,14 @@ public class ChessClient {
         return user.username() + " has been successfully registered!";
     }
 
-    private String login(String... parameters) throws ResponseException {
-        validateParameterLength(parameters, 2);
+    public String login(String... parameters) throws ResponseException {
         AuthTokenData authTokenData = server.loginUser(parameters[1], parameters[2]);
         dataCache.setAuthToken(authTokenData.authToken());
         isLoggedIn = Boolean.TRUE;
         return parameters[1] + " has been successfully logged in!";
     }
 
-    private String listGames(String... parameters) throws ResponseException {
-        validateParameterLength(parameters, 1);
+    public String listGames(String... parameters) throws ResponseException {
 
         Collection<GameData> gameList = server.listGame(parameters[1]);
         dataCache.setGameCache(gameList);
@@ -94,8 +96,7 @@ public class ChessClient {
     }
 
     // parameters only need to be a game name. AuthToken is stored in the DataCache.
-    private String createGame(String... parameters) throws ResponseException {
-        validateParameterLength(parameters, 1);
+    public String createGame(String... parameters) throws ResponseException {
 
         int gameID = server.createGame(dataCache.getAuthToken(), parameters[1]);
 
@@ -105,7 +106,7 @@ public class ChessClient {
     }
 
     // parameters[1] is the team color, and parameters[2] is the gameID
-    private String joinGame(String... parameters) throws ResponseException {
+    public String joinGame(String... parameters) throws ResponseException {
         // Determine team color
         ChessGame.TeamColor teamColor;
         if (parameters[1].contains("white") || parameters[1].contains("WHITE")) {
@@ -130,14 +131,13 @@ public class ChessClient {
         return resultString.toString();
     }
 
-    private String
+    public String observeGame(String... parameters) {
 
-    private void validateParameterLength(String[] params, int expectedLength) throws ResponseException {
-        if (params.length < expectedLength) {
-            throw new ResponseException("Parameters missing", 400);
-        }
-        else if (params.length > expectedLength) {
-            throw new ResponseException("Too many parameters given", 400);
-        }
+    }
+
+    public String logout() throws ResponseException {
+        server.logoutUser(dataCache.getAuthToken());
+        dataCache.setAuthToken(null);
+        return "Logout successful!";
     }
 }
