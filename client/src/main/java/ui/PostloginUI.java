@@ -1,12 +1,15 @@
 package ui;
 
+import chess.ChessGame;
 import client.ChessClient;
 import exception.ResponseException;
+import models.GameData;
 
 public class PostloginUI extends BaseUI {
 
     public PostloginUI(ChessClient client) {
         super(client);
+        state = UIStatesEnum.POSTLOGINUI;
     }
 
     @Override
@@ -36,12 +39,33 @@ public class PostloginUI extends BaseUI {
         validateParameterLength(tokens, 3);
         String joinTeam = tokens[1];
         String gameID = tokens[2];
-        return client.joinGame(joinTeam, gameID);
+        String result = client.joinGame(joinTeam,gameID);
+        ChessGame.TeamColor teamColor = (joinTeam.toUpperCase() == "WHITE" ?
+                ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
+
+        GameData gameData = client.getDataCache().getGameByIndex(Integer.parseInt(gameID));
+        ChessboardDrawer drawer = new ChessboardDrawer(gameData.game(), teamColor);
+        GameUI gameUI = new GameUI(client, drawer);
+        client.setState(gameUI);
+
+        return result;
     }
 
     private String observe(String[] tokens) throws ResponseException {
         validateParameterLength(tokens, 2);
-        return client.observeGame(tokens[1]);
+        int gameID = Integer.parseInt(tokens[1]);
+        String result = client.observeGame(tokens[1]);
+
+        GameData gameData = client.getDataCache().getGameByIndex(gameID);
+        ChessboardDrawer drawer = new ChessboardDrawer(gameData.game(), ChessGame.TeamColor.WHITE);
+        GameUI gameUI = new GameUI(client, drawer);
+        client.setState(gameUI);
+
+        return result;
+    }
+
+    private String logoutUser() throws ResponseException {
+        return client.logout();
     }
 
     @Override

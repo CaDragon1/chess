@@ -6,9 +6,7 @@ import exception.ResponseException;
 import models.AuthTokenData;
 import models.GameData;
 import models.UserData;
-import server.ServerFacade;
-import ui.DataCache;
-import ui.EscapeSequences;
+import ui.*;
 
 
 import java.util.Collection;
@@ -18,7 +16,9 @@ public class ChessClient {
     private final String serverURL;
     private final NotificationHandler notificationHandler;
     private Boolean isLoggedIn;
-    private DataCache dataCache;
+    private final DataCache dataCache;
+    private ChessboardDrawer drawBoard;
+    private UIStatesEnum currentState;
 
     // Set up client server connection
     public ChessClient(String serverURL, NotificationHandler notificationHandler) {
@@ -26,9 +26,9 @@ public class ChessClient {
         server = new ServerFacade(this.serverURL);
         this.notificationHandler = notificationHandler;
         isLoggedIn = Boolean.FALSE;
+        currentState = UIStatesEnum.PRELOGINUI;
         dataCache = new DataCache();
-
-
+        drawBoard = new ChessboardDrawer();
     }
 
     public String eval(String input) {
@@ -61,6 +61,7 @@ public class ChessClient {
         dataCache.setAuthToken(authTokenData.authToken());
 
         isLoggedIn = Boolean.TRUE;
+        currentState = UIStatesEnum.POSTLOGINUI;
         return user.username() + " has been successfully registered!";
     }
 
@@ -68,6 +69,7 @@ public class ChessClient {
         AuthTokenData authTokenData = server.loginUser(parameters[1], parameters[2]);
         dataCache.setAuthToken(authTokenData.authToken());
         isLoggedIn = Boolean.TRUE;
+        currentState = UIStatesEnum.POSTLOGINUI;
         return parameters[1] + " has been successfully logged in!";
     }
 
@@ -107,6 +109,26 @@ public class ChessClient {
 
     // parameters[1] is the team color, and parameters[2] is the gameID
     public String joinGame(String... parameters) throws ResponseException {
+        ChessGame.TeamColor teamColor = getTeamColor(parameters);
+        // Find the gameID based on our cacheData number system
+        GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[2]));
+
+        server.joinGame(dataCache.getAuthToken(), teamColor, gameData.gameID());
+        currentState = UIStatesEnum.GAMEUI;
+
+        // Set the gameboard drawer
+        drawBoard.setChessGame(gameData.game());
+        drawBoard.setPerspective(teamColor);
+
+        StringBuilder resultString = new StringBuilder();
+        resultString.append(String.format("Game - %s\nWhite - %s%s%s\nBlack - %s%s%s",
+                EscapeSequences.SET_TEXT_COLOR_BLUE, gameData.gameName(), EscapeSequences.RESET_TEXT_COLOR,
+                EscapeSequences.SET_TEXT_COLOR_WHITE, gameData.whiteUsername(), EscapeSequences.RESET_TEXT_COLOR,
+                EscapeSequences.SET_BG_COLOR_DARK_GREY, gameData.blackUsername(), EscapeSequences.RESET_TEXT_COLOR));
+        return resultString.toString();
+    }
+
+    private static ChessGame.TeamColor getTeamColor(String[] parameters) {
         // Determine team color
         ChessGame.TeamColor teamColor;
         if (parameters[1].contains("white") || parameters[1].contains("WHITE")) {
@@ -118,20 +140,21 @@ public class ChessClient {
         else {
             teamColor = null;
         }
-        // Find the gameID based on our cacheData number system
-        GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[2]));
-
-        server.joinGame(dataCache.getAuthToken(), teamColor, gameData.gameID());
-
-        StringBuilder resultString = new StringBuilder();
-        resultString.append(String.format("Game - %s\nWhite - %s%s%s\nBlack - %s%s%s",
-                EscapeSequences.SET_TEXT_COLOR_BLUE, gameData.gameName(), EscapeSequences.RESET_TEXT_COLOR,
-                EscapeSequences.SET_TEXT_COLOR_WHITE, gameData.whiteUsername(), EscapeSequences.RESET_TEXT_COLOR,
-                EscapeSequences.SET_BG_COLOR_DARK_GREY, gameData.blackUsername(), EscapeSequences.RESET_TEXT_COLOR));
-        return resultString.toString();
+        return teamColor;
     }
 
-    public String observeGame(String... parameters) {
+    // parameters[1] is the gameID
+    public String observeGame(String... parameters) throws ResponseException {
+        GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[2]));
+
+        server.joinGame(dataCache.getAuthToken(), null, gameData.gameID());
+        currentState = UIStatesEnum.GAMEUI;
+
+        // Set the gameboard drawer
+        drawBoard.setChessGame(gameData.game());
+    }
+
+    public String help() throws ResponseException {
 
     }
 
@@ -139,5 +162,17 @@ public class ChessClient {
         server.logoutUser(dataCache.getAuthToken());
         dataCache.setAuthToken(null);
         return "Logout successful!";
+    }
+
+    public DataCache getDataCache() {
+        return dataCache;
+    }
+
+    public void setState(GameUI gameUI) {
+        currentState = gameUI.state;
+    }
+
+    public UIStatesEnum getCurrentState() {
+        return currentState;
     }
 }

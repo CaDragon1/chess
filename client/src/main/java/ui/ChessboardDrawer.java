@@ -4,18 +4,18 @@ import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
 
-public class drawChessboard {
+public class ChessboardDrawer {
     private ChessGame chessGame;
     private ChessGame.TeamColor perspective;
-    private StringBuilder boardString;
+    private final StringBuilder boardString;
 
-    drawChessboard() {
+    public ChessboardDrawer() {
         chessGame = new ChessGame();
         perspective = ChessGame.TeamColor.WHITE;
         boardString = new StringBuilder();
     }
 
-    drawChessboard(ChessGame currentGame, ChessGame.TeamColor teamColor) {
+    public ChessboardDrawer(ChessGame currentGame, ChessGame.TeamColor teamColor) {
         chessGame = currentGame;
         perspective = teamColor;
         boardString = new StringBuilder();
@@ -36,6 +36,11 @@ public class drawChessboard {
         boardString.append("   a b c d e f g h\n");
         boardString.append(clearFormatting);
 
+        writeChessBoard(direction, formatCoordinates, clearFormatting);
+        return boardString.toString();
+    }
+
+    private void writeChessBoard(int direction, String formatCoordinates, String clearFormatting) {
         // Loop to print the board
         for (int row = 0; row < 8; row++) {
             // Print label for rows 1-8
@@ -51,7 +56,6 @@ public class drawChessboard {
             }
             boardString.append("\n");
         }
-        return boardString.toString();
     }
 
     private String getSquareColor(int row, int col) {
@@ -61,6 +65,7 @@ public class drawChessboard {
 
     /**
      * Function to get the correct piece for display on the board
+     *
      * @param chessPiece is the piece we're checking
      * @return the correct color and Unicode chess piece
      */
@@ -68,8 +73,7 @@ public class drawChessboard {
         StringBuilder pieceString = new StringBuilder();
         if (chessPiece == null) {
             pieceString.append("   ");
-        }
-        else {
+        } else {
             pieceString.append(" ");
             // Set piece shape
             switch (chessPiece.getPieceType()) {
@@ -85,7 +89,8 @@ public class drawChessboard {
                         EscapeSequences.WHITE_ROOK : EscapeSequences.BLACK_ROOK);
                 case PAWN -> pieceString.append(chessPiece.getTeamColor() == ChessGame.TeamColor.WHITE ?
                         EscapeSequences.WHITE_PAWN : EscapeSequences.BLACK_PAWN);
-            };
+            }
+            ;
             pieceString.append(" ");
         }
         return pieceString.toString();

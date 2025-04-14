@@ -6,6 +6,7 @@ import exception.ResponseException;
 public class PreloginUI extends BaseUI {
     public PreloginUI(ChessClient client) {
         super(client);
+        state = UIStatesEnum.PRELOGINUI;
     }
 
     @Override

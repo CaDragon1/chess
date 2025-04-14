@@ -5,6 +5,7 @@ import exception.ResponseException;
 
 public abstract class BaseUI implements UIState{
     protected final ChessClient client;
+    public UIStatesEnum state;
 
     public BaseUI(ChessClient client) {
         this.client = client;
