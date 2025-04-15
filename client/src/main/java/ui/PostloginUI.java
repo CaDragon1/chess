@@ -40,13 +40,12 @@ public class PostloginUI extends BaseUI {
         String joinTeam = tokens[1];
         String gameID = tokens[2];
         String result = client.joinGame(joinTeam,gameID);
-        ChessGame.TeamColor teamColor = (joinTeam.toUpperCase() == "WHITE" ?
+        ChessGame.TeamColor teamColor = (joinTeam.equalsIgnoreCase("WHITE") ?
                 ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK);
 
         GameData gameData = client.getDataCache().getGameByIndex(Integer.parseInt(gameID));
         ChessboardDrawer drawer = new ChessboardDrawer(gameData.game(), teamColor);
         GameUI gameUI = new GameUI(client, drawer);
-        client.setState(gameUI);
 
         return result;
     }
@@ -59,7 +58,6 @@ public class PostloginUI extends BaseUI {
         GameData gameData = client.getDataCache().getGameByIndex(gameID);
         ChessboardDrawer drawer = new ChessboardDrawer(gameData.game(), ChessGame.TeamColor.WHITE);
         GameUI gameUI = new GameUI(client, drawer);
-        client.setState(gameUI);
 
         return result;
     }
@@ -70,6 +68,15 @@ public class PostloginUI extends BaseUI {
 
     @Override
     public String displayHelpInfo() {
-        return "";
+        return """
+                --- HELP ---
+                Type a command to get the corresponding action.
+                - list                        | List all existing games.
+                - create [game name]          | Create a new game with your specified name.
+                - join [team color] [game ID] | Join an existing game with the specified game ID.
+                - observe [game ID]           | Observe a specified game as a spectator.
+                - logout                      | Logout the current user.
+                - help                        | Display this help menu.
+                """;
     }
 }

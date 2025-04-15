@@ -22,24 +22,33 @@ public class REPL {
 
 
     public void run() {
-        System.out.println("Welcome to Minecraft, I am Steve");
+        boolean keepRunning = true;
+        System.out.println("Welcome to Minecraft, I am Steve\nType a command here! Type 'help' for a list of commands.");
+        System.out.print(">");
 
         // Trim inputs for accuracy
-        String input = scanner.nextLine().trim();
+        while (keepRunning) {
+            String input = scanner.nextLine().trim();
 
-        try {
-            String result = currentUI.handler(input);
-            System.out.println(result);
-        } catch (ResponseException e) {
-            System.out.println("Error: " + e.getMessage());
+            try {
+                String result = currentUI.handler(input);
+                // Adding extra commands for user friendliness :D
+                if (result.equalsIgnoreCase("quit") || result.equalsIgnoreCase("exit") ||
+                        result.equalsIgnoreCase("stop") || result.equalsIgnoreCase("back")) {
+                    updateState();
+                }
+                System.out.println(result);
+            } catch (ResponseException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
         }
+        scanner.close();
     }
 
     /**
      * Function to change UIState so that each loop seeks different commands
      */
     private void updateState() {
-        UIStatesEnum currentState = client.getCurrentState();
 
         if (currentUI.state != currentState) {
             switch (currentState) {

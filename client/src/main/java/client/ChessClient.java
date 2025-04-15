@@ -18,7 +18,6 @@ public class ChessClient {
     private Boolean isLoggedIn;
     private final DataCache dataCache;
     private ChessboardDrawer drawBoard;
-    private UIStatesEnum currentState;
 
     // Set up client server connection
     public ChessClient(String serverURL, NotificationHandler notificationHandler) {
@@ -26,30 +25,8 @@ public class ChessClient {
         server = new ServerFacade(this.serverURL);
         this.notificationHandler = notificationHandler;
         isLoggedIn = Boolean.FALSE;
-        currentState = UIStatesEnum.PRELOGINUI;
         dataCache = new DataCache();
         drawBoard = new ChessboardDrawer();
-    }
-
-    public String eval(String input) {
-        try {
-            // Read and separate tokens, commands, and parameters
-            String[] tokens = input.toLowerCase().split(" ");
-            String cmd = (tokens.length > 0) ? tokens[0] : "help";
-            return switch (cmd) {
-                case "register" -> register(tokens);
-                case "login" -> login(tokens);
-                case "list" -> listGames(tokens);
-                case "create" -> createGame(tokens);
-                case "join" -> joinGame(tokens);
-                case "observe" -> observeGame(tokens);
-                case "logout" -> logout();
-                case "quit" -> "quit";
-                default -> help();
-            };
-        } catch (ResponseException e) {
-            return "error: " + e.getMessage();
-        }
     }
 
     public String register(String... parameters) throws ResponseException {
@@ -61,7 +38,6 @@ public class ChessClient {
         dataCache.setAuthToken(authTokenData.authToken());
 
         isLoggedIn = Boolean.TRUE;
-        currentState = UIStatesEnum.POSTLOGINUI;
         return user.username() + " has been successfully registered!";
     }
 
@@ -69,7 +45,6 @@ public class ChessClient {
         AuthTokenData authTokenData = server.loginUser(parameters[1], parameters[2]);
         dataCache.setAuthToken(authTokenData.authToken());
         isLoggedIn = Boolean.TRUE;
-        currentState = UIStatesEnum.POSTLOGINUI;
         return parameters[1] + " has been successfully logged in!";
     }
 
@@ -114,7 +89,6 @@ public class ChessClient {
         GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[2]));
 
         server.joinGame(dataCache.getAuthToken(), teamColor, gameData.gameID());
-        currentState = UIStatesEnum.GAMEUI;
 
         // Set the gameboard drawer
         drawBoard.setChessGame(gameData.game());
@@ -148,15 +122,15 @@ public class ChessClient {
         GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[2]));
 
         server.joinGame(dataCache.getAuthToken(), null, gameData.gameID());
-        currentState = UIStatesEnum.GAMEUI;
 
         // Set the gameboard drawer
         drawBoard.setChessGame(gameData.game());
+        return drawBoard.drawBoardString();
     }
 
-    public String help() throws ResponseException {
-
-    }
+//    public String quitGame() throws ResponseException {
+//        server.
+//    }
 
     public String logout() throws ResponseException {
         server.logoutUser(dataCache.getAuthToken());
@@ -168,11 +142,4 @@ public class ChessClient {
         return dataCache;
     }
 
-    public void setState(GameUI gameUI) {
-        currentState = gameUI.state;
-    }
-
-    public UIStatesEnum getCurrentState() {
-        return currentState;
-    }
 }

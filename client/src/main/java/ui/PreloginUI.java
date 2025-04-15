@@ -35,10 +35,10 @@ public class PreloginUI extends BaseUI {
         return """
                 --- HELP ---
                 Type a command to get the corresponding action.
-                - register  | Register a new user. 'register [username] [password] [email]'
-                - login     | Login an existing user. 'login [username] [password]'
-                - quit      | Quit the application. 'quit'
-                - help      | Display this help menu. 'help'
+                - register [username] [password] [email] | Register a new user.
+                - login [username] [password]            | Login an existing user.
+                - quit                                   | Quit the application.
+                - help                                   | Display this help menu.
                 """;
     }
 }
