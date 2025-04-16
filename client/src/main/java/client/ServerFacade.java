@@ -64,7 +64,6 @@ public class ServerFacade {
     public void clearDatabase() throws ResponseException {
         var path = "/db";
         this.makeRequest("DELETE", path, null, null, null);
-
     }
 
     // These helper functions were written by examining how the petshop example managed its own helper functions.
