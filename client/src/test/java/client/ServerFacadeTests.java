@@ -114,8 +114,8 @@ public class ServerFacadeTests {
         AuthTokenData registerResult = serverFacade.registerUser(newTestUser);
         int gameID = serverFacade.createGame(registerResult.authToken(), "testGame");
 
-        Collection<GameData> gameList = serverFacade.listGame(registerResult.authToken());
-        assertEquals(0, gameID);
+        assertThrows(ResponseException.class, () ->
+                serverFacade.createGame(registerResult.authToken(), "testGame"));
     }
 
     @Test
