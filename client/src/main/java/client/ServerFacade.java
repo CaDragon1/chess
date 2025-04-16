@@ -108,8 +108,8 @@ public class ServerFacade {
 
     private void attemptHttpRequest(HttpURLConnection connection) throws ResponseException, IOException {
         int statusCode = connection.getResponseCode();
-        // Ensure status code is in the 200 range
-        if (statusCode / 100 == 2) {
+        // Ensure status code is in the 200 range. If it doesn't, we figure out what to throw.
+        if (statusCode / 100 != 2) {
             try (InputStream errorStream = connection.getErrorStream()) {
                 if (errorStream != null) {
                     throw ResponseException.fromJson(errorStream);
