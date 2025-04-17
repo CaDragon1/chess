@@ -42,9 +42,9 @@ public class ServerFacade {
     public Collection<GameData> listGame(String authToken) throws ResponseException {
         var path = "/game";
         // Record for the game collection
-        record ListedGames(Collection<GameData> gameList) {}
+        record ListedGames(Collection<GameData> games) {}
         // Convert return into GameData collection
-        return this.makeRequest("GET", path, null, ListedGames.class, authToken).gameList;
+        return this.makeRequest("GET", path, null, ListedGames.class, authToken).games;
     }
 
     public int createGame(String authToken, String gameName) throws ResponseException {
@@ -89,7 +89,7 @@ public class ServerFacade {
         } catch (ResponseException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new ResponseException("Connection error: " + e.getMessage(), 500);
         }
     }
 

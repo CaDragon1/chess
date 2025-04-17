@@ -61,8 +61,16 @@ public class Server {
      */
     private String registerUser(Request request, Response response) throws ServerException {
         try {
+            if (request.body() == null || request.body().isBlank()) {
+                throw new ServerException("bad request", 400);
+            }
             // Store the user data from the request
             UserData submittedUser = new Gson().fromJson(request.body(), UserData.class);
+
+            if (submittedUser == null || submittedUser.username() == null || submittedUser.password() == null
+            || submittedUser.email() == null) {
+                throw new ServerException("bad request", 400);
+            }
 
             // Trim the username
             String trimmedUsername = submittedUser.username().trim();
@@ -82,7 +90,7 @@ public class Server {
             }
 
         // Catch exception from bad request
-        } catch (JsonSyntaxException e) {
+        } catch (JsonSyntaxException | NullPointerException e) {
             throw new ServerException("bad request", 400);
         }
     }
@@ -178,7 +186,11 @@ public class Server {
         // Assign variables for our Service function call
         authData = request.headers("authorization");
 
-        if (validateInput((String)requestBody.get("playerColor")) && requestBody.get("gameID") != null) {
+        if (!requestBody.containsKey("gameID") || !(requestBody.get("gameID") instanceof Number)) {
+            throw new ServerException("bad request", 400);
+        }
+
+        if (validateInput((String)requestBody.get("playerColor"))) {
             if (((String) requestBody.get("playerColor")).equalsIgnoreCase("WHITE")) {
                 teamColor = ChessGame.TeamColor.WHITE;
             } else if (((String) requestBody.get("playerColor")).equalsIgnoreCase("BLACK")){
@@ -224,14 +236,12 @@ public class Server {
 
         if (e instanceof ServerException serverException) {
             statusCode = ((ServerException) e).getStatusCode();
-            errorMessage = "Error: " + e.getMessage();
-            messageResponse = new MessageResponse(errorMessage);
         }
         else {
             statusCode = 500;
-            errorMessage = "Error: " + e.getMessage();
-            messageResponse = new MessageResponse(errorMessage);
         }
+        errorMessage = "Error: " + e.getMessage();
+        messageResponse = new MessageResponse(errorMessage);
 
         response.status(statusCode);
         response.type("application/json");
@@ -244,7 +254,7 @@ public class Server {
      * @return true if the input is valid
      */
     private Boolean validateInput(String input) {
-        return input != null && !input.isEmpty();
+        return input != null && !input.isEmpty() && !input.isBlank();
     }
 
     /**

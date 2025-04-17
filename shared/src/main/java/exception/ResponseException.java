@@ -23,11 +23,27 @@ public class ResponseException extends Exception {
     }
 
     public static ResponseException fromJson(InputStream inputStream) {
-        var map = new Gson().fromJson(new InputStreamReader(inputStream), HashMap.class);
+        try {
+            var map = new Gson().fromJson(new InputStreamReader(inputStream), HashMap.class);
 
-        int code = ((Double) map.get("status")).intValue();
-        String message = map.get("message").toString();
+            int code = 500;
+            if (map != null && map.get("status") != null) {
+                code = ((Double) map.get("status")).intValue();
+            }
 
-        return new ResponseException(message, code);
+            String message = "Unknown error";
+            if (map != null && map.get("message") != null) {
+                message = map.get("message").toString();
+            }
+
+            return new ResponseException(message, code);
+        } catch (Exception e) {
+            return new ResponseException("Error response parsing error: " + e.getMessage(), 500);
+        }
+    }
+
+
+    public int getStatusCode() {
+        return statusCode;
     }
 }

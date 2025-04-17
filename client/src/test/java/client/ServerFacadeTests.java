@@ -51,11 +51,10 @@ public class ServerFacadeTests {
     @Test
     @Order(2)
     public void registerUserFailure() throws Exception {
-        Exception e = assertThrows(ResponseException.class, () -> {
-            serverFacade.registerUser(null);
-        });
-        assertTrue(e.getMessage().contains("bad request") || e.getMessage().contains("unauthorized")
-                || e.getMessage().contains("already taken"), "Register should properly reject bad input");
+        ResponseException e = assertThrows(ResponseException.class, () ->
+                serverFacade.registerUser(null)
+        );
+        assertTrue(e.getMessage().contains("bad request"));
     }
 
     @Test
@@ -74,7 +73,7 @@ public class ServerFacadeTests {
     public void logoutUserFailure() throws ResponseException {
         Exception e = assertThrows(ResponseException.class, () -> { serverFacade.logoutUser("unlikely");
         });
-        assertTrue(e.getMessage().contains("Auth token not found"), "Should reject a nonexistent authtoken");
+        assertTrue(e.getMessage().contains("unauthorized"), "Should reject a nonexistent authtoken");
     }
 
     @Test

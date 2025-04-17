@@ -38,7 +38,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
                 gameList.add(deserializeGameData(response));
             }
         } catch (SQLException e) {
-            return null;
+            return gameList;
 //            throw new ServerException("GameData list get failed: " + e.getMessage());
         }
         return gameList;
