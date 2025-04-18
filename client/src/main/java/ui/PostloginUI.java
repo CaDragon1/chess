@@ -26,7 +26,9 @@ public class PostloginUI extends BaseUI {
             case "join" -> join(tokens);
             case "observe" -> observe(tokens);
             case "logout" -> logoutUser();
-            default -> displayHelpInfo();
+            default -> {
+                return displayHelpInfo();
+            }
         };
         return null;
     }

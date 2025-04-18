@@ -41,9 +41,10 @@ public class ChessClient {
         return parameters[1] + " has been successfully logged in!";
     }
 
-    public String listGames(String... parameters) throws ResponseException {
+    public String listGames() throws ResponseException {
 
-        Collection<GameData> gameList = server.listGame(parameters[0]);
+        String authToken = dataCache.getAuthToken();
+        Collection<GameData> gameList = server.listGame(authToken);
         dataCache.setGameCache(gameList);
 
         // Create string display result using StringBuilder
