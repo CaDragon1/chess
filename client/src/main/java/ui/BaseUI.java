@@ -2,6 +2,7 @@ package ui;
 
 import client.ChessClient;
 import exception.ResponseException;
+import exception.UIStateException;
 
 import java.io.InputStream;
 import java.util.Scanner;
@@ -25,10 +26,8 @@ public abstract class BaseUI implements UIState{
         }
     }
 
-    public void run() {
+    public BaseUI run() throws ResponseException {
         boolean keepRunning = true;
-        System.out.println("Welcome to Minecraft, I am Steve\nType a command here! Type 'help' for a list of commands.");
-        System.out.print(">");
 
         // Trim inputs for accuracy
         while (keepRunning) {
@@ -36,16 +35,15 @@ public abstract class BaseUI implements UIState{
 
             try {
                 String result = handler(input);
-                // Adding extra commands for user friendliness :D
-                if (result.equalsIgnoreCase("quit") || result.equalsIgnoreCase("exit") ||
-                        result.equalsIgnoreCase("stop") || result.equalsIgnoreCase("back")) {
+                if ("quit".equalsIgnoreCase(input)) {
                     keepRunning = false;
                 }
                 System.out.println(result);
-            } catch (ResponseException e) {
-                System.out.println("Error: " + e.getMessage());
+                System.out.print("> ");
+            } catch (UIStateException e) {
+                return e.getNextState();
             }
         }
-        scanner.close();
+        return null;
     }
 }

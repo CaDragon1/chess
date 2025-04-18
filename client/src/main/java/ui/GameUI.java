@@ -2,28 +2,35 @@ package ui;
 
 import client.ChessClient;
 import exception.ResponseException;
+import exception.UIStateException;
 
 public class GameUI extends BaseUI {
+    private static Boolean isPlayer;
+    private static ChessboardDrawer drawer;
 
-    public GameUI(ChessClient client, ChessboardDrawer drawer) {
+    public GameUI(ChessClient client, ChessboardDrawer drawer, boolean isPlayer) {
         super(client);
         state = UIStatesEnum.GAMEUI;
+        GameUI.drawer = drawer;
+        GameUI.isPlayer = isPlayer;
     }
 
     @Override
     public String handler(String input) throws ResponseException {
         String[] tokens = input.split(" ");
-        return switch(tokens[0].toLowerCase()) {
+        switch(tokens[0].toLowerCase()) {
             case "quit" -> quitGame();
             default -> displayHelpInfo();
         };
+        return null;
     }
 
-    private String quitGame() throws ResponseException {
+    private void quitGame() throws ResponseException {
         int gameID = client.getDataCache().getCurrentGameID();
         String gameName = client.getDataCache().getGameByIndex(gameID).gameName();
-//        client.quitGame();
-        return "Left game " + gameName + "successfully.";
+        client.getDataCache().setCurrentGameID(0);
+        String returnStatement = "Left game " + gameName + "successfully.";
+        throw new UIStateException(new PostloginUI(client), returnStatement);
     }
 
     @Override

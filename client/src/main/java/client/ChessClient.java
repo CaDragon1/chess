@@ -1,7 +1,6 @@
 package client;
 
 import chess.ChessGame;
-import com.sun.nio.sctp.NotificationHandler;
 import exception.ResponseException;
 import models.AuthTokenData;
 import models.GameData;
@@ -14,43 +13,37 @@ import java.util.Collection;
 public class ChessClient {
     private final ServerFacade server;
     private final String serverURL;
-    private final NotificationHandler notificationHandler;
-    private Boolean isLoggedIn;
     private final DataCache dataCache;
     private ChessboardDrawer drawBoard;
 
     // Set up client server connection
-    public ChessClient(String serverURL, NotificationHandler notificationHandler) {
+    public ChessClient(String serverURL) {
         this.serverURL = serverURL;
         server = new ServerFacade(this.serverURL);
-        this.notificationHandler = notificationHandler;
-        isLoggedIn = Boolean.FALSE;
         dataCache = new DataCache();
         drawBoard = new ChessboardDrawer();
     }
 
     public String register(String... parameters) throws ResponseException {
 
-        UserData user = new UserData(parameters[1], parameters[2], parameters[3]);
+        UserData user = new UserData(parameters[0], parameters[1], parameters[2]);
 
         // Set auth token in cached data object
         AuthTokenData authTokenData = server.registerUser(user);
         dataCache.setAuthToken(authTokenData.authToken());
 
-        isLoggedIn = Boolean.TRUE;
         return user.username() + " has been successfully registered!";
     }
 
     public String login(String... parameters) throws ResponseException {
-        AuthTokenData authTokenData = server.loginUser(parameters[1], parameters[2]);
+        AuthTokenData authTokenData = server.loginUser(parameters[0], parameters[1]);
         dataCache.setAuthToken(authTokenData.authToken());
-        isLoggedIn = Boolean.TRUE;
         return parameters[1] + " has been successfully logged in!";
     }
 
     public String listGames(String... parameters) throws ResponseException {
 
-        Collection<GameData> gameList = server.listGame(parameters[1]);
+        Collection<GameData> gameList = server.listGame(parameters[0]);
         dataCache.setGameCache(gameList);
 
         // Create string display result using StringBuilder
@@ -75,7 +68,7 @@ public class ChessClient {
     // parameters only need to be a game name. AuthToken is stored in the DataCache.
     public String createGame(String... parameters) throws ResponseException {
 
-        int gameID = server.createGame(dataCache.getAuthToken(), parameters[1]);
+        int gameID = server.createGame(dataCache.getAuthToken(), parameters[0]);
 
         // Create string display result using StringBuilder
         StringBuilder resultString = new StringBuilder();
@@ -86,7 +79,7 @@ public class ChessClient {
     public String joinGame(String... parameters) throws ResponseException {
         ChessGame.TeamColor teamColor = getTeamColor(parameters);
         // Find the gameID based on our cacheData number system
-        GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[2]));
+        GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[1]));
 
         server.joinGame(dataCache.getAuthToken(), teamColor, gameData.gameID());
 
@@ -105,10 +98,10 @@ public class ChessClient {
     private static ChessGame.TeamColor getTeamColor(String[] parameters) {
         // Determine team color
         ChessGame.TeamColor teamColor;
-        if (parameters[1].contains("white") || parameters[1].contains("WHITE")) {
+        if (parameters[0].contains("white") || parameters[0].contains("WHITE")) {
             teamColor = ChessGame.TeamColor.WHITE;
         }
-        else if (parameters[1].contains("black") || parameters[1].contains("BLACK")) {
+        else if (parameters[0].contains("black") || parameters[0].contains("BLACK")) {
             teamColor = ChessGame.TeamColor.BLACK;
         }
         else {
@@ -119,7 +112,7 @@ public class ChessClient {
 
     // parameters[1] is the gameID
     public String observeGame(String... parameters) throws ResponseException {
-        GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[2]));
+        GameData gameData = dataCache.getGameByIndex(Integer.parseInt(parameters[1]));
 
         server.joinGame(dataCache.getAuthToken(), null, gameData.gameID());
 
@@ -127,10 +120,6 @@ public class ChessClient {
         drawBoard.setChessGame(gameData.game());
         return drawBoard.drawBoardString();
     }
-
-//    public String quitGame() throws ResponseException {
-//        server.
-//    }
 
     public String logout() throws ResponseException {
         server.logoutUser(dataCache.getAuthToken());
