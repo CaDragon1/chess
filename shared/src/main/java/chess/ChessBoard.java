@@ -71,4 +71,18 @@ public class ChessBoard {
     public void emptyBoard() {
         Arrays.fill(bitboards, 0L);
     }
+
+    public void setPawnRow(ChessGame.TeamColor color) {
+        int row = 1;
+        int pawns = WHITE_PAWNS;
+        if (color == ChessGame.TeamColor.BLACK) {
+            pawns = BLACK_PAWNS;
+            row = 6;
+        }
+        int index = row * 8;
+
+        for (int i = index; i < index + 8; i++){
+            bitboards[pawns] |= 1L << i;
+        }
+    }
 }
