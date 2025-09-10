@@ -1,5 +1,7 @@
 package chess;
 
+import java.util.Arrays;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -7,9 +9,30 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
+    // Make constants for each piece's bitboard index
+    static final int WHITE_PAWNS = 0;
+    static final int WHITE_ROOKS = 1;
+    static final int WHITE_KNIGHTS = 2;
+    static final int WHITE_BISHOPS = 3;
+    static final int WHITE_QUEENS = 4;
+    static final int WHITE_KINGS = 5;
+    static final int BLACK_PAWNS = 6;
+    static final int BLACK_ROOKS = 7;
+    static final int BLACK_KNIGHTS = 8;
+    static final int BLACK_BISHOPS = 9;
+    static final int BLACK_QUEENS = 10;
+    static final int BLACK_KINGS = 11;
+
+    /** Create each bitboard as our board representation.
+     * Every time we want to access a certain bitboard, we use the bitboard index for that piece.
+     * example: bitboards[WHITE_PAWNS]
+     * This should be intuitive and easy for me to read so that I don't get confused :D
+     */
+    private long[] bitboards = new long[12];
+
 
     public ChessBoard() {
-        
+        emptyBoard();
     }
 
     /**
@@ -39,5 +62,13 @@ public class ChessBoard {
      */
     public void resetBoard() {
         throw new RuntimeException("Not implemented");
+    }
+
+    /**
+     * Empties the board completely
+     * (Used to initialize and reset the board)
+     */
+    public void emptyBoard() {
+        Arrays.fill(bitboards, 0L);
     }
 }
