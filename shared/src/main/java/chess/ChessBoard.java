@@ -1,5 +1,7 @@
 package chess;
 
+import jdk.jfr.internal.test.WhiteBox;
+
 import java.util.Arrays;
 
 /**
@@ -61,7 +63,11 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        emptyBoard();
+        setBackRow(ChessGame.TeamColor.BLACK);
+        setBackRow(ChessGame.TeamColor.WHITE);
+        setPawnRow(ChessGame.TeamColor.BLACK);
+        setPawnRow(ChessGame.TeamColor.WHITE);
     }
 
     /**
@@ -72,6 +78,10 @@ public class ChessBoard {
         Arrays.fill(bitboards, 0L);
     }
 
+    /**
+     * Function to set a given team color's row to pawns.
+     * @param color is the team color we're resetting.
+     */
     public void setPawnRow(ChessGame.TeamColor color) {
         int row = 1;
         int pawns = WHITE_PAWNS;
@@ -81,8 +91,50 @@ public class ChessBoard {
         }
         int index = row * 8;
 
-        for (int i = index; i < index + 8; i++){
+        for (int i = index; i < index + 8; i++) {
             bitboards[pawns] |= 1L << i;
+        }
+    }
+
+    /**
+     * Function to set a given team color's back row to game start.
+     * @param color is the given team.
+     */
+    public void setBackRow(ChessGame.TeamColor color) {
+        int[] pieces;
+        if (color == ChessGame.TeamColor.WHITE) {
+            pieces = new int[]{WHITE_ROOKS, WHITE_KNIGHTS, WHITE_BISHOPS, WHITE_QUEENS, WHITE_KINGS};
+        }
+        else {
+            pieces = new int[]{BLACK_ROOKS, BLACK_KNIGHTS, BLACK_BISHOPS, BLACK_QUEENS, BLACK_KINGS};
+        }
+        int row = (color == ChessGame.TeamColor.WHITE) ? 0 : 7;
+        int index = row * 8;
+
+        // For loop with switch statement to place the correct pieces
+        for (int i = index; i < index + 8; i++) {
+            switch (i % 8) {
+                case 0:
+                case 7:
+                    bitboards[pieces[0]] |= 1L << i;
+                    break;
+                case 1:
+                case 6:
+                    bitboards[pieces[1]] |= 1L << i;
+                    break;
+                case 2:
+                case 5:
+                    bitboards[pieces[2]] |= 1L << i;
+                    break;
+                case 3:
+                    bitboards[pieces[3]] |= 1L << i;
+                    break;
+                case 4:
+                    bitboards[pieces[4]] |= 1L << i;
+                    break;
+                default:
+                    throw new RuntimeException("Error in placing pieces in back row for team " + color.toString());
+            }
         }
     }
 }
