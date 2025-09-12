@@ -55,7 +55,36 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        throw new RuntimeException("Not implemented");
+
+        int index = (position.getRow() * 8) + position.getColumn();
+        for (int i = WHITE_PAWNS; i <= BLACK_KINGS; i++) {
+            if (((bitboards[i] >> index) & 1L) == 1) {
+                return determinePiece(i);
+            }
+        }
+        return null;
+    }
+
+    private ChessPiece determinePiece(int bitboardIndex) {
+        ChessGame.TeamColor color = (bitboardIndex < 6) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+        int pieceIndex = bitboardIndex % 6;
+
+        switch (pieceIndex) {
+
+            case 0:
+                return new ChessPiece(color, ChessPiece.PieceType.PAWN);
+            case 1:
+                return new ChessPiece(color, ChessPiece.PieceType.ROOK);
+            case 2:
+                return new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
+            case 3:
+                return new ChessPiece(color, ChessPiece.PieceType.BISHOP);
+            case 4:
+                return new ChessPiece(color, ChessPiece.PieceType.QUEEN);
+            case 5:
+                return new ChessPiece(color, ChessPiece.PieceType.KING);
+        }
+        return null;
     }
 
     /**
