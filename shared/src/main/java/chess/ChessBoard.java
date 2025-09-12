@@ -42,7 +42,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        int pieceIndex = (position.getRow() * 8) + position.getColumn();
+        int pieceIndex = position.getIndex();
         int boardIndex = findIndexByPiece(piece);
         if (boardIndex == -1) {
             throw new IllegalArgumentException("Invalid piece type given to addPiece");
@@ -77,7 +77,7 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
 
-        int index = (position.getRow() * 8) + position.getColumn();
+        int index = position.getIndex();
         for (int i = WHITE_PAWNS; i <= BLACK_KINGS; i++) {
             if (((bitboards[i] >> index) & 1L) == 1) {
                 return findPieceByIndex(i);
