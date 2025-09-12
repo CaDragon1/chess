@@ -103,38 +103,19 @@ public class ChessBoard {
     public void setBackRow(ChessGame.TeamColor color) {
         int[] pieces;
         if (color == ChessGame.TeamColor.WHITE) {
-            pieces = new int[]{WHITE_ROOKS, WHITE_KNIGHTS, WHITE_BISHOPS, WHITE_QUEENS, WHITE_KINGS};
+            pieces = new int[]{WHITE_ROOKS, WHITE_KNIGHTS, WHITE_BISHOPS, WHITE_QUEENS, WHITE_KINGS,
+                    WHITE_BISHOPS, WHITE_KNIGHTS, WHITE_ROOKS};
         }
         else {
-            pieces = new int[]{BLACK_ROOKS, BLACK_KNIGHTS, BLACK_BISHOPS, BLACK_QUEENS, BLACK_KINGS};
+            pieces = new int[]{BLACK_ROOKS, BLACK_KNIGHTS, BLACK_BISHOPS, BLACK_QUEENS, BLACK_KINGS,
+                    BLACK_BISHOPS, BLACK_KNIGHTS, BLACK_ROOKS};
         }
         int row = (color == ChessGame.TeamColor.WHITE) ? 0 : 7;
         int index = row * 8;
 
         // For loop with switch statement to place the correct pieces
         for (int i = index; i < index + 8; i++) {
-            switch (i % 8) {
-                case 0:
-                case 7:
-                    bitboards[pieces[0]] |= 1L << i;
-                    break;
-                case 1:
-                case 6:
-                    bitboards[pieces[1]] |= 1L << i;
-                    break;
-                case 2:
-                case 5:
-                    bitboards[pieces[2]] |= 1L << i;
-                    break;
-                case 3:
-                    bitboards[pieces[3]] |= 1L << i;
-                    break;
-                case 4:
-                    bitboards[pieces[4]] |= 1L << i;
-                    break;
-                default:
-                    throw new RuntimeException("Error in placing pieces in back row for team " + color.toString());
-            }
+            bitboards[pieces[i % 8]] |= 1L << i;
         }
     }
 }
