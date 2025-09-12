@@ -65,6 +65,11 @@ public class ChessBoard {
         return null;
     }
 
+    /**
+     * determinePiece analyzes the bitboard index and returns a ChessPiece that corresponds to that bitboard.
+     * @param bitboardIndex is the index of the bitboard stored in array bitboards.
+     * @return the appropriate ChessPiece indicated by the index.
+     */
     private ChessPiece determinePiece(int bitboardIndex) {
         ChessGame.TeamColor color = (bitboardIndex < 6) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
         int pieceIndex = bitboardIndex % 6;
@@ -111,7 +116,7 @@ public class ChessBoard {
      * Function to set a given team color's row to pawns.
      * @param color is the team color we're resetting.
      */
-    public void setPawnRow(ChessGame.TeamColor color) {
+    private void setPawnRow(ChessGame.TeamColor color) {
         int row = 1;
         int pawns = WHITE_PAWNS;
         if (color == ChessGame.TeamColor.BLACK) {
@@ -129,7 +134,7 @@ public class ChessBoard {
      * Function to set a given team color's back row to game start.
      * @param color is the given team.
      */
-    public void setBackRow(ChessGame.TeamColor color) {
+    private void setBackRow(ChessGame.TeamColor color) {
         int[] pieces;
         if (color == ChessGame.TeamColor.WHITE) {
             pieces = new int[]{WHITE_ROOKS, WHITE_KNIGHTS, WHITE_BISHOPS, WHITE_QUEENS, WHITE_KINGS,
