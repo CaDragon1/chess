@@ -1,7 +1,5 @@
 package chess;
 
-import jdk.jfr.internal.test.WhiteBox;
-
 import java.util.Arrays;
 
 /**
@@ -44,7 +42,30 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        throw new RuntimeException("Not implemented");
+        int pieceIndex = (position.getRow() * 8) + position.getColumn();
+        int boardIndex = findIndexByPiece(piece);
+        if (boardIndex == -1) {
+            throw new IllegalArgumentException("Invalid piece type given to addPiece");
+        }
+        bitboards[boardIndex] |= 1L << pieceIndex;
+    }
+
+    /**
+     * findIndexByPiece finds the bitboard index based on the piece type and color given.
+     * @param piece is the piece given
+     * @return whichever index corresponds to the correct bitboard in array bitboards
+     */
+    private int findIndexByPiece(ChessPiece piece) {
+        int teamModifier = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? 0 : 6;
+        return switch (piece.getPieceType()) {
+            case PAWN -> teamModifier;
+            case ROOK -> 1 + teamModifier;
+            case KNIGHT -> 2 + teamModifier;
+            case BISHOP -> 3 + teamModifier;
+            case QUEEN -> 4 + teamModifier;
+            case KING -> 5 + teamModifier;
+            case null, default -> -1;
+        };
     }
 
     /**
@@ -59,37 +80,30 @@ public class ChessBoard {
         int index = (position.getRow() * 8) + position.getColumn();
         for (int i = WHITE_PAWNS; i <= BLACK_KINGS; i++) {
             if (((bitboards[i] >> index) & 1L) == 1) {
-                return determinePiece(i);
+                return findPieceByIndex(i);
             }
         }
         return null;
     }
 
     /**
-     * determinePiece analyzes the bitboard index and returns a ChessPiece that corresponds to that bitboard.
+     * findPieceByIndex analyzes the bitboard index and returns a ChessPiece that corresponds to that bitboard.
      * @param bitboardIndex is the index of the bitboard stored in array bitboards.
      * @return the appropriate ChessPiece indicated by the index.
      */
-    private ChessPiece determinePiece(int bitboardIndex) {
+    private ChessPiece findPieceByIndex(int bitboardIndex) {
         ChessGame.TeamColor color = (bitboardIndex < 6) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
         int pieceIndex = bitboardIndex % 6;
 
-        switch (pieceIndex) {
-
-            case 0:
-                return new ChessPiece(color, ChessPiece.PieceType.PAWN);
-            case 1:
-                return new ChessPiece(color, ChessPiece.PieceType.ROOK);
-            case 2:
-                return new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
-            case 3:
-                return new ChessPiece(color, ChessPiece.PieceType.BISHOP);
-            case 4:
-                return new ChessPiece(color, ChessPiece.PieceType.QUEEN);
-            case 5:
-                return new ChessPiece(color, ChessPiece.PieceType.KING);
-        }
-        return null;
+        return switch (pieceIndex) {
+            case 0 -> new ChessPiece(color, ChessPiece.PieceType.PAWN);
+            case 1 -> new ChessPiece(color, ChessPiece.PieceType.ROOK);
+            case 2 -> new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
+            case 3 -> new ChessPiece(color, ChessPiece.PieceType.BISHOP);
+            case 4 -> new ChessPiece(color, ChessPiece.PieceType.QUEEN);
+            case 5 -> new ChessPiece(color, ChessPiece.PieceType.KING);
+            default -> null;
+        };
     }
 
     /**
