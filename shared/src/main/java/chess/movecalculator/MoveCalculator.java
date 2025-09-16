@@ -1,7 +1,9 @@
 package chess.movecalculator;
 
+import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPosition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,13 @@ import java.util.List;
 public class MoveCalculator {
     /** Variables **/
     List<ChessMove> moveList = new ArrayList<>();
+    ChessBoard board;
+    ChessPosition position;
+
+    MoveCalculator(ChessBoard board, ChessPosition position) {
+        this.board = board;
+        this.position = position;
+    }
 
     /**
      * Methods
