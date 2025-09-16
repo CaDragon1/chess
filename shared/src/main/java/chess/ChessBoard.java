@@ -88,6 +88,23 @@ public class ChessBoard {
     }
 
     /**
+     * Gets a chess piece on the chessboard using the index
+     *
+     * @param index The index number to get the piece from
+     * @return Either the piece at the position, or null if no piece is at that
+     * position
+     */
+    public ChessPiece getPiece(int index) {
+
+        for (int i = WHITE_PAWNS; i <= BLACK_KINGS; i++) {
+            if (((bitboards[i] >> index) & 1L) == 1) {
+                return findPieceByIndex(i);
+            }
+        }
+        return null;
+    }
+
+    /**
      * findPieceByIndex analyzes the bitboard index and returns a ChessPiece that corresponds to that bitboard.
      * @param bitboardIndex is the index of the bitboard stored in array bitboards.
      * @return the appropriate ChessPiece indicated by the index.

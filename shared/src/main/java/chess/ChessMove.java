@@ -21,6 +21,19 @@ public class ChessMove {
     }
 
     /**
+     * Alternate constructor that creates a chess move based on bitboard indices.
+     * @param startIndex is the starting position's index
+     * @param endIndex is the final position's index
+     * @param promotionPiece is the promotion piece.
+     */
+    public ChessMove(int startIndex, int endIndex,
+                     ChessPiece.PieceType promotionPiece) {
+        this.startPosition = new ChessPosition(startIndex / 8 + 1, startIndex % 8 + 1);
+        this.endPosition = new ChessPosition(endIndex / 8 + 1, endIndex % 8 + 1);
+        this.promotionPiece = promotionPiece;
+    }
+
+    /**
      * @return ChessPosition of starting location
      */
     public ChessPosition getStartPosition() {
