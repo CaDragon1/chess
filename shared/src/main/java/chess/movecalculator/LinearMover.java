@@ -32,7 +32,7 @@ public class LinearMover extends MoveCalculator{
         while (!obstructed) {
             checking = checking + horizontalDirection + (8 * verticalDirection);
             /** Check for board bounds **/
-            obstructed = checkBoundaries(index, checking);
+            obstructed = isOutOfBounds(index, checking);
             foundPiece = board.getPiece(checking);
             if (foundPiece == null) {
                 moveList.add(new ChessMove(index, checking, null));

@@ -27,14 +27,14 @@ public class MoveCalculator {
      * @param checking is the index we're testing
      * @return true if checking is out of bounds, false if within bounds.
      */
-    public boolean checkBoundaries(int index, int checking) {
+    public boolean isOutOfBounds(int index, int checking) {
         int startingCol = index % 8;
         int nextCol = checking % 8;
 
         if (checking == index || checking < 0 || checking > 63) {
             return true;
         }
-        return Math.abs(nextCol - startingCol) > 1;
+        return Math.abs(nextCol - startingCol) > 2;
     }
 
     private ChessGame.TeamColor occupiedSpace(int index) {
