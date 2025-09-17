@@ -21,13 +21,13 @@ public class LinearMover extends MoveCalculator{
      * @param horizontalDirection will go left if -1, right if 1, and stay still if 0.
      * @param verticalDirection will go down if -1, up if 1, and stay still if 0.
      */
-    private void calculateLinear(int horizontalDirection, int verticalDirection) {
+    public void calculateLinear(int horizontalDirection, int verticalDirection) {
         int index = position.getIndex();
         int checking = index;
+        boolean obstructed = horizontalDirection == 0 && verticalDirection == 0;
 
         ChessPiece startingPiece = board.getPiece(index);
         ChessPiece foundPiece;
-        boolean obstructed = false;
 
         while (!obstructed) {
             checking = checking + horizontalDirection + (8 * verticalDirection);
