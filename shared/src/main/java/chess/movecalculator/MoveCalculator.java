@@ -1,9 +1,6 @@
 package chess.movecalculator;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPosition;
+import chess.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +22,6 @@ public class MoveCalculator {
     }
 
     /**
-     * Methods
-     **/
-    private void calculateMoves() {throw new RuntimeException("Not implemented");}
-
-    /**
      * checkBoundaries ensures that the index does not exceed the current boundaries.
      * @param index is the starting index
      * @param checking is the index we're testing
@@ -42,13 +34,16 @@ public class MoveCalculator {
         if (checking == index || checking < 0 || checking > 63) {
             return true;
         }
-        if (Math.abs(nextCol - startingCol) > 1) {
-            return true;
-        }
-        return false;
+        return Math.abs(nextCol - startingCol) > 1;
     }
 
-    private ChessGame.TeamColor occupiedSpace(int index) {throw new RuntimeException("Not implemented");}
+    private ChessGame.TeamColor occupiedSpace(int index) {
+        chess.ChessPiece occupyingPiece = board.getPiece(index);
+        if (occupyingPiece != null) {
+            return occupyingPiece.getTeamColor();
+        }
+        return null;
+    }
 
     public List<ChessMove> getMoves(){
         return moveList;
