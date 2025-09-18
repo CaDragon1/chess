@@ -6,7 +6,7 @@ import chess.ChessMove;
 import chess.ChessPosition;
 
 public class KingMove extends MoveCalculator{
-    KingMove(ChessBoard board, ChessPosition position) {
+    public KingMove(ChessBoard board, ChessPosition position) {
         super(board, position);
     }
 

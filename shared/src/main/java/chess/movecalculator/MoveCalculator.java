@@ -4,6 +4,7 @@ import chess.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * MoveCalculator is a superclass that will be used by all move calculators.
@@ -39,5 +40,19 @@ public class MoveCalculator {
 
     public List<ChessMove> getMoves(){
         return moveList;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MoveCalculator that = (MoveCalculator) o;
+        return Objects.equals(moveList, that.moveList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(moveList);
     }
 }

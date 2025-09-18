@@ -1,5 +1,7 @@
 package chess;
 
+import chess.movecalculator.*;
+
 import java.util.Collection;
 import java.util.Objects;
 
@@ -13,7 +15,7 @@ public class ChessPiece {
     private ChessGame.TeamColor pieceColor;
     private PieceType type;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
     }
@@ -53,11 +55,25 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece piece = board.getPiece(myPosition);
-        if (piece != null) {
-            throw new RuntimeException("Not implemented");
-        }
-        else {
-            throw new RuntimeException("Not implemented");
+        MoveCalculator moveCalculator;
+        switch(piece.getPieceType()) {
+            case PAWN:
+                moveCalculator = new PawnMove(board, myPosition);
+                return moveCalculator.getMoves();
+            case ROOK:
+                moveCalculator = new RookMove(board, myPosition);
+                return moveCalculator.getMoves();
+            case KNIGHT:
+                moveCalculator = new KnightMove(board, myPosition);
+                return moveCalculator.getMoves();
+            case BISHOP:
+                moveCalculator = new BishopMove(board, myPosition);
+            case QUEEN:
+                moveCalculator = new QueenMove(board, myPosition);
+            case KING:
+                moveCalculator = new KingMove(board, myPosition);
+            case null, default:
+                return null;
         }
     }
 

@@ -8,7 +8,7 @@ public class PawnMove extends MoveCalculator{
     private final int startingRow;
     ChessGame.TeamColor currentTeam;
 
-    PawnMove(ChessBoard board, ChessPosition position) {
+    public PawnMove(ChessBoard board, ChessPosition position) {
 
         super(board, position);
         currentTeam = board.getPiece(position).getTeamColor();

@@ -4,7 +4,7 @@ import chess.ChessBoard;
 import chess.ChessPosition;
 
 public class QueenMove extends LinearMover{
-    QueenMove(ChessBoard board, ChessPosition position) {
+    public QueenMove(ChessBoard board, ChessPosition position) {
         super(board, position);
         calculateMoves();
     }
