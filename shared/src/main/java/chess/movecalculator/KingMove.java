@@ -1,20 +1,32 @@
 package chess.movecalculator;
 
 import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPosition;
 
 public class KingMove extends MoveCalculator{
     KingMove(ChessBoard board, ChessPosition position) {
         super(board, position);
     }
+
     private void calculateMoves() {
         int index = position.getIndex();
+        int endIndex;
+        ChessGame.TeamColor kingColor = board.getPiece(index).getTeamColor();
+
         for (int horizontal = -1; horizontal <= 1; horizontal++) {
             for (int vertical = -1; vertical <= 1; vertical++) {
                 if (horizontal != 0 || vertical != 0) {
-
+                    endIndex = index + horizontal + (8 * vertical);
+                    addMoveIfValid(index, endIndex, kingColor);
                 }
             }
+        }
+    }
+    private void addMoveIfValid(int startIndex, int endIndex, ChessGame.TeamColor kingColor) {
+        if (!isOutOfBounds(startIndex, endIndex) && board.getPiece(endIndex).getTeamColor() != kingColor) {
+            moveList.add(new ChessMove(startIndex, endIndex, null));
         }
     }
 }
