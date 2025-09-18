@@ -30,10 +30,12 @@ public class ChessBoard {
      * This should be intuitive and easy for me to read so that I don't get confused :D
      */
     private long[] bitboards = new long[12];
-
+    private int enPassant;
 
     public ChessBoard() {
+
         emptyBoard();
+        enPassant = -1;
     }
 
     /**
@@ -183,6 +185,14 @@ public class ChessBoard {
         for (int i = index; i < index + 8; i++) {
             bitboards[pieces[i % 8]] |= 1L << i;
         }
+    }
+
+    public int getEnPassant() {
+        return enPassant;
+    }
+
+    public void setEnPassant(int index) {
+        enPassant = index;
     }
 
     @Override

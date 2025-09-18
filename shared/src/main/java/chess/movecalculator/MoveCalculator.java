@@ -37,14 +37,6 @@ public class MoveCalculator {
         return Math.abs(nextCol - startingCol) > 2;
     }
 
-    private ChessGame.TeamColor occupiedSpace(int index) {
-        chess.ChessPiece occupyingPiece = board.getPiece(index);
-        if (occupyingPiece != null) {
-            return occupyingPiece.getTeamColor();
-        }
-        return null;
-    }
-
     public List<ChessMove> getMoves(){
         return moveList;
     }
