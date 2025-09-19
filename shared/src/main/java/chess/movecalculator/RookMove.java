@@ -10,10 +10,10 @@ public class RookMove extends LinearMover{
     }
 
     private void calculateMoves() {
-        for (int horizontal = -1; horizontal <= 1; horizontal++) {
+        for (int horizontal = -1; horizontal <= 1; horizontal+=2) {
             calculateLinear(horizontal, 0);
         }
-        for (int vertical = -1; vertical <= 1; vertical++) {
+        for (int vertical = -1; vertical <= 1; vertical+=2) {
             calculateLinear(0, vertical);
         }
     }

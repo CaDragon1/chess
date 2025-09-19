@@ -23,7 +23,7 @@ public class MoveCalculator {
     }
 
     /**
-     * checkBoundaries ensures that the index does not exceed the current boundaries.
+     * isOutOfBounds ensures that the index does not exceed the current boundaries.
      * @param index is the starting index
      * @param checking is the index we're testing
      * @return true if checking is out of bounds, false if within bounds.

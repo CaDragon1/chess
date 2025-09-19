@@ -32,12 +32,14 @@ public class LinearMover extends MoveCalculator{
         while (!obstructed) {
             checking = checking + horizontalDirection + (8 * verticalDirection);
             /** Check for board bounds **/
-            obstructed = isOutOfBounds(index, checking);
+            obstructed = isOutOfBounds(index, checking, horizontalDirection, verticalDirection);
             foundPiece = board.getPiece(checking);
             if (foundPiece == null) {
-                moveList.add(new ChessMove(index, checking, null));
+                if (!obstructed) {
+                    moveList.add(new ChessMove(index, checking, null));
+                }
             }
-            else if (foundPiece.getTeamColor() != startingPiece.getTeamColor()) {
+            else if (foundPiece.getTeamColor() != startingPiece.getTeamColor() && !obstructed) {
                 moveList.add(new ChessMove(index, checking, null));
                 obstructed = true;
             }
@@ -45,5 +47,27 @@ public class LinearMover extends MoveCalculator{
                 obstructed = true;
             }
         }
+    }
+
+    public boolean isOutOfBounds(int index, int checking, int horizontal, int vertical) {
+        int startingCol = index % 8;
+        int nextCol = checking % 8;
+        int startingRow = index / 8;
+        int nextRow = checking / 8;
+
+        if (checking < 0 || checking > 63) {
+            return true;
+        }
+        if (vertical == 0) {
+            if (startingRow != nextRow) {
+                return true;
+            }
+        }
+        if (horizontal == -1) {
+            return startingCol < nextCol;
+        } else if (horizontal == 1) {
+            return startingCol > nextCol;
+        }
+        return false;
     }
 }
