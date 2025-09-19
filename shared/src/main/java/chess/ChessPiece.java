@@ -68,10 +68,13 @@ public class ChessPiece {
                 return moveCalculator.getMoves();
             case BISHOP:
                 moveCalculator = new BishopMove(board, myPosition);
+                return moveCalculator.getMoves();
             case QUEEN:
                 moveCalculator = new QueenMove(board, myPosition);
+                return moveCalculator.getMoves();
             case KING:
                 moveCalculator = new KingMove(board, myPosition);
+                return moveCalculator.getMoves();
             case null, default:
                 return null;
         }

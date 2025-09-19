@@ -46,10 +46,12 @@ public class ChessBoard {
     public void addPiece(ChessPosition position, ChessPiece piece) {
         int pieceIndex = position.getIndex();
         int boardIndex = findIndexByPiece(piece);
-        if (boardIndex == -1) {
-            throw new IllegalArgumentException("Invalid piece type given to addPiece");
+        if (boardIndex != -1) {
+            bitboards[boardIndex] |= 1L << pieceIndex;
         }
-        bitboards[boardIndex] |= 1L << pieceIndex;
+        else {
+            System.out.println("Invalid piece attempted to be added");
+        }
     }
 
     /**
@@ -58,6 +60,9 @@ public class ChessBoard {
      * @return whichever index corresponds to the correct bitboard in array bitboards
      */
     private int findIndexByPiece(ChessPiece piece) {
+        if (piece == null) {
+            return -1;
+        }
         int teamModifier = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? 0 : 6;
         return switch (piece.getPieceType()) {
             case PAWN -> teamModifier;

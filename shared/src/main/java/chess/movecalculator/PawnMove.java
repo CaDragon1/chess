@@ -14,7 +14,7 @@ public class PawnMove extends MoveCalculator{
         currentTeam = board.getPiece(position).getTeamColor();
         vertical = currentTeam == ChessGame.TeamColor.WHITE ? 1 : -1;
         epRow = currentTeam == ChessGame.TeamColor.WHITE ? 5 : 4;
-        startingRow = currentTeam == ChessGame.TeamColor.WHITE ? 2 : 6;
+        startingRow = currentTeam == ChessGame.TeamColor.WHITE ? 2 : 7;
         calculateMoves();
     }
 
