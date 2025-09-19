@@ -37,7 +37,7 @@ public class ChessPosition {
      * @return the bitboard index of the position, shifting left by 1 to fit 0-63 indexing.
      */
     public int getIndex() {
-        return (row * 8) + col - 1;
+        return (row - 1) * 8 + (col - 1);
     }
 
     @Override
