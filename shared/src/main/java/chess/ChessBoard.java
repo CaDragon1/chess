@@ -33,7 +33,6 @@ public class ChessBoard {
     private int enPassant;
 
     public ChessBoard() {
-
         emptyBoard();
         enPassant = -1;
     }
@@ -136,6 +135,44 @@ public class ChessBoard {
         setBackRow(ChessGame.TeamColor.WHITE);
         setPawnRow(ChessGame.TeamColor.BLACK);
         setPawnRow(ChessGame.TeamColor.WHITE);
+        System.out.println("Board reset!");
+    }
+
+    public void displayBoard() {
+        long combinedBoard = 0L;
+        System.out.println();
+        for (int i = 0; i < 12; i++) {
+            combinedBoard = combinedBoard|bitboards[i];
+        }
+        for (int row = 7; row >= 0; row--) {
+            for (int col = 0; col < 8; col++) {
+                int index = row * 8 + col;
+                for (int bitboard = 0; bitboard < 12; bitboard++) {
+                    if (((bitboards[bitboard] >>> index) & 1) == 1) {
+                        printPiece(bitboard);
+                    }
+                }
+                System.out.print(((combinedBoard >>> index) & 1) == 1 ? "" : "  . |");
+            }
+            System.out.println("\n--------------------------------");
+        }
+    }
+
+    public void printPiece(int i) {
+        switch(i) {
+            case 0 -> System.out.print(" WP |");
+            case 1 -> System.out.print(" WR |");
+            case 2 -> System.out.print(" WKn|");
+            case 3 -> System.out.print(" WB |");
+            case 4 -> System.out.print(" WQ |");
+            case 5 -> System.out.print(" WK |");
+            case 6 -> System.out.print(" BP |");
+            case 7 -> System.out.print(" BR |");
+            case 8 -> System.out.print(" BKn|");
+            case 9 -> System.out.print(" BB |");
+            case 10 -> System.out.print(" BQ |");
+            case 11 -> System.out.print(" BK |");
+        }
     }
 
     /**
@@ -143,6 +180,7 @@ public class ChessBoard {
      * (Used to initialize and reset the board)
      */
     public void emptyBoard() {
+        System.out.println("**** EMPTYING BOARD ****");
         Arrays.fill(bitboards, 0L);
     }
 
