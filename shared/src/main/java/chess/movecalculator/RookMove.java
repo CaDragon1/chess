@@ -6,6 +6,7 @@ import chess.ChessPosition;
 public class RookMove extends LinearMover{
     public RookMove(ChessBoard board, ChessPosition position) {
         super(board, position);
+        calculateMoves();
     }
 
     private void calculateMoves() {

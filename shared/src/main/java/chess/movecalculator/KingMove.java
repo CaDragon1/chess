@@ -8,6 +8,7 @@ import chess.ChessPosition;
 public class KingMove extends MoveCalculator{
     public KingMove(ChessBoard board, ChessPosition position) {
         super(board, position);
+        calculateMoves();
     }
 
     private void calculateMoves() {

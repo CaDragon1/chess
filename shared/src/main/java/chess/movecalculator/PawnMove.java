@@ -15,6 +15,7 @@ public class PawnMove extends MoveCalculator{
         vertical = currentTeam == ChessGame.TeamColor.WHITE ? 1 : -1;
         epRow = currentTeam == ChessGame.TeamColor.WHITE ? 5 : 4;
         startingRow = currentTeam == ChessGame.TeamColor.WHITE ? 2 : 6;
+        calculateMoves();
     }
 
     private void calculateMoves() {

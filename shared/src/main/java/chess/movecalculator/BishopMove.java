@@ -6,6 +6,7 @@ import chess.ChessPosition;
 public class BishopMove extends LinearMover{
     public BishopMove(ChessBoard board, ChessPosition position) {
         super(board, position);
+        calculateMoves();
     }
 
     private void calculateMoves() {
