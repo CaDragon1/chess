@@ -238,6 +238,16 @@ public class ChessBoard {
         enPassant = index;
     }
 
+    public long[] getBitboards() {
+        return bitboards;
+    }
+
+    public void copy(ChessBoard board){
+        long[] copyBitboards = board.getBitboards();
+        System.arraycopy(copyBitboards, 0, bitboards, 0, bitboards.length);
+        setEnPassant(board.getEnPassant());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
