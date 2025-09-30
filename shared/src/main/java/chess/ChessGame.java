@@ -1,6 +1,8 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -15,6 +17,7 @@ public class ChessGame {
     public ChessGame() {
         gameBoard = new ChessBoard();
         currentTeamTurn = TeamColor.WHITE;
+
     }
 
     /**
@@ -50,6 +53,42 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         throw new RuntimeException("Not implemented");
+    }
+
+    private Collection<ChessMove> allTeamMoves(TeamColor teamColor) {
+        int startingIndex = (teamColor == TeamColor.WHITE ? 0 : 6);
+        ChessPiece checkingPiece;
+        long[] gameBitboards = gameBoard.getBitboards();
+        Collection<ChessMove> possibleMoves = new HashSet<>();
+        ChessPosition checkPosition;
+
+        for (int i = startingIndex; i < startingIndex + 6; i++) {
+            long bitboard = gameBitboards[i];
+            checkingPiece = determinePiece(i, teamColor);
+            // I got this code idea from https://alexharri.com/blog/bit-set-iteration; I'm trying to learn bitwise
+            // operators, and two's complement makes this an efficient way of cycling through only our needed bits.
+            // Took a while for me to understand the premise, though.
+            while (bitboard != 0) {
+                // lsb == least significant bit
+                int lsb = (Long.numberOfTrailingZeros(bitboard & -bitboard));
+                checkPosition = new ChessPosition(lsb);
+                possibleMoves.addAll(checkingPiece.pieceMoves(gameBoard, checkPosition));
+                bitboard ^= (1L << lsb);
+            }
+        }
+        return possibleMoves;
+    }
+
+    private ChessPiece determinePiece(int index, TeamColor teamColor) {
+        return switch (index % 6) {
+            case 0 -> new ChessPiece(teamColor, ChessPiece.PieceType.PAWN);
+            case 5 -> new ChessPiece(teamColor, ChessPiece.PieceType.ROOK);
+            case 4 -> new ChessPiece(teamColor, ChessPiece.PieceType.KNIGHT);
+            case 3 -> new ChessPiece(teamColor, ChessPiece.PieceType.BISHOP);
+            case 2 -> new ChessPiece(teamColor, ChessPiece.PieceType.QUEEN);
+            case 1 -> new ChessPiece(teamColor, ChessPiece.PieceType.KING);
+            default -> throw new IllegalStateException("Unexpected value: " + index % 6);
+        };
     }
 
     /**
@@ -99,7 +138,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        gameBoard = board;
+        gameBoard.copy(board);
     }
 
     /**
@@ -108,6 +147,6 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return gameBoard;
     }
 }

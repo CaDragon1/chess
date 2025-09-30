@@ -17,6 +17,11 @@ public class ChessPosition {
         this.col = col;
     }
 
+    public ChessPosition(int index) {
+        this.row = (index / 8) + 1;
+        this.col = (index % 8) + 1;
+    }
+
     /**
      * @return which row this position is in
      * 1 codes for the bottom row
