@@ -108,7 +108,17 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        int kingBBIndex = (teamColor == TeamColor.WHITE ? 5 : 11);
+        long kingBitboard = gameBoard.getBitboards()[kingBBIndex];
+        int kingIndex = Long.numberOfTrailingZeros(kingBitboard & -kingBitboard);
+
+        Collection<ChessMove> enemyMoves = allTeamMoves(teamColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+        for (ChessMove checkMove : enemyMoves) {
+            if (checkMove.getEndPosition().getIndex() == kingIndex) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
