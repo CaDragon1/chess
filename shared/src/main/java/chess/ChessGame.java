@@ -2,7 +2,6 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -116,6 +115,38 @@ public class ChessGame {
         };
     }
 
+    private int getBitboardIndex(ChessPiece piece) {
+        int teamModifier = (piece.getTeamColor() == TeamColor.WHITE ? 0 : 6);
+        int indexNum = -11;
+        switch (piece.getPieceType()) {
+            case KING -> {
+                indexNum = 5;
+                break;
+            }
+            case QUEEN -> {
+                indexNum = 4;
+                break;
+            }
+            case BISHOP -> {
+                indexNum = 3;
+                break;
+            }
+            case KNIGHT -> {
+                indexNum = 2;
+                break;
+            }
+            case ROOK -> {
+                indexNum = 1;
+                break;
+            }
+            case PAWN -> {
+                indexNum = 0;
+                break;
+            }
+        }
+        return indexNum + teamModifier;
+    }
+
     /**
      * Makes a move in a chess game
      *
@@ -123,11 +154,26 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        makeMove(move, gameBoard);
+        gameBoard = makeMove(move, gameBoard);
     }
 
-    public ChessBoard makeMove(ChessMove move, ChessBoard boardCopy) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+    public ChessBoard makeMove(ChessMove move, ChessBoard board) throws InvalidMoveException {
+        int startIndex = move.getStartPosition().getIndex();
+        int endIndex = move.getEndPosition().getIndex();
+        ChessPiece movePiece = board.getPiece(startIndex);
+        ChessPiece targetPiece = board.getPiece(endIndex);
+        int pieceBBIndex = getBitboardIndex(movePiece);
+
+        // Set the index on the piece's bitboard
+        board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
+        board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
+
+        // Check for and set the index on the targeted piece's bitboard
+        if (targetPiece != null) {
+            int targetBBIndex = getBitboardIndex(targetPiece);
+            board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
+        }
+        return board;
     }
 
     /**
