@@ -170,7 +170,12 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        gameBoard = makeMove(move, gameBoard);
+        if (validMoves(move.getStartPosition()).contains(move)) {
+            gameBoard = makeMove(move, gameBoard);
+        }
+        else {
+            throw new InvalidMoveException("Invalid move attempted");
+        }
     }
 
     public ChessBoard makeMove(ChessMove move, ChessBoard board) throws InvalidMoveException {
