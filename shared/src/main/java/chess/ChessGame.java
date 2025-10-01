@@ -3,6 +3,7 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -16,6 +17,7 @@ public class ChessGame {
 
     public ChessGame() {
         gameBoard = new ChessBoard();
+        gameBoard.resetBoard();
         currentTeamTurn = TeamColor.WHITE;
 
     }
@@ -52,25 +54,39 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = gameBoard.getPiece(startPosition.getIndex());
+
+        if (piece != null) {
+            ChessGame.TeamColor teamColor = piece.getTeamColor();
+            Collection<ChessMove> pieceMoves = piece.pieceMoves(gameBoard, startPosition);
+            return validMoveLoop(gameBoard, teamColor, pieceMoves);
+        }
+        return null;
+    }
+
+    private Collection<ChessMove> validMoveLoop(ChessBoard board, TeamColor teamColor, Collection<ChessMove> moves) {
+        ChessBoard boardCopy = new ChessBoard();
+        Collection<ChessMove> validMoves = new ArrayList<>();
+        for (ChessMove move : moves) {
+            boardCopy.copy(gameBoard);
+            try {
+                boardCopy = makeMove(move, boardCopy);
+            } catch (InvalidMoveException e) {
+                throw new RuntimeException(e);
+            }
+            if (!isBoardInCheck(teamColor, boardCopy)) {
+                validMoves.add(move);
+            }
+        }
+        return validMoves;
     }
 
     // I asked an AI to evaluate my allValidMoves function in terms of logical consistency and efficiency.
     // It seems there may be a better way of doing this using bitboards; I may implement a change in the future,
     // but this will suffice for now.
     private Collection<ChessMove> allValidMoves(TeamColor teamColor) {
-        ChessBoard boardCopy = new ChessBoard();
         Collection<ChessMove> teamMoves = allTeamMoves(teamColor, gameBoard);
-        Collection<ChessMove> validMoves = new ArrayList<>();
-
-        for (ChessMove move : teamMoves) {
-            boardCopy.copy(gameBoard);
-            boardCopy = makeMove(move, boardCopy);
-            if (!isBoardInCheck(teamColor, boardCopy)) {
-                validMoves.add(move);
-            }
-        }
-        return validMoves;
+        return validMoveLoop(gameBoard, teamColor, teamMoves);
     }
 
     /**
@@ -162,18 +178,24 @@ public class ChessGame {
         int endIndex = move.getEndPosition().getIndex();
         ChessPiece movePiece = board.getPiece(startIndex);
         ChessPiece targetPiece = board.getPiece(endIndex);
-        int pieceBBIndex = getBitboardIndex(movePiece);
 
-        // Set the index on the piece's bitboard
-        board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
-        board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
+        if (movePiece != null) {
+            int pieceBBIndex = getBitboardIndex(movePiece);
 
-        // Check for and set the index on the targeted piece's bitboard
-        if (targetPiece != null) {
-            int targetBBIndex = getBitboardIndex(targetPiece);
-            board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
+            // Set the index on the piece's bitboard
+            board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
+            board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
+
+            // Check for and set the index on the targeted piece's bitboard
+            if (targetPiece != null) {
+                int targetBBIndex = getBitboardIndex(targetPiece);
+                board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
+            }
+            return board;
         }
-        return board;
+        else {
+            throw new InvalidMoveException("Starting piece is null");
+        }
     }
 
     /**
@@ -225,7 +247,11 @@ public class ChessGame {
 
             for (ChessMove i : futureMoves) {
                 boardCopy.copy(gameBoard);
-                boardCopy = makeMove(i, boardCopy);
+                try {
+                    boardCopy = makeMove(i, boardCopy);
+                } catch (InvalidMoveException e) {
+                    throw new RuntimeException(e);
+                }
                 if (!isBoardInCheck(teamColor, boardCopy)) {
                     return false;
                 }
@@ -266,5 +292,19 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return gameBoard;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return Objects.equals(gameBoard, chessGame.gameBoard) && currentTeamTurn == chessGame.currentTeamTurn;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(gameBoard, currentTeamTurn);
     }
 }
