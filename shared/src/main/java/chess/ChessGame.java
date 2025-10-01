@@ -170,7 +170,8 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        if (validMoves(move.getStartPosition()).contains(move)) {
+        if (gameBoard.getPiece(move.getStartPosition().getIndex()) != null
+        && validMoves(move.getStartPosition()).contains(move)) {
             gameBoard = makeMove(move, gameBoard);
         }
         else {
