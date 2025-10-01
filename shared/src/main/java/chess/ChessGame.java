@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,6 +54,24 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         throw new RuntimeException("Not implemented");
+    }
+
+    // I asked an AI to evaluate my allValidMoves function in terms of logical consistency and efficiency.
+    // It seems there may be a better way of doing this using bitboards; I may implement a change in the future,
+    // but this will suffice for now.
+    private Collection<ChessMove> allValidMoves(TeamColor teamColor) {
+        ChessBoard boardCopy = new ChessBoard();
+        Collection<ChessMove> teamMoves = allTeamMoves(teamColor, gameBoard);
+        Collection<ChessMove> validMoves = new ArrayList<>();
+
+        for (ChessMove move : teamMoves) {
+            boardCopy.copy(gameBoard);
+            boardCopy = makeMove(move, boardCopy);
+            if (!isBoardInCheck(teamColor, boardCopy)) {
+                validMoves.add(move);
+            }
+        }
+        return validMoves;
     }
 
     /**
@@ -178,7 +197,11 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (isInCheck(teamColor)) {
+            return false;
+        }
+        Collection<ChessMove> validMoves = allValidMoves(teamColor);
+        return validMoves.isEmpty();
     }
 
     /**
