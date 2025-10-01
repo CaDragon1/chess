@@ -55,10 +55,16 @@ public class ChessGame {
         throw new RuntimeException("Not implemented");
     }
 
-    private Collection<ChessMove> allTeamMoves(TeamColor teamColor) {
+    /**
+     * Gets all team moves possible before checking for check, castling, etc.
+     * @param teamColor the team we're getting moves for
+     * @param board the board we want to get moves from
+     * @return a collection of ChessMove objects containing every possible move from that team
+     */
+    private Collection<ChessMove> allTeamMoves(TeamColor teamColor, ChessBoard board) {
         int startingIndex = (teamColor == TeamColor.WHITE ? 0 : 6);
         ChessPiece checkingPiece;
-        long[] gameBitboards = gameBoard.getBitboards();
+        long[] gameBitboards = board.getBitboards();
         Collection<ChessMove> possibleMoves = new HashSet<>();
         ChessPosition checkPosition;
 
@@ -72,7 +78,7 @@ public class ChessGame {
                 // lsb == least significant bit
                 int lsb = (Long.numberOfTrailingZeros(bitboard & -bitboard));
                 checkPosition = new ChessPosition(lsb);
-                possibleMoves.addAll(checkingPiece.pieceMoves(gameBoard, checkPosition));
+                possibleMoves.addAll(checkingPiece.pieceMoves(board, checkPosition));
                 bitboard ^= (1L << lsb);
             }
         }
@@ -98,6 +104,10 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        makeMove(move, gameBoard);
+    }
+
+    public ChessBoard makeMove(ChessMove move, ChessBoard boardCopy) throws InvalidMoveException {
         throw new RuntimeException("Not implemented");
     }
 
@@ -108,11 +118,23 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
+        return isBoardInCheck(teamColor, gameBoard);
+    }
+
+    /**
+     * Takes a given board and determines whether the boardstate is in check.
+     * isInCheck calls this because I'm not allowed to change that method signature.
+     *
+     * @param teamColor is the team to check for check
+     * @param checkBoard is the board we are testing
+     * @return True if the team is in check
+     */
+    private boolean isBoardInCheck(TeamColor teamColor, ChessBoard checkBoard) {
         int kingBBIndex = (teamColor == TeamColor.WHITE ? 5 : 11);
-        long kingBitboard = gameBoard.getBitboards()[kingBBIndex];
+        long kingBitboard = checkBoard.getBitboards()[kingBBIndex];
         int kingIndex = Long.numberOfTrailingZeros(kingBitboard & -kingBitboard);
 
-        Collection<ChessMove> enemyMoves = allTeamMoves(teamColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+        Collection<ChessMove> enemyMoves = allTeamMoves(teamColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE, checkBoard);
         for (ChessMove checkMove : enemyMoves) {
             if (checkMove.getEndPosition().getIndex() == kingIndex) {
                 return true;
@@ -128,7 +150,24 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if (isInCheck(teamColor)) {
+            TeamColor enemyTeam = (teamColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+            int kingBBIndex = (teamColor == TeamColor.WHITE ? 5 : 11);
+            int bbStartingIndex = (teamColor == TeamColor.WHITE ? 0 : 6);
+
+            ChessBoard boardCopy = new ChessBoard();
+            Collection<ChessMove> futureMoves = allTeamMoves(teamColor, gameBoard);
+
+            for (ChessMove i : futureMoves) {
+                boardCopy.copy(gameBoard);
+                boardCopy = makeMove(i, boardCopy);
+                if (!isBoardInCheck(teamColor, boardCopy)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
