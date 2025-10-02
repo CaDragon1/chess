@@ -170,9 +170,11 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        if (gameBoard.getPiece(move.getStartPosition().getIndex()) != null
+        ChessPiece movePiece = gameBoard.getPiece(move.getStartPosition().getIndex());
+        if (movePiece != null && currentTeamTurn == movePiece.getTeamColor()
         && validMoves(move.getStartPosition()).contains(move)) {
             gameBoard = makeMove(move, gameBoard);
+            switchTeam();
         }
         else {
             throw new InvalidMoveException("Invalid move attempted");
@@ -298,6 +300,10 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return gameBoard;
+    }
+
+    private void switchTeam() {
+        currentTeamTurn = (currentTeamTurn == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
     }
 
     @Override
