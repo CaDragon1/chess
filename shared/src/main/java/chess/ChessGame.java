@@ -188,9 +188,11 @@ public class ChessGame {
         ChessPiece targetPiece = board.getPiece(endIndex);
 
         if (movePiece != null && move.getPromotionPiece() == null) {
+            gameBoard.setEnPassant(-1);
             return tryNullPromoMove(board, movePiece, startIndex, endIndex, targetPiece);
         }
         else if (movePiece != null && move.getPromotionPiece() != null) {
+            gameBoard.setEnPassant(-1);
             return tryPromotionMove(move, board, movePiece, startIndex, endIndex, targetPiece);
         }
         else {
@@ -219,8 +221,16 @@ public class ChessGame {
         board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
         board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
 
+        // Check en passant
+        if (movePiece.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(startIndex - endIndex) == 16) {
+            int epIndex = startIndex + (endIndex - startIndex) / 2;
+            board.setEnPassant(epIndex);
+            int targetBBIndex = (currentTeamTurn == TeamColor.WHITE ? 6 : 0);
+            board.getBitboards()[targetBBIndex] &= ~(1L << board.getEnPassant());
+        }
+
         // Check for and set the index on the targeted piece's bitboard
-        if (targetPiece != null) {
+        else if (targetPiece != null) {
             int targetBBIndex = getBitboardIndex(targetPiece);
             board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
         }
