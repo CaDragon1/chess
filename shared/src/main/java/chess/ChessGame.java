@@ -187,23 +187,44 @@ public class ChessGame {
         ChessPiece movePiece = board.getPiece(startIndex);
         ChessPiece targetPiece = board.getPiece(endIndex);
 
-        if (movePiece != null) {
-            int pieceBBIndex = getBitboardIndex(movePiece);
-
-            // Set the index on the piece's bitboard
-            board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
-            board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
-
-            // Check for and set the index on the targeted piece's bitboard
-            if (targetPiece != null) {
-                int targetBBIndex = getBitboardIndex(targetPiece);
-                board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
-            }
-            return board;
+        if (movePiece != null && move.getPromotionPiece() == null) {
+            return tryNullPromoMove(board, movePiece, startIndex, endIndex, targetPiece);
+        }
+        else if (movePiece != null && move.getPromotionPiece() != null) {
+            return tryPromotionMove(move, board, movePiece, startIndex, endIndex, targetPiece);
         }
         else {
             throw new InvalidMoveException("Starting piece is null");
         }
+    }
+
+    private ChessBoard tryPromotionMove(ChessMove move, ChessBoard board, ChessPiece movePiece, int startIndex, int endIndex, ChessPiece targetPiece) {
+        int pieceBBIndex = getBitboardIndex(movePiece);
+        board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
+
+        pieceBBIndex = getBitboardIndex(new ChessPiece(currentTeamTurn, move.getPromotionPiece()));
+        board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
+
+        if (targetPiece != null) {
+            int targetBBIndex = getBitboardIndex(targetPiece);
+            board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
+        }
+        return board;
+    }
+
+    private ChessBoard tryNullPromoMove(ChessBoard board, ChessPiece movePiece, int startIndex, int endIndex, ChessPiece targetPiece) {
+        int pieceBBIndex = getBitboardIndex(movePiece);
+
+        // Set the index on the piece's bitboard
+        board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
+        board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
+
+        // Check for and set the index on the targeted piece's bitboard
+        if (targetPiece != null) {
+            int targetBBIndex = getBitboardIndex(targetPiece);
+            board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
+        }
+        return board;
     }
 
     /**
