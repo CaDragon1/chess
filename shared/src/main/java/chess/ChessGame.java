@@ -221,16 +221,30 @@ public class ChessGame {
         board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
         board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
 
-        // Check en passant
-        if (movePiece.getPieceType() == ChessPiece.PieceType.PAWN && Math.abs(startIndex - endIndex) == 16) {
-            int epIndex = startIndex + (endIndex - startIndex) / 2;
-            board.setEnPassant(epIndex);
-            int targetBBIndex = (currentTeamTurn == TeamColor.WHITE ? 6 : 0);
-            board.getBitboards()[targetBBIndex] &= ~(1L << board.getEnPassant());
-        }
+//        // Check en passant
+//        if (movePiece.getPieceType() == ChessPiece.PieceType.PAWN)  {
+//
+//            // Was it a double move? If so, set epsquare.
+//            if (Math.abs(startIndex - endIndex) == 16) {
+//                int epIndex = startIndex + (endIndex - startIndex) / 2;
+//                board.setEnPassant(epIndex);
+//            }
+//            else {
+//                // Check if the end spot is en passant
+//                int direction = (currentTeamTurn == TeamColor.WHITE ? -1 : 1);
+//                if (endIndex == board.getEnPassant()) {
+//                    int targetIndex = endIndex + (8 * direction);
+//                    ChessPiece targetPawn = board.getPiece(targetIndex);
+//                    if (targetPawn != null && targetPawn.getPieceType() == ChessPiece.PieceType.PAWN) {
+//                        int targetBBIndex = getBitboardIndex(targetPiece);
+//                        board.getBitboards()[targetBBIndex] &= ~(1L << targetIndex);
+//                    }
+//                }
+//            }
+//        }
 
         // Check for and set the index on the targeted piece's bitboard
-        else if (targetPiece != null) {
+        if (targetPiece != null) {
             int targetBBIndex = getBitboardIndex(targetPiece);
             board.getBitboards()[targetBBIndex] &= ~(1L << endIndex);
         }
