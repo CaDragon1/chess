@@ -20,8 +20,18 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
     }
 
     @Override
-    public void deleteAuthData(AuthData authData) throws DataAccessException {
-        authTokenDB.remove(authData);
+    public void deleteAuthData(String authData) throws DataAccessException {
+        boolean foundToken = false;
+        for (AuthData token : authTokenDB) {
+            if (token.authToken().equals(authData)) {
+                authTokenDB.remove(token);
+                foundToken = true;
+                break;
+            }
+        }
+        if (foundToken) {
+            throw new DataAccessException("Auth Data not found");
+        }
     }
 
     @Override

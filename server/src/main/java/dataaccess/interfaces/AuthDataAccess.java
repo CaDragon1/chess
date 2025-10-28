@@ -6,7 +6,7 @@ import models.AuthData;
 public interface AuthDataAccess {
     void createAuthData(AuthData authData) throws DataAccessException;
 
-    void deleteAuthData(AuthData authData) throws DataAccessException;
+    void deleteAuthData(String authData) throws DataAccessException;
 
     AuthData getAuthData(String authData) throws DataAccessException;
 
