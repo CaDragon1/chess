@@ -1,4 +1,90 @@
 package service;
 
+import chess.ChessGame;
+import dataaccess.DataAccessException;
+import dataaccess.interfaces.AuthDataAccess;
+import dataaccess.interfaces.GameDataAccess;
+import dataaccess.interfaces.UserDataAccess;
+import models.AuthData;
+import models.GameData;
+import server.ServerException;
+
+import javax.xml.crypto.Data;
+import java.util.Collection;
+import java.util.Random;
+
 public class GameService {
+    private final GameDataAccess gameDAO;
+    private final AuthDataAccess authDAO;
+    private final UserDataAccess userDAO;
+
+    public GameService(GameDataAccess gameDAO, AuthDataAccess authDAO, UserDataAccess userDAO) {
+        this.gameDAO = gameDAO;
+        this.authDAO = authDAO;
+        this.userDAO = userDAO;
+    }
+
+    public int createGame(String authToken, String gameName) throws ServerException {
+        try {
+            AuthData authData = authDAO.getAuthData(authToken);
+            if (authData != null) {
+                int gameID = generateGameID();
+                // verify that there's no duplicate game id
+                while (gameDAO.getGame(gameID) != null) {
+                    gameID = generateGameID();
+                }
+                GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
+                gameDAO.createGame(game);
+                return gameID;
+            }
+            throw new ServerException("Unauthorized", 401);
+        } catch (DataAccessException e) {
+            throw new ServerException(e.getMessage(), 500);
+        }
+    }
+
+    public void joinGame(String authData, ChessGame.TeamColor joinTeam, int gameID) throws ServerException {
+        try {
+            AuthData auth = authDAO.getAuthData(authData);
+            GameData game = gameDAO.getGame(gameID);
+            if (auth == null) {
+                throw new ServerException("Unauthorized", 401);
+            }
+            if (game == null) {
+                throw new ServerException("Bad request", 400);
+            }
+
+            if (joinTeam == ChessGame.TeamColor.BLACK) {
+                if (game.blackUsername() != null) {
+                    throw new ServerException("Player already exists: Black team", 403);
+                }
+                game.setBlackUsername(auth.username());
+            } else {
+                if (game.whiteUsername() != null) {
+                    throw new ServerException("Player already exists: White team", 403);
+                }
+                game.setWhiteUsername(auth.username());
+            }
+        } catch (DataAccessException e) {
+            throw new ServerException(e.getMessage(), 500);
+        }
+    }
+
+    public Collection<GameData> listGames(String authToken) throws ServerException {
+        try {
+            AuthData authData = authDAO.getAuthData(authToken);
+            if (authData != null) {
+                return gameDAO.listGames();
+            }
+            throw new ServerException("unauthorized", 401);
+        } catch (DataAccessException e) {
+            throw new ServerException(e.getMessage(), 500);
+        }
+    }
+
+    private int generateGameID() {
+        Random rand = new Random();
+        return rand.nextInt();
+    }
+
 }
