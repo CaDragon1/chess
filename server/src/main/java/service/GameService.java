@@ -16,12 +16,10 @@ import java.util.Random;
 public class GameService {
     private final GameDataAccess gameDAO;
     private final AuthDataAccess authDAO;
-    private final UserDataAccess userDAO;
 
     public GameService(GameDataAccess gameDAO, AuthDataAccess authDAO, UserDataAccess userDAO) {
         this.gameDAO = gameDAO;
         this.authDAO = authDAO;
-        this.userDAO = userDAO;
     }
 
     public int createGame(String authToken, String gameName) throws ServerException {
