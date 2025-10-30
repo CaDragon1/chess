@@ -3,6 +3,7 @@ package dataaccess.memorydao;
 import dataaccess.DataAccessException;
 import dataaccess.interfaces.AuthDataAccess;
 import models.AuthData;
+import models.UserData;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,6 +20,16 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
         authTokenDB.add(authData);
     }
 
+    // New method for single session verification, not in the .md but needed
+    public AuthData getCurrentUserAuthToken(String username) {
+        for (AuthData token : authTokenDB) {
+            if (token.username().equals(username)) {
+                return token;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void deleteAuthData(String authData) throws DataAccessException {
         boolean foundToken = false;
@@ -29,8 +40,8 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
                 break;
             }
         }
-        if (foundToken) {
-            throw new DataAccessException("Auth Data not found");
+        if (!foundToken) {
+            throw new DataAccessException("unauthorized");
         }
     }
 
@@ -41,11 +52,19 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
                 return token;
             }
         }
-        throw new DataAccessException("No authToken of requested id found");
+        throw new DataAccessException("unauthorized");
     }
 
     @Override
     public void clear() throws DataAccessException {
         authTokenDB.clear();
+    }
+
+    // Temporary method for testing purposes
+    public void printAuth() {
+        System.out.println("--- AuthTokens in Database ---");
+        for (AuthData token : authTokenDB) {
+            System.out.println(token.toString());
+        }
     }
 }

@@ -22,7 +22,7 @@ public class MemoryUserDataAccess implements UserDataAccess {
                 return user;
             }
         }
-        throw new DataAccessException("User [" + username + "] not found");
+        return null;
     }
 
     @Override
@@ -38,5 +38,13 @@ public class MemoryUserDataAccess implements UserDataAccess {
     @Override
     public void clear() throws DataAccessException {
         userDB.clear();
+    }
+
+    // Temporary method for testing purposes
+    public void printUsers() {
+        System.out.println("--- Users in Database ---");
+        for (UserData user : userDB) {
+            System.out.println(user.toString());
+        }
     }
 }

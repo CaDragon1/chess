@@ -23,10 +23,10 @@ public class GameHandler {
             if (authToken != null && !authToken.isEmpty()) {
 
                 //2. Call service method
-                service.listGames(authToken);
+                Collection<GameData> gameList = service.listGames(authToken);
 
                 // 3. Accept codes and error codes
-                http.status(200).json(Map.of());
+                http.status(200).json(gameList);
             } else {
                 http.status(401).json(Map.of("message", "unauthorized"));
             }
@@ -44,10 +44,10 @@ public class GameHandler {
             CreateGameRequest request = http.bodyAsClass(CreateGameRequest.class);
             String name = request.gameName();
 
-            if (authToken != null || authToken.isBlank()) {
+            if (authToken == null || authToken.isBlank()) {
                 http.status(401).json(Map.of("message", "Error: unauthorized"));
             }
-            else if (name != null || name.isBlank()) {
+            else if (name == null || name.isBlank()) {
                 http.status(400).json(Map.of("message", "Error: bad request"));
             } else {
                 //2. Call service method
@@ -65,10 +65,14 @@ public class GameHandler {
 
     public void handleJoinGame(Context http) {
         try {
+            System.out.println("JOIN GAME HANDLER");
             String authToken = http.header("authorization");
+            System.out.println("Auth token: " + authToken);
             JoinGameRequest request = http.bodyAsClass(JoinGameRequest.class);
-            ChessGame.TeamColor team = request.team();
+            System.out.println("Request processed");
+            ChessGame.TeamColor team = request.playerColor();
             int gameID = request.gameID();
+            System.out.println("Joining game " + gameID + " as playerColor " + team.toString());
 
             service.joinGame(authToken, team, gameID);
             http.status(200).json(Map.of("gameID", gameID));

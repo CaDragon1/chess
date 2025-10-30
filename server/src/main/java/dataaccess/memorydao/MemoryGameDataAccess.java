@@ -26,7 +26,7 @@ public class MemoryGameDataAccess implements GameDataAccess {
                 return game;
             }
         }
-        throw new DataAccessException("Game with the id [" + gameID + "] was not found");
+        return null;
     }
 
     @Override
@@ -36,9 +36,11 @@ public class MemoryGameDataAccess implements GameDataAccess {
 
     @Override
     public void updateGame(GameData gameData) throws DataAccessException {
+        System.out.println("Attempting game update");
         boolean gameExists = false;
         for (GameData game : gameDB) {
             if(game.gameID() == gameData.gameID()) {
+                System.out.println("Updating game...");
                 gameDB.remove(game);
                 gameDB.add(gameData);
                 gameExists = true;

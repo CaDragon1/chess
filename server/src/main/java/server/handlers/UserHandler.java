@@ -23,12 +23,14 @@ public class UserHandler {
      */
     public void handleRegister(Context http) {
         try {
+            System.out.println("Attempting to handle registration");
             // 1. Parse request body
             UserData userData = http.bodyAsClass(UserData.class);
+            System.out.println(userData.toString());
 
             //2. Call service method
             AuthData authData = service.register(userData);
-
+            System.out.println("Service method finished running");
             // 3. Accept codes and error codes
             http.status(200).json(authData);
         } catch (ServerException e) {
@@ -43,9 +45,11 @@ public class UserHandler {
         try {
             // 1. Parse request body
             LoginRequest login = http.bodyAsClass(LoginRequest.class);
+            System.out.println("Login Request: " + login.toString());
 
             //2. Call service method
             AuthData authData = service.login(login.username(), login.password());
+            System.out.println("authData: " + authData.toString());
 
             // 3. Accept codes and error codes
             http.status(200).json(authData);

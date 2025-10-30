@@ -3,25 +3,26 @@ package service;
 import dataaccess.DataAccessException;
 import dataaccess.interfaces.AuthDataAccess;
 import dataaccess.interfaces.UserDataAccess;
+import dataaccess.memorydao.MemoryAuthDataAccess;
+import dataaccess.memorydao.MemoryUserDataAccess;
 import kotlin.NotImplementedError;
 import models.AuthData;
 import models.UserData;
 import server.ServerException;
 
 public class UserService {
-    private final UserDataAccess userDAO;
-    private final AuthDataAccess authDAO;
+    private final MemoryUserDataAccess userDAO;
+    private final MemoryAuthDataAccess authDAO;
 
-    public UserService(UserDataAccess userDAO, AuthDataAccess authDAO) {
+    public UserService(MemoryUserDataAccess userDAO, MemoryAuthDataAccess authDAO) {
         this.userDAO = userDAO;
         this.authDAO = authDAO;
     }
 
     public AuthData register (UserData userData) throws ServerException {
-        // Username validity check should probably go here
+        // Username validity check here
         String usernameCheck = userData.username();
-        if (usernameCheck == null || usernameCheck.replaceAll("\\s", "").isEmpty()
-        || userData.password() == null || userData.email() == null) {
+        if (usernameCheck == null || usernameCheck.isBlank() || userData.password() == null || userData.email() == null) {
             throw new ServerException("bad request", 400);
         }
         try {
@@ -43,14 +44,21 @@ public class UserService {
             throw new ServerException("bad request", 400);
         }
         try {
-            if (userDAO.getUser(username) == null || userDAO.getUser(username).password().equals(password)) {
-                throw new ServerException("Unauthorized", 401);
+            UserData user = userDAO.getUser(username);
+            if (user == null || !user.password().equals(password)) {
+                throw new ServerException("unauthorized", 401);
             }
+            // Extra check to ensure single logins
+            AuthData currentAuth = authDAO.getCurrentUserAuthToken(username);
+            if (currentAuth != null) {
+                throw new ServerException("unauthorized", 401);
+            }
+
             AuthData authData = new AuthData(generateToken(), username);
             authDAO.createAuthData(authData);
             return authData;
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("Unauthorized")) {
+            if (e.getMessage().contains("unauthorized")) {
                 throw new ServerException(e.getMessage(), 401);
             }
             throw new ServerException(e.getMessage(), 500);

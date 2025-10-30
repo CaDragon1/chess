@@ -2,5 +2,5 @@ package server.handlers;
 
 import chess.ChessGame;
 
-public record JoinGameRequest(ChessGame.TeamColor team, int gameID) {
+public record JoinGameRequest(ChessGame.TeamColor playerColor, int gameID) {
 }
