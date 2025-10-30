@@ -46,10 +46,10 @@ public class GameService {
             AuthData auth = authDAO.getAuthData(authData);
             GameData game = gameDAO.getGame(gameID);
             if (auth == null) {
-                throw new ServerException("Unauthorized", 401);
+                throw new ServerException("unauthorized", 401);
             }
             if (game == null) {
-                throw new ServerException("Bad request", 400);
+                throw new ServerException("bad request", 400);
             }
 
             if (joinTeam == ChessGame.TeamColor.BLACK) {
