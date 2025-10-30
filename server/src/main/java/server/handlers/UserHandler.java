@@ -45,7 +45,7 @@ public class UserHandler {
             LoginRequest login = http.bodyAsClass(LoginRequest.class);
 
             //2. Call service method
-            AuthData authData = service.login(login.getUsername(), login.getPassword());
+            AuthData authData = service.login(login.username(), login.password());
 
             // 3. Accept codes and error codes
             http.status(200).json(authData);
