@@ -39,12 +39,4 @@ public class MemoryUserDataAccess implements UserDataAccess {
     public void clear() throws DataAccessException {
         userDB.clear();
     }
-
-    // Temporary method for testing purposes
-    public void printUsers() {
-        System.out.println("--- Users in Database ---");
-        for (UserData user : userDB) {
-            System.out.println(user.toString());
-        }
-    }
 }

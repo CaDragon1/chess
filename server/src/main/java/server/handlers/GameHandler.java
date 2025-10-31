@@ -26,7 +26,7 @@ public class GameHandler {
                 Collection<GameData> gameList = service.listGames(authToken);
 
                 // 3. Accept codes and error codes
-                http.status(200).json(gameList);
+                http.status(200).json(Map.of("games", gameList));
             } else {
                 http.status(401).json(Map.of("message", "unauthorized"));
             }
@@ -65,14 +65,10 @@ public class GameHandler {
 
     public void handleJoinGame(Context http) {
         try {
-            System.out.println("JOIN GAME HANDLER");
             String authToken = http.header("authorization");
-            System.out.println("Auth token: " + authToken);
             JoinGameRequest request = http.bodyAsClass(JoinGameRequest.class);
-            System.out.println("Request processed");
-            ChessGame.TeamColor team = request.playerColor();
+            String team = request.playerColor();
             int gameID = request.gameID();
-            System.out.println("Joining game " + gameID + " as playerColor " + team.toString());
 
             service.joinGame(authToken, team, gameID);
             http.status(200).json(Map.of("gameID", gameID));

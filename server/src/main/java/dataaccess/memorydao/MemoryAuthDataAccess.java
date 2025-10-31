@@ -59,12 +59,4 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
     public void clear() throws DataAccessException {
         authTokenDB.clear();
     }
-
-    // Temporary method for testing purposes
-    public void printAuth() {
-        System.out.println("--- AuthTokens in Database ---");
-        for (AuthData token : authTokenDB) {
-            System.out.println(token.toString());
-        }
-    }
 }

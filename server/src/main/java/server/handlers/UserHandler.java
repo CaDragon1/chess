@@ -54,6 +54,7 @@ public class UserHandler {
             // 3. Accept codes and error codes
             http.status(200).json(authData);
         } catch (ServerException e) {
+            System.out.println("LOGIN ERROR: " + e.getMessage() + " " + e.getStatusCode());
             http.status(e.getStatusCode()).json(Map.of("message", "Error: " + e.getMessage()));
         } catch (Exception e) {
             http.status(500).json(Map.of("message", "Error: unknown error"));

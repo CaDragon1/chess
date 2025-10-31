@@ -49,10 +49,10 @@ public class UserService {
                 throw new ServerException("unauthorized", 401);
             }
             // Extra check to ensure single logins
-            AuthData currentAuth = authDAO.getCurrentUserAuthToken(username);
-            if (currentAuth != null) {
-                throw new ServerException("unauthorized", 401);
-            }
+            //AuthData currentAuth = authDAO.getCurrentUserAuthToken(username);
+//            if (currentAuth != null) {
+//                throw new ServerException("unauthorized", 401);
+//            }
 
             AuthData authData = new AuthData(generateToken(), username);
             authDAO.createAuthData(authData);

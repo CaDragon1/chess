@@ -7,6 +7,7 @@ import dataaccess.memorydao.MemoryAuthDataAccess;
 import dataaccess.memorydao.MemoryGameDataAccess;
 import models.AuthData;
 import models.GameData;
+import org.jetbrains.annotations.NotNull;
 import server.ServerException;
 
 import java.util.Collection;
@@ -34,15 +35,19 @@ public class GameService {
                 gameDAO.createGame(game);
                 return gameID;
             }
-            throw new ServerException("Unauthorized", 401);
+            throw new ServerException("unauthorized", 401);
         } catch (DataAccessException e) {
+            if (e.getMessage().contains("unauthorized")) {
+                throw new ServerException("unauthorized", 401);
+            }
             throw new ServerException(e.getMessage(), 500);
         }
     }
 
-    public void joinGame(String authData, ChessGame.TeamColor joinTeam, int gameID) throws ServerException {
+    public void joinGame(String authData, String team, int gameID) throws ServerException {
         try {
-            System.out.println("Attempting join game...\nauthData - " + authData + "\nplayerColor color - " + joinTeam.toString() + "\ngame ID - " + gameID);
+            // nifty conversion trick I found online
+            ChessGame.TeamColor joinTeam;
             AuthData auth = authDAO.getAuthData(authData);
             GameData game = gameDAO.getGame(gameID);
             if (auth == null) {
@@ -52,21 +57,36 @@ public class GameService {
                 throw new ServerException("bad request", 400);
             }
 
-            if (joinTeam == ChessGame.TeamColor.BLACK) {
-                if (game.blackUsername() != null) {
-                    throw new ServerException("Player already exists: Black playerColor", 403);
-                }
-                game.setBlackUsername(auth.username());
-            } else {
-                if (game.whiteUsername() != null) {
-                    throw new ServerException("Player already exists: White playerColor", 403);
-                }
-                game.setWhiteUsername(auth.username());
+            if (team == null) {
+                throw new ServerException("bad request: null team color", 400);
             }
+            game = getGameDataFromTeam(team, game, auth);
             gameDAO.updateGame(game);
         } catch (DataAccessException e) {
+            if (e.getMessage().contains("unauthorized")) {
+                throw new ServerException("unauthorized", 401);
+            }
             throw new ServerException(e.getMessage(), 500);
         }
+    }
+
+    @NotNull
+    private static GameData getGameDataFromTeam(String team, GameData game, AuthData auth) throws ServerException {
+
+        if (team.equalsIgnoreCase("BLACK")) {
+            if (game.blackUsername() != null) {
+                throw new ServerException("Player already exists: Black playerColor", 403);
+            }
+            game = game.setBlackUsername(auth.username());
+        } else if (team.equalsIgnoreCase("WHITE")){
+            if (game.whiteUsername() != null) {
+                throw new ServerException("Player already exists: White playerColor", 403);
+            }
+            game = game.setWhiteUsername(auth.username());
+        } else {
+            throw new ServerException("bad request", 400);
+        }
+        return game;
     }
 
     public Collection<GameData> listGames(String authToken) throws ServerException {
@@ -77,13 +97,20 @@ public class GameService {
             }
             throw new ServerException("unauthorized", 401);
         } catch (DataAccessException e) {
+            if (e.getMessage().contains("unauthorized")) {
+                throw new ServerException("unauthorized", 401);
+            }
             throw new ServerException(e.getMessage(), 500);
         }
     }
 
     private int generateGameID() {
         Random rand = new Random();
-        return rand.nextInt();
+        int id = rand.nextInt();
+        if (id < 0) {
+            id*=-1;
+        }
+        return id;
     }
 
 }
