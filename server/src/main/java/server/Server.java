@@ -1,10 +1,8 @@
 package server;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dataaccess.memorydao.MemoryAuthDataAccess;
 import dataaccess.memorydao.MemoryGameDataAccess;
 import dataaccess.memorydao.MemoryUserDataAccess;
 import io.javalin.*;
-import models.AuthData;
 import server.handlers.ClearHandler;
 import server.handlers.GameHandler;
 import server.handlers.UserHandler;
@@ -15,23 +13,16 @@ import service.UserService;
 public class Server {
 
     private final Javalin javalin;
-    private UserService userService;
-    private GameService gameService;
-    private ClearService clearService;
-
-    private MemoryUserDataAccess userDAO;
-    private MemoryAuthDataAccess authDAO;
-    private MemoryGameDataAccess gameDAO;
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
-        userDAO = new MemoryUserDataAccess();
-        authDAO = new MemoryAuthDataAccess();
-        gameDAO = new MemoryGameDataAccess();
+        MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
+        MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
+        MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
 
-        userService = new UserService(userDAO, authDAO);
-        gameService = new GameService(gameDAO, authDAO, userDAO);
-        clearService = new ClearService(userDAO, gameDAO, authDAO);
+        UserService userService = new UserService(userDAO, authDAO);
+        GameService gameService = new GameService(gameDAO, authDAO, userDAO);
+        ClearService clearService = new ClearService(userDAO, gameDAO, authDAO);
 
         // Register your endpoints and exception handlers here.
         javalin.post("/user", new UserHandler(userService)::handleRegister);
