@@ -39,9 +39,7 @@ public class UserServiceTests {
     @Test
     public void testBadRegisterUserAndFail(){
         UserData user = new UserData("", "iluvcortana", "mastercheeks@test.com");
-        Exception e = assertThrows(ServerException.class, () -> {
-            service.register(user);
-        });
+        Exception e = assertThrows(ServerException.class, () -> service.register(user));
 
         assertTrue(e.getMessage().contains("bad request"));
     }
