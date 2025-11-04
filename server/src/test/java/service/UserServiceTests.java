@@ -63,21 +63,10 @@ public class UserServiceTests {
     @Test
     public void testLoginAndSucceed() throws ServerException{
         UserData user = new UserData("JohnFortnite", "mikumiku", "orangejulius@test.com");
-        AuthData auth = service.register(user);
-        service.logout(auth.authToken());
-        service.login("JohnFortnite", "mikumiku");
-        Exception e = assertThrows(ServerException.class, () -> service.login("JohnFortnite", "mikumiku"));
-        assertTrue(e.getMessage().contains("unauthorized"));
-    }
-
-    @Test
-    public void testLoginMultipleTimes() throws ServerException {
-        UserData user = new UserData("JohnFortnite", "mikumiku", "orangejulius@test.com");
-        AuthData auth = service.register(user);
-        service.logout(auth.authToken());
-        service.login("JohnFortnite", "mikumiku");
-        Exception e = assertThrows(ServerException.class, () -> service.login("JohnFortnite", "mikumiku"));
-        assertTrue(e.getMessage().contains("unauthorized"));
+        AuthData auth1 = service.register(user);
+        service.logout(auth1.authToken());
+        AuthData auth2 = service.login("JohnFortnite", "mikumiku");
+        assertNotNull(auth2);
     }
 
     @Test
