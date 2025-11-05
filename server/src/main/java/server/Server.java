@@ -9,19 +9,13 @@ import server.handlers.UserHandler;
 import service.ClearService;
 import service.GameService;
 import service.UserService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import io.javalin.json.JavalinJackson;
 
 public class Server {
 
     private final Javalin javalin;
 
     public Server() {
-        javalin = Javalin.create(config -> {
-            config.staticFiles.add("web");
-            config.jsonMapper(new JavalinJackson());
-        });
+        javalin = Javalin.create(config -> config.staticFiles.add("web"));
         MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
         MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
         MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();

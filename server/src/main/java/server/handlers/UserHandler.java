@@ -1,9 +1,9 @@
 package server.handlers;
 
+import com.google.gson.Gson;
 import io.javalin.http.Context;
 import models.AuthData;
 import models.UserData;
-import org.eclipse.jetty.util.log.Log;
 import server.ServerException;
 import service.UserService;
 
@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class UserHandler {
     private final UserService service;
+    private final Gson serializer = new Gson();
 
     public UserHandler(UserService service) {
         this.service = service;
@@ -23,20 +24,19 @@ public class UserHandler {
      */
     public void handleRegister(Context http) {
         try {
-            System.out.println("Attempting to handle registration");
             // 1. Parse request body
-            UserData userData = http.bodyAsClass(UserData.class);
-            System.out.println(userData.toString());
+            UserData userData = serializer.fromJson(http.body(), UserData.class);
 
             //2. Call service method
             AuthData authData = service.register(userData);
-            System.out.println("Service method finished running");
+
             // 3. Accept codes and error codes
-            http.status(200).json(authData);
+            http.status(200).json(serializer.toJson(authData));
+
         } catch (ServerException e) {
-            http.status(e.getStatusCode()).json(Map.of("message", "Error: " + e.getMessage()));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(Map.of("message", "Error: unknown error"));
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
 
@@ -44,20 +44,18 @@ public class UserHandler {
     public void handleLogin(Context http) {
         try {
             // 1. Parse request body
-            LoginRequest login = http.bodyAsClass(LoginRequest.class);
-            System.out.println("Login Request: " + login.toString());
+            LoginRequest login = serializer.fromJson(http.body(), LoginRequest.class);
 
             //2. Call service method
             AuthData authData = service.login(login.username(), login.password());
-            System.out.println("authData: " + authData.toString());
 
             // 3. Accept codes and error codes
-            http.status(200).json(authData);
+            http.status(200).json(serializer.toJson(authData));
         } catch (ServerException e) {
             System.out.println("LOGIN ERROR: " + e.getMessage() + " " + e.getStatusCode());
-            http.status(e.getStatusCode()).json(Map.of("message", "Error: " + e.getMessage()));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(Map.of("message", "Error: unknown error"));
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
 
@@ -71,14 +69,14 @@ public class UserHandler {
                 service.logout(authToken);
 
                 // 3. Accept codes and error codes
-                http.status(200).json(Map.of());
+                http.status(200).json(serializer.toJson(Map.of()));
             } else {
-                http.status(401).json(Map.of("message", "unauthorized"));
+                http.status(401).json(serializer.toJson(Map.of("message", "unauthorized")));
             }
         } catch (ServerException e) {
-            http.status(e.getStatusCode()).json(Map.of("message", "Error: " + e.getMessage()));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(Map.of("message", "Error: unknown error"));
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
 }

@@ -1,9 +1,6 @@
 package service;
 
 import dataaccess.DataAccessException;
-import dataaccess.interfaces.AuthDataAccess;
-import dataaccess.interfaces.GameDataAccess;
-import dataaccess.interfaces.UserDataAccess;
 import dataaccess.memorydao.MemoryAuthDataAccess;
 import dataaccess.memorydao.MemoryGameDataAccess;
 import dataaccess.memorydao.MemoryUserDataAccess;
