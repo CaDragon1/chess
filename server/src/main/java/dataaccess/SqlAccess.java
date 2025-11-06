@@ -1,4 +1,4 @@
-package dataaccess.sqldao;
+package dataaccess;
 
 import server.ServerException;
 
