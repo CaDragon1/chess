@@ -76,7 +76,7 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
     @Override
     public void clear() throws DataAccessException {
         try (var connection = DatabaseManager.getConnection()) {
-            var clear = "DELETE FROM AuthData";
+            String clear = "DELETE FROM AuthData";
 
             try (var preparedStatement = connection.prepareStatement(clear)) {
                 preparedStatement.executeUpdate();
@@ -96,7 +96,7 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
                 return preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
-            throw new DataAccessException("Execute Update failure: " + e.getMessage());
+            throw new DataAccessException("Auth DAO update failure: " + e.getMessage());
         }
     }
 
