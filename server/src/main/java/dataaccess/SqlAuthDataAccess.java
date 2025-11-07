@@ -8,6 +8,15 @@ import javax.xml.crypto.Data;
 import java.sql.SQLException;
 
 public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
+
+    public SqlAuthDataAccess () {
+        try {
+            configureDatabase();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void createAuthData(AuthData authData) throws DataAccessException {
         try (var connection = DatabaseManager.getConnection()) {
