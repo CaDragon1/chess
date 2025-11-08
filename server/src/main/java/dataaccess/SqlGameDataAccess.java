@@ -101,7 +101,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     @Override
     public void updateGame(GameData gameData) throws DataAccessException {
         try (var connection = DatabaseManager.getConnection()) {
-            String update = "UPDATE GameData SET whiteUsername = ?, blackUsername = ?, gameName = ?, game  ?, WHERE gameID = ?";
+            String update = "UPDATE GameData SET whiteUsername = ?, blackUsername = ?, gameName = ?, game = ? WHERE gameID = ?";
             Gson gson = new Gson();
 
             try (var preparedStatement = connection.prepareStatement(update)) {
