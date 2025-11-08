@@ -3,18 +3,15 @@ package service;
 import dataaccess.DataAccessException;
 import dataaccess.interfaces.AuthDataAccess;
 import dataaccess.interfaces.UserDataAccess;
-import dataaccess.memorydao.MemoryAuthDataAccess;
-import dataaccess.memorydao.MemoryUserDataAccess;
-import kotlin.NotImplementedError;
 import models.AuthData;
 import models.UserData;
 import server.ServerException;
 
 public class UserService {
-    private final MemoryUserDataAccess userDAO;
-    private final MemoryAuthDataAccess authDAO;
+    private final UserDataAccess userDAO;
+    private final AuthDataAccess authDAO;
 
-    public UserService(MemoryUserDataAccess userDAO, MemoryAuthDataAccess authDAO) {
+    public UserService(UserDataAccess userDAO, AuthDataAccess authDAO) {
         this.userDAO = userDAO;
         this.authDAO = authDAO;
     }

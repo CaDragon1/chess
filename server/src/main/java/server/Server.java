@@ -21,7 +21,7 @@ public class Server {
         MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
 
         UserService userService = new UserService(userDAO, authDAO);
-        GameService gameService = new GameService(gameDAO, authDAO, userDAO);
+        GameService gameService = new GameService(gameDAO, authDAO);
         ClearService clearService = new ClearService(userDAO, gameDAO, authDAO);
 
         // Register your endpoints and exception handlers here.

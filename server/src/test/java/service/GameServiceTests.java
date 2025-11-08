@@ -26,7 +26,7 @@ public class GameServiceTests {
         MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
         MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
         userService = new UserService(userDAO, authDAO);
-        gameService = new GameService(gameDAO, authDAO, userDAO);
+        gameService = new GameService(gameDAO, authDAO);
     }
 
     // Create Game

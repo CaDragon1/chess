@@ -2,9 +2,8 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.DataAccessException;
-import dataaccess.interfaces.UserDataAccess;
-import dataaccess.memorydao.MemoryAuthDataAccess;
-import dataaccess.memorydao.MemoryGameDataAccess;
+import dataaccess.interfaces.AuthDataAccess;
+import dataaccess.interfaces.GameDataAccess;
 import models.AuthData;
 import models.GameData;
 import org.jetbrains.annotations.NotNull;
@@ -14,10 +13,10 @@ import java.util.Collection;
 import java.util.Random;
 
 public class GameService {
-    private final MemoryGameDataAccess gameDAO;
-    private final MemoryAuthDataAccess authDAO;
+    private final GameDataAccess gameDAO;
+    private final AuthDataAccess authDAO;
 
-    public GameService(MemoryGameDataAccess gameDAO, MemoryAuthDataAccess authDAO, UserDataAccess userDAO) {
+    public GameService(GameDataAccess gameDAO, AuthDataAccess authDAO) {
         this.gameDAO = gameDAO;
         this.authDAO = authDAO;
     }
@@ -47,7 +46,6 @@ public class GameService {
     public void joinGame(String authData, String team, int gameID) throws ServerException {
         try {
             // nifty conversion trick I found online
-            ChessGame.TeamColor joinTeam;
             AuthData auth = authDAO.getAuthData(authData);
             GameData game = gameDAO.getGame(gameID);
             if (auth == null) {
