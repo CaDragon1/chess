@@ -36,7 +36,7 @@ public class GameService {
             }
             throw new ServerException("unauthorized", 401);
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("unauthorized")) {
+            if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
                 throw new ServerException("unauthorized", 401);
             }
             throw new ServerException(e.getMessage(), 500);
@@ -61,7 +61,7 @@ public class GameService {
             game = getGameDataFromTeam(team, game, auth);
             gameDAO.updateGame(game);
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("unauthorized")) {
+            if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
                 throw new ServerException("unauthorized", 401);
             }
             throw new ServerException(e.getMessage(), 500);
@@ -95,7 +95,7 @@ public class GameService {
             }
             throw new ServerException("unauthorized", 401);
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("unauthorized")) {
+            if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
                 throw new ServerException("unauthorized", 401);
             }
             throw new ServerException(e.getMessage(), 500);

@@ -1,11 +1,13 @@
 package passoff.server;
 import static org.junit.jupiter.api.Assertions.*;
 
+import dataaccess.DataAccessException;
 import dataaccess.SqlAuthDataAccess;
 import dataaccess.SqlGameDataAccess;
 import dataaccess.SqlUserDataAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import service.UserService;
 
 public class SQLDatabaseTests {
     private SqlUserDataAccess userDAO;
@@ -13,7 +15,7 @@ public class SQLDatabaseTests {
     private SqlGameDataAccess gameDAO;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws DataAccessException {
         userDAO = new SqlUserDataAccess();
         authDAO = new SqlAuthDataAccess();
         gameDAO = new SqlGameDataAccess();
@@ -22,4 +24,5 @@ public class SQLDatabaseTests {
         authDAO.clear();
         gameDAO.clear();
     }
+
 }

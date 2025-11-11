@@ -2,9 +2,7 @@ package dataaccess;
 
 import dataaccess.interfaces.AuthDataAccess;
 import models.AuthData;
-import server.ServerException;
 
-import javax.xml.crypto.Data;
 import java.sql.SQLException;
 
 public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {

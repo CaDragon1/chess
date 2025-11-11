@@ -15,6 +15,15 @@ import java.util.List;
 
 // "Would you rather have unlimited bacon, but no games... Or games, UNLIMITED games, and no games?" -Jschlatt
 public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
+
+    public SqlGameDataAccess () {
+        try {
+            configureDatabase();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
         Collection<GameData> games = new HashSet<GameData>();

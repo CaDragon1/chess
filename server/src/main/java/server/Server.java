@@ -1,4 +1,7 @@
 package server;
+import dataaccess.SqlAuthDataAccess;
+import dataaccess.SqlGameDataAccess;
+import dataaccess.SqlUserDataAccess;
 import dataaccess.memorydao.MemoryAuthDataAccess;
 import dataaccess.memorydao.MemoryGameDataAccess;
 import dataaccess.memorydao.MemoryUserDataAccess;
@@ -16,9 +19,9 @@ public class Server {
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
-        MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
-        MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
-        MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
+        SqlUserDataAccess userDAO = new SqlUserDataAccess();
+        SqlAuthDataAccess authDAO = new SqlAuthDataAccess();
+        SqlGameDataAccess gameDAO = new SqlGameDataAccess();
 
         UserService userService = new UserService(userDAO, authDAO);
         GameService gameService = new GameService(gameDAO, authDAO);

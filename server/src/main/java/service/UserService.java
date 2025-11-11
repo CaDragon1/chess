@@ -6,6 +6,7 @@ import dataaccess.interfaces.UserDataAccess;
 import models.AuthData;
 import models.UserData;
 import server.ServerException;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService {
     private final UserDataAccess userDAO;
@@ -26,8 +27,12 @@ public class UserService {
             if (userDAO.getUser(userData.username()) != null) {
                 throw new ServerException("already  taken", 403);
             }
-            userDAO.addUser(userData);
-            AuthData authData = new AuthData(generateToken(), userData.username());
+
+            String hashPW = BCrypt.hashpw(userData.password(), BCrypt.gensalt());
+            UserData hashedUser = new UserData(userData.username(), hashPW, userData.email());
+
+            userDAO.addUser(hashedUser);
+            AuthData authData = new AuthData(generateToken(), hashedUser.username());
             authDAO.createAuthData(authData);
             return authData;
         } catch (DataAccessException e) {
@@ -42,7 +47,8 @@ public class UserService {
         }
         try {
             UserData user = userDAO.getUser(username);
-            if (user == null || !user.password().equals(password)) {
+
+            if (user == null || !BCrypt.checkpw(password, user.password())) {
                 throw new ServerException("unauthorized", 401);
             }
             // Extra check to ensure single logins
@@ -66,7 +72,7 @@ public class UserService {
         try {
             authDAO.deleteAuthData(authToken);
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("unauthorized")) {
+            if (e.getMessage().contains("unauthorized") || e.getMessage().contains("Auth token not found")) {
                 throw new ServerException(e.getMessage(), 401);
             }
             throw new ServerException(e.getMessage(), 500);

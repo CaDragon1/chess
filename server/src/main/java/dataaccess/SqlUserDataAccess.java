@@ -2,7 +2,6 @@ package dataaccess;
 
 import dataaccess.interfaces.UserDataAccess;
 import models.UserData;
-import server.ServerException;
 
 import java.sql.SQLException;
 
