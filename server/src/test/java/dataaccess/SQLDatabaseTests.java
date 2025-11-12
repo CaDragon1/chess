@@ -1,13 +1,6 @@
-package passoff.server;
-import static org.junit.jupiter.api.Assertions.*;
+package dataaccess;
 
-import dataaccess.DataAccessException;
-import dataaccess.SqlAuthDataAccess;
-import dataaccess.SqlGameDataAccess;
-import dataaccess.SqlUserDataAccess;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import service.UserService;
 
 public class SQLDatabaseTests {
     private SqlUserDataAccess userDAO;
