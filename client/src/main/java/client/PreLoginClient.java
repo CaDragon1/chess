@@ -1,14 +1,20 @@
 package client;
 
 import exception.ResponseException;
+import models.AuthData;
+import models.UserData;
 
 import java.util.Arrays;
 
 public class PreLoginClient implements Client{
-    public PreLoginClient(String serverURL, Repl repl) {
+    private final ServerFacade server;
+
+    public PreLoginClient(ServerFacade server) {
+        this.server = server;
     }
 
-    public boolean help() {
+    public String help() {
+        return "--- HELP ---\nCommands:\nregister <username> <password> <email>\nlogin <username>\nhelp\nquit";
     }
 
     public String eval(String input) {
@@ -18,11 +24,28 @@ public class PreLoginClient implements Client{
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch(cmd) {
                 case "register" -> registerUser(params);
-                //case "log in"
-            }
+                case "login" -> loginUser(params);
+                case "help" -> help();
+                case "quit" -> "Quitting application...";
+                default -> "Error: Unknown command. Type 'help' for a list of available commands.";
+            };
+        } catch (ResponseException e) {
+            throw new RuntimeException(e);
         }
     }
 
+    private String loginUser(String[] params) throws ResponseException {
+        AuthData authData = server.loginUser(params[0], params[1]);
+
+        return params[0] + " has been successfully logged in!";
+    }
+
     private String registerUser(String[] params) throws ResponseException {
+        UserData user = new UserData(params[0], params[1], params[2]);
+
+        // Set auth token in cached data object
+        AuthData authData = server.registerUser(user);
+
+        return user.username() + " has been successfully registered!";
     }
 }
