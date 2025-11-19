@@ -4,13 +4,10 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.interfaces.GameDataAccess;
 import models.GameData;
-import server.ServerException;
 
-import javax.xml.crypto.Data;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 
 // "Would you rather have unlimited bacon, but no games... Or games, UNLIMITED games, and no games?" -Jschlatt
@@ -25,9 +22,9 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     }
 
     @Override
-    public Collection<GameData> listGames() throws DataAccessException {
-        Collection<GameData> games = new HashSet<GameData>();
-        String list = "SELECT * FROM GameData";
+    public List<GameData> listGames() throws DataAccessException {
+        List<GameData> games = new ArrayList<GameData>();
+        String list = "SELECT * FROM GameData ORDER BY gameID";
 
         try (var connection = DatabaseManager.getConnection()) {
             var preparedStatement = connection.prepareStatement(list);

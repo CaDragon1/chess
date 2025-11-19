@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import server.ServerException;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 public class GameService {
@@ -89,7 +90,7 @@ public class GameService {
         return game;
     }
 
-    public Collection<GameData> listGames(String authToken) throws ServerException {
+    public List<GameData> listGames(String authToken) throws ServerException {
         try {
             AuthData authData = authDAO.getAuthData(authToken);
             if (authData != null) {

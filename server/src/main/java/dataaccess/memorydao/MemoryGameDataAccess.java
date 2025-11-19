@@ -4,18 +4,20 @@ import dataaccess.DataAccessException;
 import dataaccess.interfaces.GameDataAccess;
 import models.GameData;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 public class MemoryGameDataAccess implements GameDataAccess {
-    Collection<GameData> gameDB;
+    List<GameData> gameDB;
 
     public MemoryGameDataAccess() {
-        gameDB = new HashSet<GameData>();
+        gameDB = new ArrayList<GameData>();
     }
 
     @Override
-    public Collection<GameData> listGames() throws DataAccessException {
+    public List<GameData> listGames() throws DataAccessException {
         return gameDB;
     }
 
