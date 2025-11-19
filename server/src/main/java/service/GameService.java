@@ -58,6 +58,8 @@ public class GameService {
             if (team == null) {
                 throw new ServerException("bad request: null team color", 400);
             }
+
+
             game = getGameDataFromTeam(team, game, auth);
             gameDAO.updateGame(game);
         } catch (DataAccessException e) {
@@ -102,13 +104,15 @@ public class GameService {
         }
     }
 
+    // Changing to a shorter 4-digit id system for ease of use. Can swap to an auto-increment approach later
     private int generateGameID() {
         Random rand = new Random();
-        int id = rand.nextInt();
-        if (id < 0) {
-            id*=-1;
-        }
-        return id;
+        return 1000 + rand.nextInt(9000);
+//        int id = rand.nextInt();
+//        if (id < 0) {
+//            id*=-1;
+//        }
+//        return id;
     }
 
 }
