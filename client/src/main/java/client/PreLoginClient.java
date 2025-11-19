@@ -37,7 +37,9 @@ public class PreLoginClient implements Client{
     private String loginUser(String[] params) throws ResponseException {
         AuthData authData = server.loginUser(params[0], params[1]);
 
-        return params[0] + " has been successfully logged in!";
+        // reformatted the return value so that I can pass the authToken safely
+        return String.format("{\"status\":\"success\", \"message\":\"%s successfully logged in\", \"authToken\":\"%s\"}",
+                params[0], authData.authToken());
     }
 
     private String registerUser(String[] params) throws ResponseException {
@@ -46,6 +48,7 @@ public class PreLoginClient implements Client{
         // Set auth token in cached data object
         AuthData authData = server.registerUser(user);
 
-        return user.username() + " has been successfully registered!";
+        return String.format("{\"status\":\"success\", \"message\":\"%s successfully registered\", \"authToken\":\"%s\"}",
+                params[0], authData.authToken());
     }
 }
