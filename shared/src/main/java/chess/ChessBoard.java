@@ -140,7 +140,6 @@ public class ChessBoard {
         setBackRow(ChessGame.TeamColor.WHITE);
         setPawnRow(ChessGame.TeamColor.BLACK);
         setPawnRow(ChessGame.TeamColor.WHITE);
-        System.out.println("Board reset!");
     }
 
     public void displayBoard() {
@@ -185,7 +184,6 @@ public class ChessBoard {
      * (Used to initialize and reset the board)
      */
     public void emptyBoard() {
-        System.out.println("**** EMPTYING BOARD ****");
         Arrays.fill(bitboards, 0L);
     }
 
