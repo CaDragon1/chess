@@ -67,14 +67,15 @@ public class Repl implements NotificationHandler {
         else if (evalResult.contains("joining game")) {
             String authToken = extractAuthToken(evalResult);
             int gameID = extractGameID(evalResult);
-            gameClient = new GameClient(server, authToken, gameID);
+            String teamColor = extractTeamColor(evalResult);
+            gameClient = new GameClient(server, authToken, gameID, teamColor);
 
             return gameClient;
         }
         else if (evalResult.contains("observing game")) {
             String authToken = extractAuthToken(evalResult);
             int gameID = extractGameID(evalResult);
-            gameClient = new GameClient(server, authToken, gameID);
+            gameClient = new GameClient(server, authToken, gameID, null);
 
             return gameClient;
         }
@@ -90,6 +91,11 @@ public class Repl implements NotificationHandler {
     private int extractGameID(String evalResult) {
         JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
         return json.get("gameID").getAsInt();
+    }
+
+    private String extractTeamColor(String evalResult) {
+        JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
+        return json.get("teamColor").getAsString();
     }
 
     @Override

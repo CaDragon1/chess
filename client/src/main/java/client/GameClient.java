@@ -14,10 +14,12 @@ public class GameClient implements Client {
     private ServerFacade server;
     private String authToken;
     private GameData game;
+    private String teamColor;
 
-    public GameClient(ServerFacade server, String authToken, Integer gameID) throws ResponseException {
+    public GameClient(ServerFacade server, String authToken, Integer gameID, String teamColor) throws ResponseException {
         this.server = server;
         this.authToken = authToken;
+        this.teamColor = teamColor;
         if (gameID != null) {
             game = findGame(gameID);
         }
@@ -54,34 +56,57 @@ public class GameClient implements Client {
         final String BLACK_BG_COLOR = "\u001B[100m";
         final String BORDER_COLOR = "\u001B[47m";
 
+        // Figuring out which direction to go
+        boolean isBlack = teamColor.equalsIgnoreCase("black");
+        int rowIDStart = isBlack ? 1 : 8;
+        int rowIDEnd = isBlack ? 9 : 0;
+        int colIDStart = isBlack ? 8 : 1;
+        int colIDEnd = isBlack ? 0 : 9;
+        int rowStep = isBlack ? 1 : -1;
+        int colStep = isBlack ? -1 : 1;
+
         ChessBoard board = game.getGame().getBoard();
 
         // Print top row
-        System.out.print(BORDER_COLOR + "   ");
-        //learned you can do this with chars, which is kinda cool
-        for (char col = 'a'; col <= 'h'; col++) {
-            System.out.print(" " + col + " ");
-        }
-        System.out.println(ANSI_RESET);
+        printBorderEdge();
 
-        // Print board: For each row, we subtract 1 until we reach the end.
-        for (int row = 8; row > 0; row--) {
+        // Print board: For each row, we subtract 1 or add 1 (depending on team color) until we reach the end.
+        for (int row = rowIDStart; row != rowIDEnd; row += rowStep) {
             System.out.print(BORDER_COLOR + " " + row + " " + ANSI_RESET);
 
-            for (int col = 0; col < 8; col++) {
+            for (int col = colIDStart; col != colIDEnd; col += colStep) {
                 // determines the checkerboard pattern
                 boolean isWhiteSquare = (row + col) % 2 == 1;
 
-                ChessPiece occupyingPiece = board.getPiece(new ChessPosition(row + 1, col + 1));
+                ChessPiece occupyingPiece = board.getPiece(new ChessPosition(row, col));
 
                 String bgColor = isWhiteSquare ? WHITE_BG_COLOR : BLACK_BG_COLOR;
                 String piece = formatPieceText(occupyingPiece);
                 System.out.print(bgColor + " " + piece + " " + ANSI_RESET);
             }
-            System.out.println(BORDER_COLOR + "   " + ANSI_RESET);
+            System.out.println(BORDER_COLOR + " " + row + " " + ANSI_RESET);
         }
         // Print bottom row
-        System.out.println(BORDER_COLOR + "                              " + ANSI_RESET);
+        printBorderEdge();
+    }
+
+    /**
+     * Helper function to print the edges of the border
+     */
+
+    private void printBorderEdge() {
+        System.out.print("\u001B[47m" + "   ");
+        if (teamColor.equalsIgnoreCase("black")) {
+            for (char col = 'h'; col >= 'a'; col--) {
+                System.out.print(" " + col + " ");
+            }
+        } else {
+            //learned you can do this with chars, which is kinda cool
+            for (char col = 'a'; col <= 'h'; col++) {
+                System.out.print(" " + col + " ");
+            }
+        }
+        System.out.println("\u001B[0m");
     }
 
     // Helper function to format the piece text appropriately

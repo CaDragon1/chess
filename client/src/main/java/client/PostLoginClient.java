@@ -119,7 +119,7 @@ public class PostLoginClient implements Client{
         }
         server.joinGame(authToken, teamColor, gameID);
         return String.format("{\"status\":\"success\", \"message\":\"%s joining game as %s...\", \"" +
-                "authToken\":\"%s\", \"gameID\":\"%s\"}", params[0], teamColor, authToken, params[1]);
+                "authToken\":\"%s\", \"gameID\":\"%s\", \"teamColor\":\"%s\"}", params[0], teamColor, authToken, params[1], teamColor);
     }
 
     private int getId(int gameIndex) throws ResponseException {
