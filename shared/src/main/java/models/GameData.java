@@ -13,6 +13,10 @@ public record GameData(int gameID, String whiteUsername, String blackUsername, S
         return new GameData(this.gameID, this.whiteUsername, blackUsername, this.gameName, this.game);
     }
 
+    public ChessGame getGame() {
+        return game;
+    }
+
     public String toString() {
         return new Gson().toJson(this);
     }

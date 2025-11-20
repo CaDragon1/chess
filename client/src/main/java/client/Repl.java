@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.sun.nio.sctp.HandlerResult;
 import com.sun.nio.sctp.Notification;
 import com.sun.nio.sctp.NotificationHandler;
+import exception.ResponseException;
 
 import java.util.Scanner;
 
@@ -50,7 +51,7 @@ public class Repl implements NotificationHandler {
         System.out.println();
     }
 
-    private Client handleClientState(String evalResult) {
+    private Client handleClientState(String evalResult) throws ResponseException {
         if (evalResult.contains("successfully logged in") || evalResult.contains("successfully registered")
                 || evalResult.contains("successfully exited game")) {
             String authToken = extractAuthToken(evalResult);
@@ -68,11 +69,13 @@ public class Repl implements NotificationHandler {
             int gameID = extractGameID(evalResult);
             gameClient = new GameClient(server, authToken, gameID);
 
-            gameClient.joinGame(evalResult);
             return gameClient;
         }
         else if (evalResult.contains("observing game")) {
-            gameClient.observeGame(evalResult);
+            String authToken = extractAuthToken(evalResult);
+            int gameID = extractGameID(evalResult);
+            gameClient = new GameClient(server, authToken, gameID);
+
             return gameClient;
         }
         return client;

@@ -14,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public class ServerFacade {
@@ -40,10 +41,10 @@ public class ServerFacade {
         this.makeRequest("DELETE", path, null, null, authToken);
     }
 
-    public Collection<GameData> listGame(String authToken) throws ResponseException {
+    public List<GameData> listGame(String authToken) throws ResponseException {
         var path = "/game";
         // Record for the game collection
-        record ListedGames(Collection<GameData> games) {}
+        record ListedGames(List<GameData> games) {}
         // Convert return into GameData collection
         return this.makeRequest("GET", path, null, ListedGames.class, authToken).games;
     }
