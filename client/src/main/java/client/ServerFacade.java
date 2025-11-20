@@ -4,7 +4,6 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import models.*;
 import exception.ResponseException;
-import server.handlers.LoginRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
