@@ -29,6 +29,7 @@ public class ServerFacadeTests {
     @BeforeEach
     public void serverInit() throws ResponseException {
         serverFacade = new ServerFacade("http://localhost:8080");
+        serverFacade.clearDatabase();
     }
 
     @AfterAll
@@ -108,10 +109,8 @@ public class ServerFacadeTests {
     public void createGameFailure() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
-        int gameID = serverFacade.createGame(registerResult.authToken(), "testGame");
-
         assertThrows(ResponseException.class, () ->
-                serverFacade.createGame(registerResult.authToken(), "testGame"));
+                serverFacade.createGame(null, "testGame"));
     }
 
     @Test

@@ -11,12 +11,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GameClient implements Client {
-    private ServerFacade server;
-    private String authToken;
+    private final ServerFacade server;
+    private final String authToken;
     private GameData game;
-    private String teamColor;
+    private final String teamColor;
 
-    public GameClient(ServerFacade server, String authToken, Integer gameID, String teamColor) throws ResponseException {
+    public GameClient(ServerFacade server, String authToken, Integer gameID, String teamColor) {
         this.server = server;
         this.authToken = authToken;
         this.teamColor = teamColor;
@@ -130,14 +130,18 @@ public class GameClient implements Client {
     }
 
     // Helper function to find the specific game by ID
-    private GameData findGame(int gameID) throws ResponseException {
-        List<GameData> gameList = server.listGame(authToken);
-        for (GameData game : gameList) {
-            if (game.gameID() == gameID) {
-                return game;
+    private GameData findGame(int gameID) {
+        try {
+            List<GameData> gameList = server.listGame(authToken);
+            for (GameData game : gameList) {
+                if (game.gameID() == gameID) {
+                    return game;
+                }
             }
+            return null;
+        } catch (Exception e) {
+            return null;
         }
-        return null;
     }
 
 }

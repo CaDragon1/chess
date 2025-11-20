@@ -20,7 +20,7 @@ public class Repl implements NotificationHandler {
         server = new ServerFacade(serverURL);
         preClient = new PreLoginClient(server);
         postClient = new PostLoginClient(server, null);
-        gameClient = new GameClient(server, null, null);
+        gameClient = new GameClient(server, null, null, null);
 
         client = preClient;
     }
@@ -61,7 +61,7 @@ public class Repl implements NotificationHandler {
         }
         else if (evalResult.contains("successfully logged out")) {
             postClient = new PostLoginClient(server, null);
-            gameClient = new GameClient(server, null, null);
+            gameClient = new GameClient(server, null, null, null);
             return preClient;
         }
         else if (evalResult.contains("joining game")) {
