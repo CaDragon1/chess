@@ -23,11 +23,12 @@ public class GameClient implements Client {
         if (gameID != null) {
             game = findGame(gameID);
         }
+        drawBoard();
     }
 
     @Override
     public String help() {
-        return "";
+        return "--- HELP ---\nCommands:\nleave game\nhelp";
     }
 
     @Override
