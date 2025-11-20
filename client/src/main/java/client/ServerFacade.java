@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -96,16 +95,13 @@ public class ServerFacade {
     }
 
     private <T> T readJsonBody(HttpURLConnection connection, Class<T> responseClass) throws IOException {
-        T response = null;
-        if (connection.getContentLength() < 0) {
-            try (InputStream inputStream = connection.getInputStream()) {
-                InputStreamReader reader = new InputStreamReader(inputStream);
-                if (responseClass != null) {
-                    response = new Gson().fromJson(reader, responseClass);
-                }
-            }
+        if (responseClass == null) {
+            return null;
         }
-        return response;
+        try (InputStream inputStream = connection.getInputStream()) {
+            InputStreamReader reader = new InputStreamReader(inputStream);
+            return new Gson().fromJson(reader, responseClass);
+        }
     }
 
     private void attemptHttpRequest(HttpURLConnection connection) throws ResponseException, IOException {
