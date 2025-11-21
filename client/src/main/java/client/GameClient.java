@@ -28,7 +28,7 @@ public class GameClient implements Client {
 
     @Override
     public String help() {
-        return "--- HELP ---\nCommands:\nleave game\nhelp";
+        return "{\"message\":\"--- HELP ---\\nCommands:\\nleave game\\nhelp\"}";
     }
 
     @Override
@@ -42,12 +42,13 @@ public class GameClient implements Client {
             case "help":
                 yield help();
             default:
-                yield "Error: Unknown command. Type 'help' for a list of available commands.";
+                yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
         };
     }
 
     private String leaveGame(String[] params) {
-        return "Successfully exited game";
+
+        return String.format("{\"message\":\"Successfully exited game\", \"authToken\":\"%s\"}", authToken);
     }
 
     private void drawBoard() {
@@ -58,7 +59,10 @@ public class GameClient implements Client {
         final String BORDER_COLOR = "\u001B[47m";
 
         // Figuring out which direction to go
-        boolean isBlack = teamColor.equalsIgnoreCase("black");
+        boolean isBlack = false;
+        if (teamColor != null) {
+            isBlack = teamColor.equalsIgnoreCase("black");
+        }
         int rowIDStart = isBlack ? 1 : 8;
         int rowIDEnd = isBlack ? 9 : 0;
         int colIDStart = isBlack ? 8 : 1;
@@ -97,7 +101,7 @@ public class GameClient implements Client {
 
     private void printBorderEdge() {
         System.out.print("\u001B[47m" + "   ");
-        if (teamColor.equalsIgnoreCase("black")) {
+        if (teamColor != null && teamColor.equalsIgnoreCase("black")) {
             for (char col = 'h'; col >= 'a'; col--) {
                 System.out.print(" " + col + " ");
             }
@@ -116,15 +120,15 @@ public class GameClient implements Client {
 
         if (occupyingPiece != null) {
             int isWhite = occupyingPiece.getTeamColor() == ChessGame.TeamColor.WHITE ? 1 : 0;
-            piece = isWhite == 1 ? "\u001B[94m" : "\u001B[31m";
+            piece = isWhite == 1 ? "\u001B[94m" : "\u001B[38;5;52m";
 
             switch(occupyingPiece.getPieceType()) {
-                case PAWN -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(8 * isWhite));
-                case ROOK -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(1 + 8 * isWhite));
-                case KNIGHT -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(2 + 8 * isWhite));
-                case BISHOP -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(3 + 8 * isWhite));
-                case QUEEN -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(4 + 8 * isWhite));
-                case KING -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(5 + 8 * isWhite));
+                case PAWN -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(6 * isWhite));
+                case ROOK -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(1 + 6 * isWhite));
+                case KNIGHT -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(2 + 6 * isWhite));
+                case BISHOP -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(3 + 6 * isWhite));
+                case QUEEN -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(4 + 6 * isWhite));
+                case KING -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(5 + 6 * isWhite));
             }
         }
         return piece;

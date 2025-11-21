@@ -2,35 +2,30 @@ package client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.sun.nio.sctp.HandlerResult;
-import com.sun.nio.sctp.Notification;
-import com.sun.nio.sctp.NotificationHandler;
+//import com.sun.nio.sctp.HandlerResult;
+//import com.sun.nio.sctp.Notification;
+//import com.sun.nio.sctp.NotificationHandler;
 import exception.ResponseException;
 
 import java.util.Scanner;
 
-public class Repl implements NotificationHandler {
+public class Repl {
     private Client client;
     private final ServerFacade server;
     private final PreLoginClient preClient;
-    private PostLoginClient postClient;
-    private GameClient gameClient;
 
     public Repl(String serverURL) {
         server = new ServerFacade(serverURL);
         preClient = new PreLoginClient(server);
-        postClient = new PostLoginClient(server, null);
-        gameClient = new GameClient(server, null, null, null);
 
         client = preClient;
     }
     public void run() {
-        System.out.println("Welcome to the Chess client! Please register or log in.");
-        System.out.print(client.help());
+        System.out.println("Welcome to the Chess client! Please register or log in.\nType 'help' for available commands.");
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equalsIgnoreCase("quit")) {
+        while (!result.equalsIgnoreCase("{\"message\":\"Quitting application...\"}")) {
             printPrompt();
             String line = scanner.nextLine();
 
@@ -38,46 +33,53 @@ public class Repl implements NotificationHandler {
                 result = client.eval(line);
                 client = handleClientState(result);
 
-                System.out.println(result);
+                try {
+                    System.out.println(extractMessage(result));
+                } catch (Exception e) {
+                    System.out.println(result);
+                }
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.println(msg);
             }
         }
-        System.out.println();
+        System.out.println("Goodbye!");
     }
 
     private void printPrompt() {
-        System.out.println();
+        System.out.print("> ");
     }
 
     private Client handleClientState(String evalResult) throws ResponseException {
-        if (evalResult.contains("successfully logged in") || evalResult.contains("successfully registered")
-                || evalResult.contains("successfully exited game")) {
-            String authToken = extractAuthToken(evalResult);
+        PostLoginClient postClient;
+        GameClient gameClient;
+        try {
+            String evalMessage = extractMessage(evalResult);
 
-            postClient = new PostLoginClient(server, authToken);
-            return postClient;
-        }
-        else if (evalResult.contains("successfully logged out")) {
-            postClient = new PostLoginClient(server, null);
-            gameClient = new GameClient(server, null, null, null);
-            return preClient;
-        }
-        else if (evalResult.contains("joining game")) {
-            String authToken = extractAuthToken(evalResult);
-            int gameID = extractGameID(evalResult);
-            String teamColor = extractTeamColor(evalResult);
-            gameClient = new GameClient(server, authToken, gameID, teamColor);
+            if (evalMessage.contains("successfully logged in") || evalMessage.contains("successfully registered")
+                    || evalMessage.contains("Successfully exited game")) {
+                String authToken = extractAuthToken(evalResult);
 
-            return gameClient;
-        }
-        else if (evalResult.contains("observing game")) {
-            String authToken = extractAuthToken(evalResult);
-            int gameID = extractGameID(evalResult);
-            gameClient = new GameClient(server, authToken, gameID, null);
+                postClient = new PostLoginClient(server, authToken);
+                return postClient;
+            } else if (evalMessage.contains("Successfully logged out")) {
+                return preClient;
+            } else if (evalMessage.contains("Joining game")) {
+                String authToken = extractAuthToken(evalResult);
+                int gameID = extractGameID(evalResult);
+                String teamColor = extractTeamColor(evalResult);
+                gameClient = new GameClient(server, authToken, gameID, teamColor);
 
-            return gameClient;
+                return gameClient;
+            } else if (evalMessage.contains("Observing game")) {
+                String authToken = extractAuthToken(evalResult);
+                int gameID = extractGameID(evalResult);
+                gameClient = new GameClient(server, authToken, gameID, null);
+
+                return gameClient;
+            }
+        } catch (Exception e) {
+            throw new ResponseException("Error: Json objects parsed incorrectly --> " + e.getMessage(), 500);
         }
         return client;
     }
@@ -86,6 +88,11 @@ public class Repl implements NotificationHandler {
     private String extractAuthToken(String evalResult) {
         JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
         return json.get("authToken").getAsString();
+    }
+
+    private String extractMessage(String evalResult) {
+        JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
+        return json.get("message").getAsString();
     }
 
     private int extractGameID(String evalResult) {
@@ -98,8 +105,8 @@ public class Repl implements NotificationHandler {
         return json.get("teamColor").getAsString();
     }
 
-    @Override
-    public HandlerResult handleNotification(Notification notification, Object attachment) {
-        return null;
-    }
+//    @Override
+//    public HandlerResult handleNotification(Notification notification, Object attachment) {
+//        return null;
+//    }
 }

@@ -14,7 +14,7 @@ public class PreLoginClient implements Client{
     }
 
     public String help() {
-        return "--- HELP ---\nCommands:\nregister <username> <password> <email>\nlogin <username>\nhelp\nquit";
+        return "{\"message\":\"--- HELP ---\\nCommands:\\nregister <username> <password> <email>\\nlogin <username> <password>\\nhelp\\nquit\"}";
     }
 
     public String eval(String input) {
@@ -26,8 +26,8 @@ public class PreLoginClient implements Client{
                 case "register" -> registerUser(params);
                 case "login" -> loginUser(params);
                 case "help" -> help();
-                case "quit" -> "Quitting application...";
-                default -> "Error: Unknown command. Type 'help' for a list of available commands.";
+                case "quit" -> "{\"message\":\"Quitting application...\"}";
+                default -> "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
             };
         } catch (ResponseException e) {
             throw new RuntimeException(e);

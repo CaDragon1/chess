@@ -19,8 +19,8 @@ public class PostLoginClient implements Client{
 
     @Override
     public String help() {
-        return "--- HELP ---\nCommands:\nlist games\ncreate game <game name>\njoin game <game number> <team color>" +
-                "\nobserve game <game number>\nhelp\nlogout";
+        return "{\"message\":\"--- HELP ---\\nCommands:\\nlist games\\ncreate game <game name>\\njoin game <game number> <team color>" +
+                "\\nobserve game <game number>\\nhelp\\nlogout\"}";
     }
 
     @Override
@@ -41,8 +41,10 @@ public class PostLoginClient implements Client{
                 if (tokens.length > 1 && tokens[1].equals("game")) yield observeGame(params);
             case "help":
                 yield help();
+            case "thatsaspicymeatball":
+                yield clearDatabase();
             default:
-                yield "Error: Unknown command. Type 'help' for a list of available commands.";
+                yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
         };
     }
 
@@ -52,19 +54,21 @@ public class PostLoginClient implements Client{
             try {
                 gameIndex = Integer.parseInt(params[1]);
             } catch (Exception e) {
-                return "Error: Invalid game number";
+                return "{\"message\":\"Error: Invalid game number \"}";
+            }
+            if (cachedGames == null) {
+                cachedGames = server.listGame(authToken);
             }
             int gameID = getGameID(gameIndex);
 
-            List<GameData> gameList = server.listGame(authToken);
             boolean contains = (findGame(gameID) != null);
             if (!contains) {
-                return "Error: Invalid game";
+                return "{\"message\":\"Error: Invalid game\"}";
             }
-            return String.format("{\"status\":\"success\", \"message\":\"%s joining game as observer...\", \"" +
-                    "authToken\":\"%s\", \"gameID\":\"%s\"}", params[0], authToken, params[1]);
+            return String.format("{\"status\":\"success\", \"message\":\"Observing game...\", \"authToken\":\"%s\", \"gameID\":\"%s\"}", authToken, gameID);
+
         } catch (Exception e) {
-            return ("Unknown error: " + e.getMessage());
+            return String.format("{\"message\":\"Unknown error: %s\"}", e.getMessage());
         }
     }
 
@@ -81,16 +85,16 @@ public class PostLoginClient implements Client{
 
     private String joinGame(String[] params) throws ResponseException {
         if (params.length < 2) {
-            return "Game not joined: Try 'join game <game ID> <team color>'";
+            return "{\"message\":\"Game not joined: Try 'join game <game ID> <team color>'\"}";
         }
 
         int gameIndex;
         try {
-            gameIndex = Integer.parseInt(params[0]);
+            gameIndex = Integer.parseInt(params[1]);
         } catch (Exception e) {
-            return "Game not joined: Game number must be an integer";
+            return "{\"message\":\"Game not joined: Game number must be an integer\"}";
         }
-        String color = params[1];
+        String color = params[2];
 
         // Save the gameID the user is attempting to join.
         int gameID = getId(gameIndex);
@@ -98,28 +102,28 @@ public class PostLoginClient implements Client{
         ChessGame.TeamColor teamColor;
         GameData chessGame = findGame(gameID);
         if (chessGame == null) {
-            return "Error: No game of index " + gameIndex + " found.";
+            return String.format("{\"message\":\"Error: No game of index %s found.\"}", gameIndex);
         }
 
         if (color.equalsIgnoreCase("white")) {
             if (chessGame.whiteUsername() == null) {
                 teamColor = ChessGame.TeamColor.WHITE;
             } else {
-                return "Game not joined: White team already occupied.";
+                return "{\"message\":\"Game not joined: White team already occupied.\"}";
             }
         }
         else if (color.equalsIgnoreCase("black")) {
             if (chessGame.blackUsername() == null) {
                 teamColor = ChessGame.TeamColor.BLACK;
             } else {
-                return "Game not joined: Black team already occupied.";
+                return "{\"message\":\"Game not joined: Black team already occupied.\"}";
             }
         } else {
-            return "Game not joined: Team color must be white or black.";
+            return "{\"message\":\"Game not joined: Team color must be white or black.\"}";
         }
         server.joinGame(authToken, teamColor, gameID);
-        return String.format("{\"status\":\"success\", \"message\":\"%s joining game as %s...\", \"" +
-                "authToken\":\"%s\", \"gameID\":\"%s\", \"teamColor\":\"%s\"}", params[0], teamColor, authToken, params[1], teamColor);
+        return String.format("{\"status\":\"success\", \"message\":\"Joining game as %s...\", \"" +
+                "authToken\":\"%s\", \"gameID\":\"%s\", \"teamColor\":\"%s\"}", teamColor, authToken, gameID, teamColor);
     }
 
     private int getId(int gameIndex) throws ResponseException {
@@ -141,40 +145,47 @@ public class PostLoginClient implements Client{
     }
 
     private String createGame(String[] params) {
-        if (params.length < 1 || params[0].isBlank()) {
-            return "Game not created: Must provide a name for the game";
+        if (params.length < 2 || params[1].isBlank()) {
+            return "{\"message\":\"Game not created: Must provide a name for the game\"}";
         }
         try {
-            int gameID = server.createGame(authToken, params[0]);
-            return "Game " + gameID + " created! Use 'join game <gameID> <team color>' to join.";
+            int gameID = server.createGame(authToken, params[1]);
+            return String.format("{\"message\":\"Game %s created! Use 'join game <game index> <team color>' to join.\"}", params[0]);
         } catch (Exception e) {
-            return "Error: Game creation failed --> " + e.getMessage();
+            return String.format("{\"message\":\"Error: Game creation failed --> %s\"}", e.getMessage());
         }
     }
 
     private String logout(String[] params) {
         try {
             server.logoutUser(authToken);
-            return "Successfully logged out.";
+            return "{\"message\":\"Successfully logged out.\"}";
         } catch (Exception e) {
-            return "Error: Logout unsuccessful --> " +  e.getMessage();
+            return String.format("{\"message\":\"Error: Logout unsuccessful --> %s\"}", e.getMessage());
         }
     }
 
     private String listGames() throws ResponseException {
         List<GameData> games = server.listGame(authToken);
         if (games.isEmpty()) {
-            return "No games found";
+            return "{\"message\":\"No games found\"}";
         }
 
-        StringBuilder gameList = new StringBuilder("--- GAMES ---\nIndex    Name    White Username    Black Username\n");
+        StringBuilder gameList = new StringBuilder("{\"message\":\"--- GAMES ---\\nIndex    Name    White Username    Black Username\\n");
         int index = 1;
         for (GameData game : games) {
             gameList.append(index).append("  ").append(game.gameName()).append("  ")
-                    .append(game.whiteUsername()).append("    ").append(game.blackUsername()).append("\n");
+                    .append(game.whiteUsername()).append("    ").append(game.blackUsername()).append("\\n");
             index++;
         }
+        gameList.append("\"}");
         return gameList.toString();
+    }
+
+    private String clearDatabase() throws ResponseException {
+        server.logoutUser(authToken);
+        server.clearDatabase();
+        return "{\"message\":\"Successfully logged out.\"}";
     }
 
 }
