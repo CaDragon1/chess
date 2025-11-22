@@ -32,9 +32,9 @@ public class GameHandler {
                 http.status(401).json(serializer.toJson(Map.of("message", "unauthorized")));
             }
         } catch (ServerException e) {
-            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", e.getMessage())));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "unknown error")));
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
 
@@ -46,10 +46,10 @@ public class GameHandler {
             String name = request.gameName();
 
             if (authToken == null || authToken.isBlank()) {
-                http.status(401).json(serializer.toJson(Map.of("message", "unauthorized")));
+                http.status(401).json(serializer.toJson(Map.of("message", "Error: unauthorized")));
             }
             else if (name == null || name.isBlank()) {
-                http.status(400).json(serializer.toJson(Map.of("message", "bad request")));
+                http.status(400).json(serializer.toJson(Map.of("message", "Error: bad request")));
             } else {
                 //2. Call service method
                 int index = service.createGame(authToken, name);
@@ -58,9 +58,9 @@ public class GameHandler {
                 http.status(200).json(serializer.toJson(Map.of("gameID", index)));
             }
         } catch (ServerException e) {
-            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", e.getMessage())));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "unknown error")));
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
 
@@ -75,9 +75,9 @@ public class GameHandler {
             http.status(200).json(serializer.toJson(Map.of("gameID", gameID)));
 
         } catch (ServerException e) {
-            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", e.getMessage())));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "unknown error")));
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
 }

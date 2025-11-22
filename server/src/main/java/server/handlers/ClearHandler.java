@@ -26,7 +26,7 @@ public class ClearHandler {
             // 3. Accept codes and error codes
             http.status(200).json(serializer.toJson(Map.of()));
         } catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "unknown error")));
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
 }
