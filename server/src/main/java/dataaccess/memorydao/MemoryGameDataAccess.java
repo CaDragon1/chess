@@ -5,15 +5,13 @@ import dataaccess.interfaces.GameDataAccess;
 import models.GameData;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 public class MemoryGameDataAccess implements GameDataAccess {
     List<GameData> gameDB;
 
     public MemoryGameDataAccess() {
-        gameDB = new ArrayList<GameData>();
+        gameDB = new ArrayList<>();
     }
 
     @Override
@@ -22,7 +20,7 @@ public class MemoryGameDataAccess implements GameDataAccess {
     }
 
     @Override
-    public GameData getGame(int gameID) throws DataAccessException {
+    public GameData getGame(int gameID) {
         for (GameData game : gameDB) {
             if(game.gameID() == gameID) {
                 return game;

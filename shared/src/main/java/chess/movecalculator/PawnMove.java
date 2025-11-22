@@ -4,7 +4,6 @@ import chess.*;
 
 public class PawnMove extends MoveCalculator{
     private final int vertical;
-    private final int epRow;
     private final int startingRow;
     ChessGame.TeamColor currentTeam;
 
@@ -13,7 +12,6 @@ public class PawnMove extends MoveCalculator{
         super(board, position);
         currentTeam = board.getPiece(position).getTeamColor();
         vertical = currentTeam == ChessGame.TeamColor.WHITE ? 1 : -1;
-        epRow = currentTeam == ChessGame.TeamColor.WHITE ? 5 : 4;
         startingRow = currentTeam == ChessGame.TeamColor.WHITE ? 2 : 7;
         calculateMoves();
     }
@@ -21,18 +19,11 @@ public class PawnMove extends MoveCalculator{
     private void calculateMoves() {
         // Check if en passant is possible and if the current row is 4 or 5, depending on team color:
         int checkPosition = position.getIndex() + (vertical * 8);
-        boolean obstructed = false;
-
-        // Check space in front
-        obstructed = checkMove(checkPosition);
+        boolean obstructed = checkMove(checkPosition);
 
         // Check for attacking spaces
         checkAttack();
 
-//        // If conditions are met for en passant, check en passant
-//        if (board.getEnPassant() != -1 && position.getRow() == epRow) {
-//            checkEnPassant();
-//        }
         // If those aren't met, check to see if we're in the starting row and check for a double move
         if (position.getRow() == startingRow && !obstructed) {
             checkPosition+=(8 * vertical);
@@ -89,22 +80,6 @@ public class PawnMove extends MoveCalculator{
             }
         }
     }
-
-    /**
-     * The way En Passant works:
-     * - ChessBoard stores the index of the passed-over square that is vulnerable to en passant.
-     * - If the PawnMove detects that index next to the index of the current position, it will add that diagonal to the move list.
-     * - When a move is made later, if the move's final position matches the en passant index, then the relevant pawn
-     * is also removed if the currently moving piece is also a pawn.
-     * - Regardless, after any move is made, enPassant is set to -1.
-     */
-//    private void checkEnPassant() {
-//        int epIndex = board.getEnPassant();
-//
-//        if (Math.abs(position.getIndex() - epIndex) == 1) {
-//            moveList.add(new ChessMove(position.getIndex(), epIndex, null));
-//        }
-//    }
 
     /**
      * Determines whether or not the index leads to the pawn being promoted

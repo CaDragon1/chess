@@ -9,7 +9,6 @@ import models.GameData;
 import org.jetbrains.annotations.NotNull;
 import server.ServerException;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -105,15 +104,12 @@ public class GameService {
         }
     }
 
-    // Changing to a shorter 4-digit id system for ease of use. Can swap to an auto-increment approach later
     private int generateGameID() {
         Random rand = new Random();
-        return 1000 + rand.nextInt(9000);
-//        int id = rand.nextInt();
-//        if (id < 0) {
-//            id*=-1;
-//        }
-//        return id;
+        int id = rand.nextInt();
+        if (id < 0) {
+            id*=-1;
+        }
+        return id;
     }
-
 }

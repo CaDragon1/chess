@@ -59,12 +59,12 @@ public class ChessGame {
         if (piece != null) {
             ChessGame.TeamColor teamColor = piece.getTeamColor();
             Collection<ChessMove> pieceMoves = piece.pieceMoves(gameBoard, startPosition);
-            return validMoveLoop(gameBoard, teamColor, pieceMoves);
+            return validMoveLoop(teamColor, pieceMoves);
         }
         return null;
     }
 
-    private Collection<ChessMove> validMoveLoop(ChessBoard board, TeamColor teamColor, Collection<ChessMove> moves) {
+    private Collection<ChessMove> validMoveLoop(TeamColor teamColor, Collection<ChessMove> moves) {
         ChessBoard boardCopy = new ChessBoard();
         Collection<ChessMove> validMoves = new ArrayList<>();
         for (ChessMove move : moves) {
@@ -86,7 +86,7 @@ public class ChessGame {
     // but this will suffice for now.
     private Collection<ChessMove> allValidMoves(TeamColor teamColor) {
         Collection<ChessMove> teamMoves = allTeamMoves(teamColor, gameBoard);
-        return validMoveLoop(gameBoard, teamColor, teamMoves);
+        return validMoveLoop(teamColor, teamMoves);
     }
 
     /**
@@ -135,30 +135,12 @@ public class ChessGame {
         int teamModifier = (piece.getTeamColor() == TeamColor.WHITE ? 0 : 6);
         int indexNum = -11;
         switch (piece.getPieceType()) {
-            case KING -> {
-                indexNum = 5;
-                break;
-            }
-            case QUEEN -> {
-                indexNum = 4;
-                break;
-            }
-            case BISHOP -> {
-                indexNum = 3;
-                break;
-            }
-            case KNIGHT -> {
-                indexNum = 2;
-                break;
-            }
-            case ROOK -> {
-                indexNum = 1;
-                break;
-            }
-            case PAWN -> {
-                indexNum = 0;
-                break;
-            }
+            case KING -> indexNum = 5;
+            case QUEEN -> indexNum = 4;
+            case BISHOP -> indexNum = 3;
+            case KNIGHT -> indexNum = 2;
+            case ROOK -> indexNum = 1;
+            case PAWN -> indexNum = 0;
         }
         return indexNum + teamModifier;
     }
@@ -221,28 +203,6 @@ public class ChessGame {
         board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
         board.getBitboards()[pieceBBIndex] |= (1L << endIndex);
 
-//        // Check en passant
-//        if (movePiece.getPieceType() == ChessPiece.PieceType.PAWN)  {
-//
-//            // Was it a double move? If so, set epsquare.
-//            if (Math.abs(startIndex - endIndex) == 16) {
-//                int epIndex = startIndex + (endIndex - startIndex) / 2;
-//                board.setEnPassant(epIndex);
-//            }
-//            else {
-//                // Check if the end spot is en passant
-//                int direction = (currentTeamTurn == TeamColor.WHITE ? -1 : 1);
-//                if (endIndex == board.getEnPassant()) {
-//                    int targetIndex = endIndex + (8 * direction);
-//                    ChessPiece targetPawn = board.getPiece(targetIndex);
-//                    if (targetPawn != null && targetPawn.getPieceType() == ChessPiece.PieceType.PAWN) {
-//                        int targetBBIndex = getBitboardIndex(targetPiece);
-//                        board.getBitboards()[targetBBIndex] &= ~(1L << targetIndex);
-//                    }
-//                }
-//            }
-//        }
-
         // Check for and set the index on the targeted piece's bitboard
         if (targetPiece != null) {
             int targetBBIndex = getBitboardIndex(targetPiece);
@@ -291,9 +251,6 @@ public class ChessGame {
      */
     public boolean isInCheckmate(TeamColor teamColor) {
         if (isInCheck(teamColor)) {
-            TeamColor enemyTeam = (teamColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
-            int kingBBIndex = (teamColor == TeamColor.WHITE ? 5 : 11);
-            int bbStartingIndex = (teamColor == TeamColor.WHITE ? 0 : 6);
 
             ChessBoard boardCopy = new ChessBoard();
             Collection<ChessMove> futureMoves = allTeamMoves(teamColor, gameBoard);

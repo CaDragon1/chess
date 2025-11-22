@@ -34,9 +34,9 @@ public class UserHandler {
             http.status(200).json(serializer.toJson(authData));
 
         } catch (ServerException e) {
-            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "Error: bad request")));
+            http.status(500).json(serializer.toJson(Map.of("message", "bad request")));
         }
     }
 
@@ -53,9 +53,9 @@ public class UserHandler {
             http.status(200).json(serializer.toJson(authData));
         } catch (ServerException e) {
             System.out.println("LOGIN ERROR: " + e.getMessage() + " " + e.getStatusCode());
-            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
+            http.status(500).json(serializer.toJson(Map.of("message", "unknown error")));
         }
     }
 
@@ -74,9 +74,9 @@ public class UserHandler {
                 http.status(401).json(serializer.toJson(Map.of("message", "unauthorized")));
             }
         } catch (ServerException e) {
-            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: unauthorized logout - " + e.getMessage())));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "unauthorized logout - " + e.getMessage())));
         } catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
+            http.status(500).json(serializer.toJson(Map.of("message", "unknown error")));
         }
     }
 }

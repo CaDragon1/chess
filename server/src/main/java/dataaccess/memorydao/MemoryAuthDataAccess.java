@@ -3,7 +3,6 @@ package dataaccess.memorydao;
 import dataaccess.DataAccessException;
 import dataaccess.interfaces.AuthDataAccess;
 import models.AuthData;
-import models.UserData;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -12,23 +11,23 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
     Collection<AuthData> authTokenDB;
 
     public MemoryAuthDataAccess() {
-        authTokenDB = new HashSet<AuthData>();
+        authTokenDB = new HashSet<>();
     }
 
     @Override
-    public void createAuthData(AuthData authData) throws DataAccessException {
+    public void createAuthData(AuthData authData) {
         authTokenDB.add(authData);
     }
 
-    // New method for single session verification, not in the .md but needed
-    public AuthData getCurrentUserAuthToken(String username) {
-        for (AuthData token : authTokenDB) {
-            if (token.username().equals(username)) {
-                return token;
-            }
-        }
-        return null;
-    }
+//    // New method for single session verification, not in the .md but needed
+//    public AuthData getCurrentUserAuthToken(String username) {
+//        for (AuthData token : authTokenDB) {
+//            if (token.username().equals(username)) {
+//                return token;
+//            }
+//        }
+//        return null;
+//    }
 
     @Override
     public void deleteAuthData(String authData) throws DataAccessException {

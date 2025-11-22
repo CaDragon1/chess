@@ -4,7 +4,6 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import exception.ResponseException;
 import models.GameData;
 
 import java.util.Arrays;
@@ -32,7 +31,7 @@ public class GameClient implements Client {
     }
 
     @Override
-    public String eval(String input) throws ResponseException {
+    public String eval(String input) {
         var tokens = input.toLowerCase().split(" ");
         var cmd = (tokens.length > 0) ? tokens[0] : "help";
         var params = Arrays.copyOfRange(tokens, 1, tokens.length);
@@ -47,7 +46,6 @@ public class GameClient implements Client {
     }
 
     private String leaveGame(String[] params) {
-
         return String.format("{\"message\":\"Successfully exited game\", \"authToken\":\"%s\"}", authToken);
     }
 
@@ -111,7 +109,7 @@ public class GameClient implements Client {
                 System.out.print(" " + col + " ");
             }
         }
-        System.out.println("\u001B[0m");
+        System.out.println("\u001B[47m" + "   " + "\u001b[0m");
     }
 
     // Helper function to format the piece text appropriately
@@ -123,12 +121,12 @@ public class GameClient implements Client {
             piece = isWhite == 1 ? "\u001B[94m" : "\u001B[38;5;52m";
 
             switch(occupyingPiece.getPieceType()) {
-                case PAWN -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(6 * isWhite));
-                case ROOK -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(1 + 6 * isWhite));
-                case KNIGHT -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(2 + 6 * isWhite));
-                case BISHOP -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(3 + 6 * isWhite));
-                case QUEEN -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(4 + 6 * isWhite));
-                case KING -> piece = piece + String.valueOf(UnicodePieces.PIECES.getPiece(5 + 6 * isWhite));
+                case PAWN -> piece = piece + UnicodePieces.PIECES.getPiece(6 * isWhite);
+                case ROOK -> piece = piece + UnicodePieces.PIECES.getPiece(1 + 6 * isWhite);
+                case KNIGHT -> piece = piece + UnicodePieces.PIECES.getPiece(2 + 6 * isWhite);
+                case BISHOP -> piece = piece + UnicodePieces.PIECES.getPiece(3 + 6 * isWhite);
+                case QUEEN -> piece = piece + UnicodePieces.PIECES.getPiece(4 + 6 * isWhite);
+                case KING -> piece = piece + UnicodePieces.PIECES.getPiece(5 + 6 * isWhite);
             }
         }
         return piece;

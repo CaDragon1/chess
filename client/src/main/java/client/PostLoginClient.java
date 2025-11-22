@@ -24,28 +24,32 @@ public class PostLoginClient implements Client{
     }
 
     @Override
-    public String eval(String input) throws ResponseException {
-        var tokens = input.toLowerCase().split(" ");
-        var cmd = (tokens.length > 0) ? tokens[0] : "help";
-        var params = Arrays.copyOfRange(tokens, 1, tokens.length);
-        return switch(cmd) {
-            case "list":
-                if (tokens.length > 1 && tokens[1].equals("games")) yield listGames();
-            case "logout":
-                yield logout(params);
-            case "create":
-                if (tokens.length > 1 && tokens[1].equals("game")) yield createGame(params);
-            case "join":
-                if (tokens.length > 1 && tokens[1].equals("game")) yield joinGame(params);
-            case "observe":
-                if (tokens.length > 1 && tokens[1].equals("game")) yield observeGame(params);
-            case "help":
-                yield help();
-            case "thatsaspicymeatball":
-                yield clearDatabase();
-            default:
-                yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
-        };
+    public String eval(String input) {
+        try {
+            var tokens = input.toLowerCase().split(" ");
+            var cmd = (tokens.length > 0) ? tokens[0] : "help";
+            var params = Arrays.copyOfRange(tokens, 1, tokens.length);
+            return switch(cmd) {
+                case "list":
+                    if (tokens.length > 1 && tokens[1].equals("games")) yield listGames();
+                case "logout":
+                    yield logout(params);
+                case "create":
+                    if (tokens.length > 1 && tokens[1].equals("game")) yield createGame(params);
+                case "join":
+                    if (tokens.length > 1 && tokens[1].equals("game")) yield joinGame(params);
+                case "observe":
+                    if (tokens.length > 1 && tokens[1].equals("game")) yield observeGame(params);
+                case "help":
+                    yield help();
+                case "thatsaspicymeatball":
+                    yield clearDatabase();
+                default:
+                    yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
+            };
+        } catch (ResponseException e) {
+            return String.format("{\"status\":\"error\",\"message\":\"%s\"}", e.getMessage());
+        }
     }
 
     private String observeGame(String[] params){
@@ -59,7 +63,7 @@ public class PostLoginClient implements Client{
             if (cachedGames == null) {
                 cachedGames = server.listGame(authToken);
             }
-            int gameID = getGameID(gameIndex);
+            int gameID = findGameID(gameIndex);
 
             boolean contains = (findGame(gameID) != null);
             if (!contains) {
@@ -68,7 +72,10 @@ public class PostLoginClient implements Client{
             return String.format("{\"status\":\"success\", \"message\":\"Observing game...\", \"authToken\":\"%s\", \"gameID\":\"%s\"}", authToken, gameID);
 
         } catch (Exception e) {
-            return String.format("{\"message\":\"Unknown error: %s\"}", e.getMessage());
+            if (e.getMessage().contains("out of bounds")) {
+                return "{\"message\":\"Error: No game found of specified index\"}";
+            }
+            return String.format("{\"message\":\"Error: %s\"}", e.getMessage());
         }
     }
 
@@ -84,8 +91,11 @@ public class PostLoginClient implements Client{
     }
 
     private String joinGame(String[] params) throws ResponseException {
-        if (params.length < 2) {
+        if (params.length < 3) {
             return "{\"message\":\"Game not joined: Try 'join game <game ID> <team color>'\"}";
+        }
+        if (params.length > 3) {
+            throw new ResponseException("Game not joined: Too many parameters", 400);
         }
 
         int gameIndex;
@@ -97,7 +107,7 @@ public class PostLoginClient implements Client{
         String color = params[2];
 
         // Save the gameID the user is attempting to join.
-        int gameID = getId(gameIndex);
+        int gameID = findGameID(gameIndex);
 
         ChessGame.TeamColor teamColor;
         GameData chessGame = findGame(gameID);
@@ -126,22 +136,32 @@ public class PostLoginClient implements Client{
                 "authToken\":\"%s\", \"gameID\":\"%s\", \"teamColor\":\"%s\"}", teamColor, authToken, gameID, teamColor);
     }
 
-    private int getId(int gameIndex) throws ResponseException {
-        boolean precached = true;
-        if (cachedGames == null) {
-            cachedGames = server.listGame(authToken);
-            precached = false;
-        }
-        int gameID = getGameID(gameIndex);
-        if (precached) {
-            cachedGames = server.listGame(authToken);
+    /**
+     * findGameID is a helper method to assist in getting the id of a game from the game list and handle the exceptions thereof.
+     * @param gameIndex is the index of the game we're looking at
+     * @return the gameID of the indexed game
+     * @throws ResponseException e
+     */
+    private int findGameID(int gameIndex) throws ResponseException {
+        int gameID;
+        try {
+            boolean precached = true;
+            if (cachedGames == null) {
+                cachedGames = server.listGame(authToken);
+                precached = false;
+            }
+            GameData[] gameArray = cachedGames.toArray(new GameData[0]);
+            gameID = gameArray[gameIndex - 1].gameID();
+            if (precached) {
+                cachedGames = server.listGame(authToken);
+            }
+        } catch (Exception e) {
+            if (e.getMessage().contains("out of bounds")){
+                throw new ResponseException("No game of index " + gameIndex + " exists.", 400);
+            }
+            throw new ResponseException("Error: " + e.getMessage(), 500);
         }
         return gameID;
-    }
-
-    private int getGameID(int gameIndex) {
-        GameData[] gameArray = cachedGames.toArray(new GameData[0]);
-        return gameArray[gameIndex - 1].gameID();
     }
 
     private String createGame(String[] params) {
@@ -149,8 +169,8 @@ public class PostLoginClient implements Client{
             return "{\"message\":\"Game not created: Must provide a name for the game\"}";
         }
         try {
-            int gameID = server.createGame(authToken, params[1]);
-            return String.format("{\"message\":\"Game %s created! Use 'join game <game index> <team color>' to join.\"}", params[0]);
+            server.createGame(authToken, params[1]);
+            return String.format("{\"message\":\"Game %s created! Use 'join game <game index> <team color>' to join.\"}", params[1]);
         } catch (Exception e) {
             return String.format("{\"message\":\"Error: Game creation failed --> %s\"}", e.getMessage());
         }
