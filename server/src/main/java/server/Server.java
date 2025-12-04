@@ -1,21 +1,22 @@
 package server;
+import com.google.gson.Gson;
 import dataaccess.SqlAuthDataAccess;
 import dataaccess.SqlGameDataAccess;
 import dataaccess.SqlUserDataAccess;
-import dataaccess.memorydao.MemoryAuthDataAccess;
-import dataaccess.memorydao.MemoryGameDataAccess;
-import dataaccess.memorydao.MemoryUserDataAccess;
 import io.javalin.*;
+import io.javalin.websocket.WsMessageContext;
 import server.handlers.ClearHandler;
 import server.handlers.GameHandler;
 import server.handlers.UserHandler;
 import service.ClearService;
 import service.GameService;
 import service.UserService;
+import websocket.commands.UserGameCommand;
 
 public class Server {
 
     private final Javalin javalin;
+    private final Gson gson = new Gson();
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
@@ -35,6 +36,43 @@ public class Server {
         javalin.post("/game", new GameHandler(gameService)::handleCreateGame);
         javalin.put("/game", new GameHandler(gameService)::handleJoinGame);
         javalin.delete("/db", new ClearHandler(clearService)::handleClear);
+
+        // Websocket setup
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(ctx -> {
+                ctx.enableAutomaticPings();
+                System.out.println("Websocket connected");
+            });
+            ws.onMessage(ctx -> {
+                String json = ctx.message();
+                ctx.send("WebSocket response:" + json);
+                UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
+                // Parse JSON into commands such as CONNECT, MAKE_MOVE, LEAVE, RESIGN with a switch statement
+                switch (command.getCommandType()) {
+                    case CONNECT -> handleConnect(ctx, command);
+                    case LEAVE -> handleLeave(ctx, command);
+                    case RESIGN -> handleResign(ctx, command);
+                    case MAKE_MOVE -> handleMakeMove(ctx, command);
+                }
+            });
+            ws.onClose(ctx -> {
+                System.out.println("Websocket closed");
+                // Remove session
+            });
+        });
+    }
+
+    // Handler functions for my json parsing in websocket
+    private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
+    }
+
+    private void handleResign(WsMessageContext ctx, UserGameCommand command) {
+    }
+
+    private void handleLeave(WsMessageContext ctx, UserGameCommand command) {
+    }
+
+    private void handleConnect(WsMessageContext ctx, UserGameCommand command) {
     }
 
     public int run(int desiredPort) {
