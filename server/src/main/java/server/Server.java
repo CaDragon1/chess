@@ -63,6 +63,18 @@ public class Server {
     }
 
     // Handler functions for my json parsing in websocket
+
+    /**
+     * handleMakeMove json structure:
+     * {
+     *   "commandType": "MAKE_MOVE",
+     *   "authToken": "token",
+     *   "gameID": int,
+     *   "move": { "start": { "row": 3, "col": 3 }, "end": { "row": 5, "col": 5 } }
+     * }
+     * @param ctx
+     * @param command
+     */
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
     }
 
