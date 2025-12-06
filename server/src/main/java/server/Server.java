@@ -11,13 +11,16 @@ import server.handlers.UserHandler;
 import service.ClearService;
 import service.GameService;
 import service.UserService;
-import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
 
     private final Javalin javalin;
     private final Gson gson = new Gson();
+    private final Map<Integer, Set<WsMessageContext>> gameSessions = new ConcurrentHashMap<>();
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
@@ -37,57 +40,9 @@ public class Server {
         javalin.post("/game", new GameHandler(gameService)::handleCreateGame);
         javalin.put("/game", new GameHandler(gameService)::handleJoinGame);
         javalin.delete("/db", new ClearHandler(clearService)::handleClear);
-
-        // Websocket setup
-        javalin.ws("/ws", ws -> {
-            ws.onConnect(ctx -> {
-                ctx.enableAutomaticPings();
-                System.out.println("Websocket connected");
-            });
-            ws.onMessage(ctx -> {
-                String json = ctx.message();
-                ctx.send("WebSocket response:" + json);
-                UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
-                // Parse JSON into commands such as CONNECT, MAKE_MOVE, LEAVE, RESIGN with a switch statement
-                switch (command.getCommandType()) {
-                    case CONNECT -> handleConnect(ctx, command);
-                    case LEAVE -> handleLeave(ctx, command);
-                    case RESIGN -> handleResign(ctx, command);
-                    case MAKE_MOVE -> handleMakeMove(ctx, command);
-                }
-            });
-            ws.onClose(ctx -> {
-                System.out.println("Websocket closed");
-                // Remove session
-            });
-        });
     }
 
-    // Handler functions for my json parsing in websocket
 
-    /**
-     * handleMakeMove json structure:
-     * {
-     *   "commandType": "MAKE_MOVE",
-     *   "authToken": "token",
-     *   "gameID": int,
-     *   "move": { "start": { "row": 3, "col": 3 }, "end": { "row": 5, "col": 5 } }
-     * }
-     * @param ctx
-     * @param command
-     */
-    private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
-        ServerMessage makeMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-    }
-
-    private void handleResign(WsMessageContext ctx, UserGameCommand command) {
-    }
-
-    private void handleLeave(WsMessageContext ctx, UserGameCommand command) {
-    }
-
-    private void handleConnect(WsMessageContext ctx, UserGameCommand command) {
-    }
 
     public int run(int desiredPort) {
         javalin.start(desiredPort);
