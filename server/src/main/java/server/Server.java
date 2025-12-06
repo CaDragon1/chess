@@ -12,6 +12,7 @@ import service.ClearService;
 import service.GameService;
 import service.UserService;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 public class Server {
 
@@ -76,6 +77,7 @@ public class Server {
      * @param command
      */
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
+        ServerMessage makeMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
     }
 
     private void handleResign(WsMessageContext ctx, UserGameCommand command) {
