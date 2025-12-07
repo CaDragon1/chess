@@ -83,4 +83,9 @@ public class UserService {
 //        byte[] randomBytes = new byte[24];
         return java.util.UUID.randomUUID().toString();
     }
+
+    // Method for websocket to verify
+    public AuthData getAuthDataFromToken(String authToken) throws DataAccessException {
+        return authDAO.getAuthData(authToken);
+    }
 }
