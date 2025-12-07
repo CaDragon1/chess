@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import io.javalin.Javalin;
 import io.javalin.websocket.WsMessageContext;
+import models.AuthData;
 import models.GameData;
+import server.ServerException;
 import service.GameService;
 import service.UserService;
 import websocket.commands.UserGameCommand;
@@ -77,32 +79,109 @@ public class WebSocketHandler {
     private void handleLeave(WsMessageContext ctx, UserGameCommand command) {
     }
 
-    // Register context, send load game to client, notify others
+    /**
+     * Register context, send load game to client, notify others
+     * @param ctx is the websocket that is attempting connection
+     * @param command is the command object containing the command being passed (wow)
+     */
     private void handleConnect(WsMessageContext ctx, UserGameCommand command) {
         try {
-            int gameID = command.getGameID();
+            // get and verify the auth data and game
             String authToken = command.getAuthToken();
-            if (authToken == null) {
+            int gameID = command.getGameID();
+
+            AuthData authData = userService.getAuthDataFromToken(authToken);
+            if (authData == null) {
                 sendError(ctx, "Error: unauthorized");
-                // return statement so I'm not nesting a ton of code in an else statement
                 return;
             }
-            int gameID = command.getGameID();
-            GameData gameData = game
+
+            GameData gameData = gameService.getGame(gameID);
+            if (gameData == null) {
+                sendError(ctx, "Error: game not found");
+                return;
+            }
 
             // making a new key set for the game id and putting it in gamesessions, then adding websocket message
             gameSessions.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet()).add(ctx);
-        } catch (DataAccessException ignored) {
 
+            // send to client
+            ServerMessage loadingMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+            loadingMessage.game = gameData;
+            ctx.send(gson.toJson(loadingMessage));
+
+            // determine team
+            String team;
+            if (authData.username().equals(gameData.whiteUsername())) {
+                team = "white";
+            }
+            else if (authData.username().equals(gameData.blackUsername())) {
+                team = "black";
+            } else {
+                team = "observer";
+            }
+
+            // send to everyone else's clients
+            String broadcastMessage = notification(authData.username() + "has joined team " + team);
+            broadcastToOthers(gameID, ctx, broadcastMessage);
+
+        } catch (Exception e) {
+            sendError(ctx, "Error: " + e.getMessage());
         }
     }
 
-    // Function to send error messages from server to the client. Must contain the text "Error:"
+    /**
+     * Function to send error messages from server to the client. Must contain the text "Error:"
+     * @param ctx is the client's websocket we're sending the message to
+     * @param error is the error message, which gets converted to json
+     */
     private void sendError(WsMessageContext ctx, String error) {
         ServerMessage errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
         errorMsg.errorMsg = error;
         ctx.send(gson.toJson(errorMsg));
     }
 
-    private void broadcast
+    /**
+     * Function for creating json objects for notification messages
+     * @param message is the message we want to turn into a json servermessage string
+     * @return the json version of servermessage with message as the notification
+     */
+    private String notification(String message) {
+        ServerMessage notify = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        notify.notification = message;
+        return gson.toJson(notify);
+    }
+
+    /**
+     * this version of my broadcast function broadcasts to everyone.
+     * Useful for load game, check, and checkmate.
+     * @param gameID is the game whose id we're looking at
+     * @param message is the json message being sent
+     */
+    private void broadcastToAll(int gameID, String message) {
+        Set<WsMessageContext> currentSessions = gameSessions.get(gameID);
+        if (currentSessions != null) {
+            for (WsMessageContext context : currentSessions) {
+                context.send(message);
+            }
+        }
+    }
+
+    /**
+     * this version of my broadcast function should skip the current websocket connection (the main client, per se).
+     * Useful for join and move notifications
+     * @param gameID is the game whose id we're looking at
+     * @param ctx is the websocket of the "main client"
+     * @param message is the json message being sent
+     */
+    private void broadcastToOthers(int gameID, WsMessageContext ctx, String message) {
+        Set<WsMessageContext> currentSessions = gameSessions.get(gameID);
+        if (currentSessions != null) {
+            for (WsMessageContext context : currentSessions) {
+                if (context != ctx) {
+                    context.send(message);
+                }
+            }
+        }
+    }
 }
