@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessGame;
+import chess.InvalidMoveException;
 import dataaccess.DataAccessException;
 import dataaccess.interfaces.AuthDataAccess;
 import dataaccess.interfaces.GameDataAccess;
@@ -102,6 +103,87 @@ public class GameService {
             }
             throw new ServerException(e.getMessage(), 500);
         }
+    }
+
+    // Functions to get games and make moves via the websocket
+    public GameData getGame(int gameID) throws ServerException {
+        try {
+            return gameDAO.getGame(gameID);
+        } catch (DataAccessException e) {
+            throw new ServerException("Game not found: " + e.getMessage(), 404);
+        }
+    }
+
+    public GameData makeMove(String authToken, int gameID, chess.ChessMove move) throws ServerException {
+        try {
+            AuthData auth = authDAO.getAuthData(authToken);
+            if (auth == null) {
+                throw new ServerException("unauthorized", 401);
+            }
+            GameData gameData = gameDAO.getGame(gameID);
+            if (gameData == null) {
+                throw new ServerException("bad request", 400);
+            }
+            if (getGameStatus(gameData.game(), gameData) == GameData.GameStatus.PREGAME) {
+                throw new ServerException("game requires two players to begin", 403);
+            }
+            ChessGame game = gameData.game();
+            ChessGame.TeamColor currentTeam = game.getTeamTurn();
+
+            if (verifyMovementPossible(gameData, auth, currentTeam, game)) {
+                game.makeMove(move);
+            }
+            GameData.GameStatus status = getGameStatus(game, gameData);
+
+            GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
+                    gameData.gameName(), game, getGameStatus(game, gameData));
+            gameDAO.updateGame(updatedGame);
+            return updatedGame;
+        } catch (DataAccessException e) {
+            throw new ServerException("bad request", 400);
+        } catch (InvalidMoveException e) {
+            throw new ServerException("illegal move", 403);
+        }
+    }
+
+    // Function to obtain the status of a game and determine changes to that status
+    private static GameData.GameStatus getGameStatus(ChessGame game, GameData currentData) {
+        if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+            return GameData.GameStatus.STALEMATE;
+        }
+        ChessGame.TeamColor currentTurn = game.getTeamTurn();
+        if (game.isInCheckmate(currentTurn)) {
+            return currentTurn == ChessGame.TeamColor.WHITE ?
+                    GameData.GameStatus.BLACK_WIN : GameData.GameStatus.WHITE_WIN;
+        }
+        if (currentData.blackUsername() == null || currentData.whiteUsername() == null) {
+            return GameData.GameStatus.PREGAME;
+        }
+        if (currentData.status() == GameData.GameStatus.RESIGNED) {
+            return GameData.GameStatus.RESIGNED;
+        }
+        return GameData.GameStatus.LIVE;
+    }
+
+    // Helper function to verify that it is possible to move (potentially superfluous)
+    private static boolean verifyMovementPossible(GameData gameData, AuthData auth, ChessGame.TeamColor currentTeam, ChessGame game) throws ServerException {
+        // Ensure it is the correct turn for the move to be made
+        boolean whitePlayer = gameData.whiteUsername() != null && gameData.whiteUsername().equalsIgnoreCase(auth.username());
+        boolean blackPlayer = gameData.blackUsername() != null && gameData.blackUsername().equalsIgnoreCase(auth.username());
+        if (currentTeam == ChessGame.TeamColor.WHITE && !whitePlayer) {
+            throw new ServerException("Not white team's turn", 403);
+        }
+        else if (currentTeam == ChessGame.TeamColor.BLACK && !blackPlayer) {
+            throw new ServerException("Not black team's turn", 403);
+        }
+
+        // Make sure the game isn't in checkmate or stalemate
+        boolean gameEnd = game.isInCheckmate(ChessGame.TeamColor.WHITE) || game.isInCheckmate(ChessGame.TeamColor.BLACK);
+        boolean gameStalemate = game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK);
+        if (gameEnd || gameStalemate) {
+            throw new ServerException("Game is over!", 400);
+        }
+        return true;
     }
 
     private int generateGameID() {
