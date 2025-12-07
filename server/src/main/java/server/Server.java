@@ -3,6 +3,7 @@ import com.google.gson.Gson;
 import dataaccess.SqlAuthDataAccess;
 import dataaccess.SqlGameDataAccess;
 import dataaccess.SqlUserDataAccess;
+import dataaccess.websocket.WebSocketHandler;
 import io.javalin.*;
 import io.javalin.websocket.WsMessageContext;
 import server.handlers.ClearHandler;
@@ -19,8 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Server {
 
     private final Javalin javalin;
-    private final Gson gson = new Gson();
-    private final Map<Integer, Set<WsMessageContext>> gameSessions = new ConcurrentHashMap<>();
 
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
@@ -40,6 +39,9 @@ public class Server {
         javalin.post("/game", new GameHandler(gameService)::handleCreateGame);
         javalin.put("/game", new GameHandler(gameService)::handleJoinGame);
         javalin.delete("/db", new ClearHandler(clearService)::handleClear);
+
+        WebSocketHandler wsHandler = new WebSocketHandler(gameService, userService);
+        wsHandler.registerHandlers(javalin);
     }
 
 
