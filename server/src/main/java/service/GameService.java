@@ -17,11 +17,23 @@ public class GameService {
     private final GameDataAccess gameDAO;
     private final AuthDataAccess authDAO;
 
+    /**
+     * Constructor for gameservice
+     * @param gameDAO is the gameDAO object with all the gamedata stored
+     * @param authDAO is the authDAO object with all authdata stored
+     */
     public GameService(GameDataAccess gameDAO, AuthDataAccess authDAO) {
         this.gameDAO = gameDAO;
         this.authDAO = authDAO;
     }
 
+    /**
+     * Function to create a game in the dao
+     * @param authToken is the user token to verify authenticity
+     * @param gameName is the name of the game being created
+     * @return the gameid of the created game
+     * @throws ServerException if the game creation fails or is unauthorized
+     */
     public int createGame(String authToken, String gameName) throws ServerException {
         try {
             AuthData authData = authDAO.getAuthData(authToken);
@@ -44,6 +56,13 @@ public class GameService {
         }
     }
 
+    /**
+     * Function to join a game already existing in the dao
+     * @param authData is used to get the authtoken for verification and username for adding
+     * @param team is the team color the user is trying to join
+     * @param gameID is the id of the game being joined
+     * @throws ServerException upon unauthorized access or bad requests
+     */
     public void joinGame(String authData, String team, int gameID) throws ServerException {
         try {
             // nifty conversion trick I found online
@@ -71,6 +90,14 @@ public class GameService {
         }
     }
 
+    /**
+     * Helper function for joinGame that sets the username in the gamedata object to the requested team
+     * @param team is the team the user is trying to join
+     * @param game is the gamedata representing the game being joined
+     * @param auth is the authtoken for verification
+     * @return gamedata object with updated username
+     * @throws ServerException if there is a bad request or the team is occupied
+     */
     @NotNull
     private static GameData getGameDataFromTeam(String team, GameData game, AuthData auth) throws ServerException {
 
@@ -90,6 +117,12 @@ public class GameService {
         return game;
     }
 
+    /**
+     * Function to fetch a list of all games in the database
+     * @param authToken is the authtoken to verify access can be granted
+     * @return a list of gamedata objects
+     * @throws ServerException if unauthorized or if other issues arise
+     */
     public List<GameData> listGames(String authToken) throws ServerException {
         try {
             AuthData authData = authDAO.getAuthData(authToken);
@@ -105,7 +138,12 @@ public class GameService {
         }
     }
 
-    // Functions to get games and make moves via the websocket
+    /**
+     * Function to obtain a gamedata object by gameid (used by websocket)
+     * @param gameID is the id of our desired game
+     * @return the gamedata object from gameDAO
+     * @throws ServerException if game is not found or other errors occur
+     */
     public GameData getGame(int gameID) throws ServerException {
         try {
             return gameDAO.getGame(gameID);
@@ -114,6 +152,14 @@ public class GameService {
         }
     }
 
+    /**
+     * Function to make a move
+     * @param authToken is the token of the player
+     * @param gameID is the id of the game we're moving in
+     * @param move is the move being attempted
+     * @return the new gamedata object after the move is made
+     * @throws ServerException if anything goes wrong with verification, viability, or other.
+     */
     public GameData makeMove(String authToken, int gameID, chess.ChessMove move) throws ServerException {
         try {
             AuthData auth = authDAO.getAuthData(authToken);
@@ -146,7 +192,13 @@ public class GameService {
         }
     }
 
-    // Function to obtain the status of a game and determine changes to that status
+    /**
+     * Function to obtain the status of a game and determine changes to that status
+     * @param game is the game we're getting the status of; may be a future gamestate or the current gamestate
+     * @param currentData is the full gamedata, which may or may not contain "game"; it is used to verify game info
+     * @return the status that corresponds with the current gamestate; stalemate, black_win, white_win, pregame,
+     *  resigned, or live
+     */
     private static GameData.GameStatus getGameStatus(ChessGame game, GameData currentData) {
         if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
             return GameData.GameStatus.STALEMATE;
@@ -165,7 +217,15 @@ public class GameService {
         return GameData.GameStatus.LIVE;
     }
 
-    // Helper function to verify that it is possible to move (potentially superfluous)
+    /**
+     * Helper function to verify that it is possible to move (potentially superfluous)
+     * @param gameData is the game we're pulling from
+     * @param auth is the player's authdata
+     * @param currentTeam is the current team of game
+     * @param game is the game state we're determining movement validity for
+     * @return true if movement is possible
+     * @throws ServerException if movement is not allowed or other errors arise
+     */
     private static boolean verifyMovementPossible(GameData gameData, AuthData auth, ChessGame.TeamColor currentTeam, ChessGame game) throws ServerException {
         // Ensure it is the correct turn for the move to be made
         boolean whitePlayer = gameData.whiteUsername() != null && gameData.whiteUsername().equalsIgnoreCase(auth.username());
@@ -186,6 +246,10 @@ public class GameService {
         return true;
     }
 
+    /**
+     * Generates a random game ID
+     * @return the generated gameID
+     */
     private int generateGameID() {
         Random rand = new Random();
         int id = rand.nextInt();

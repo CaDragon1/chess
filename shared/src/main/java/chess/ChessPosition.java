@@ -12,11 +12,20 @@ public class ChessPosition {
     private final int row;
     private final int col;
 
+    /**
+     * Basic constructor based on row and column
+     * @param row is row (1-8)
+     * @param col is col (1-8)
+     */
     public ChessPosition(int row, int col) {
         this.row = row;
         this.col = col;
     }
 
+    /**
+     * Basic constructor based on a bitboard index
+     * @param index is an int between 0 and 63
+     */
     public ChessPosition(int index) {
         this.row = (index / 8) + 1;
         this.col = (index % 8) + 1;

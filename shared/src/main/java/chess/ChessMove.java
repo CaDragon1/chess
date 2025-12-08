@@ -13,6 +13,12 @@ public class ChessMove {
     private ChessPosition endPosition;
     private ChessPiece.PieceType promotionPiece;
 
+    /**
+     * Basic constructor that creates a chess move based on chessposition objects
+     * @param startPosition is the starting piece position
+     * @param endPosition is the ending piece position
+     * @param promotionPiece is the promotion piece
+     */
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         this.startPosition = startPosition;

@@ -80,4 +80,8 @@ public class GameHandler {
             http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
     }
+
+    public void handleMakeMove(Context http) {
+
+    }
 }

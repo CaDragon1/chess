@@ -15,6 +15,12 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
         }
     }
 
+    /**
+     * Getter for the username that prepares a statement, fetches the username from the database, and returns the userdata
+     * @param username is the username we're trying to obtain data for
+     * @return userdata associated with that username
+     * @throws DataAccessException if there is an error getting the data
+     */
     @Override
     public UserData getUser(String username) throws DataAccessException {
         try (var connection = DatabaseManager.getConnection()) {
@@ -76,6 +82,10 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
         }
     }
 
+    /**
+     * Prepares sql statement to delete user data, then passes it
+     * @throws DataAccessException if there is a failure
+     */
     @Override
     public void clear() throws DataAccessException {
         try (var connection = DatabaseManager.getConnection()) {
@@ -89,7 +99,9 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
         }
     }
 
-    // SQL command to create the necessary table
+    /**
+     * SQL command to create the necessary table
+     */
     private final String[] createStatements = {
             """
                 CREATE TABLE IF NOT EXISTS  UserData (

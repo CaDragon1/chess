@@ -1,11 +1,9 @@
 package server;
-import com.google.gson.Gson;
 import dataaccess.SqlAuthDataAccess;
 import dataaccess.SqlGameDataAccess;
 import dataaccess.SqlUserDataAccess;
 import dataaccess.websocket.WebSocketHandler;
 import io.javalin.*;
-import io.javalin.websocket.WsMessageContext;
 import server.handlers.ClearHandler;
 import server.handlers.GameHandler;
 import server.handlers.UserHandler;
@@ -13,14 +11,11 @@ import service.ClearService;
 import service.GameService;
 import service.UserService;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class Server {
-
     private final Javalin javalin;
-
+    /**
+     * Server constructor to set up the data access objects, endpoints, server, and websockethandler
+     */
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         SqlUserDataAccess userDAO = new SqlUserDataAccess();
@@ -44,13 +39,19 @@ public class Server {
         wsHandler.registerHandlers(javalin);
     }
 
-
-
+    /**
+     * Run function for the desired port for a javalin server
+     * @param desiredPort an int for the desited port to run javalin on
+     * @return the integer of the port used when starting javalin
+     */
     public int run(int desiredPort) {
         javalin.start(desiredPort);
         return javalin.port();
     }
 
+    /**
+     * Stop function to halt the javalin server
+     */
     public void stop() {
         javalin.stop();
     }

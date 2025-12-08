@@ -68,7 +68,27 @@ public class WebSocketHandler {
      */
     // Update database with new move, broadcast the board, notify others
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
-        ServerMessage makeMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        try {
+            // get and verify the auth data and game
+            String authToken = command.getAuthToken();
+            int gameID = command.getGameID();
+
+            AuthData authData = userService.getAuthDataFromToken(authToken);
+            if (authData == null) {
+                sendError(ctx, "Error: unauthorized");
+                return;
+            }
+            GameData gameData = gameService.getGame(gameID);
+            if (gameData == null) {
+                sendError(ctx, "Error: game not found");
+                return;
+            }
+
+
+            ServerMessage makeMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        } catch (Exception e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
     }
 
     // Signal game over state for game in db, notify others

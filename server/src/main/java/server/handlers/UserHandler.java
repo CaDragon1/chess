@@ -40,7 +40,10 @@ public class UserHandler {
         }
     }
 
-    // apparently a model class is recommended for parsing json like is necessary here. That's why I made LoginRequest.java
+    /**
+     * apparently a model class is recommended for parsing json like is necessary here. That's why I made LoginRequest.java
+     * @param http is the context object holding our json data
+     */
     public void handleLogin(Context http) {
         try {
             // 1. Parse request body
@@ -59,6 +62,10 @@ public class UserHandler {
         }
     }
 
+    /**
+     * Method to manage the logout of a player
+     * @param http is the context object that contains all the user info json needed for logout
+     */
     public void handleLogout(Context http) {
         try {
             // 1. Parse request body

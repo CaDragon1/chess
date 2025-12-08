@@ -142,43 +142,6 @@ public class ChessBoard {
         setPawnRow(ChessGame.TeamColor.WHITE);
     }
 
-    public void displayBoard() {
-        long combinedBoard = 0L;
-        System.out.println();
-        for (int i = 0; i < 12; i++) {
-            combinedBoard = combinedBoard|bitboards[i];
-        }
-        for (int row = 7; row >= 0; row--) {
-            for (int col = 0; col < 8; col++) {
-                int index = row * 8 + col;
-                for (int bitboard = 0; bitboard < 12; bitboard++) {
-                    if (((bitboards[bitboard] >>> index) & 1) == 1) {
-                        printPiece(bitboard);
-                    }
-                }
-                System.out.print(((combinedBoard >>> index) & 1) == 1 ? "" : "  . |");
-            }
-            System.out.println("\n--------------------------------");
-        }
-    }
-
-    public void printPiece(int i) {
-        switch(i) {
-            case 0 -> System.out.print(" WP |");
-            case 1 -> System.out.print(" WR |");
-            case 2 -> System.out.print(" WKn|");
-            case 3 -> System.out.print(" WB |");
-            case 4 -> System.out.print(" WQ |");
-            case 5 -> System.out.print(" WK |");
-            case 6 -> System.out.print(" BP |");
-            case 7 -> System.out.print(" BR |");
-            case 8 -> System.out.print(" BKn|");
-            case 9 -> System.out.print(" BB |");
-            case 10 -> System.out.print(" BQ |");
-            case 11 -> System.out.print(" BK |");
-        }
-    }
-
     /**
      * Empties the board completely
      * (Used to initialize and reset the board)
@@ -228,18 +191,34 @@ public class ChessBoard {
         }
     }
 
+    /**
+     * Method to get enPassant status. Currently not implemented.
+     * @return an int index of a pawn that can be used for en passant
+     */
     public int getEnPassant() {
         return enPassant;
     }
 
+    /**
+     * Method to set the index of possible en passant movement
+     * @param index
+     */
     public void setEnPassant(int index) {
         enPassant = index;
     }
 
+    /**
+     * Getter to get the array of bitboards representing the gameboard
+     * @return
+     */
     public long[] getBitboards() {
         return bitboards;
     }
 
+    /**
+     * Method to make a deep copy of the given board
+     * @param board is the board we're copying
+     */
     public void copy(ChessBoard board){
         long[] copyBitboards = board.getBitboards();
         System.arraycopy(copyBitboards, 0, bitboards, 0, bitboards.length);
