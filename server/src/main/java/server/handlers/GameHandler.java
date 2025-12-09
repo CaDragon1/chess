@@ -72,6 +72,16 @@ public class GameHandler {
             String team = request.playerColor();
             int gameID = request.gameID();
 
+            GameData gameData = service.getGame(gameID);
+            if (gameData == null) {
+                http.status(404).json(serializer.toJson(Map.of("message", "Error: Game not found")));
+                return;
+            }
+            if (!joinableGamestate(gameData.status())) {
+                http.status(400).json(serializer.toJson(Map.of("message", "Error: Cannot join a completed game")));
+                return;
+            }
+
             service.joinGame(authToken, team, gameID);
             http.status(200).json(serializer.toJson(Map.of("gameID", gameID)));
 
@@ -95,11 +105,32 @@ public class GameHandler {
             MakeMoveRequest request = serializer.fromJson(http.body(), MakeMoveRequest.class);
             ChessMove move = request.move();
 
+            GameData gameData = service.getGame(gameID);
+            if (gameData == null) {
+                http.status(404).json(serializer.toJson(Map.of("message", "Error: Game not found")));
+                return;
+            }
+            if (!playableGamestate(gameData.status())) {
+                http.status(400).json(serializer.toJson(Map.of("message", "Error: Game is not live")));
+                return;
+            }
+
             service.makeMove(authToken, gameID, move);
             http.status(200).json(serializer.toJson(Map.of("message", "Move successful")));
         }
         catch (ServerException e) {
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
+        }
+        catch (Exception e) {
             http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
         }
+    }
+
+    private boolean playableGamestate(GameData.GameStatus status) throws ServerException {
+        return status == GameData.GameStatus.LIVE;
+    }
+
+    private boolean joinableGamestate(GameData.GameStatus status) throws ServerException {
+        return status == GameData.GameStatus.LIVE || status == GameData.GameStatus.PREGAME;
     }
 }

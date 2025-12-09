@@ -109,10 +109,91 @@ public class WebSocketHandler {
 
     // Signal game over state for game in db, notify others
     private void handleResign(WsMessageContext ctx, UserGameCommand command) {
+        try {
+            // get and verify the auth data and game
+            String authToken = command.getAuthToken();
+            int gameID = command.getGameID();
+
+            AuthData authData = userService.getAuthDataFromToken(authToken);
+            if (authData == null) {
+                sendError(ctx, "Error: unauthorized");
+                return;
+            }
+
+            GameData gameData = gameService.getGame(gameID);
+            if (gameData == null) {
+                sendError(ctx, "Error: game not found");
+                return;
+            }
+
+            boolean isPlayer = authData.username().equals(gameData.whiteUsername()) ||
+                    authData.username().equals(gameData.blackUsername());
+            if (!isPlayer) {
+                sendError(ctx, "Error: Player is observer and cannot resign");
+                return;
+            }
+
+            if (gameData.status() != GameData.GameStatus.LIVE && gameData.status() != GameData.GameStatus.PREGAME) {
+                sendError(ctx, "Error: Game is over!");
+                return;
+            }
+
+            GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
+                    gameData.gameName(), gameData.getGame(), GameData.GameStatus.RESIGNED);
+
+            String message = authData.username() + " has resigned. Game over!";
+            broadcastToAll(gameID, message);
+
+        } catch (Exception e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
     }
 
     // Unregister ctx, notify others
     private void handleLeave(WsMessageContext ctx, UserGameCommand command) {
+        try {
+            // get and verify the auth data and game
+            String authToken = command.getAuthToken();
+            int gameID = command.getGameID();
+
+            AuthData authData = userService.getAuthDataFromToken(authToken);
+            if (authData == null) {
+                sendError(ctx, "Error: unauthorized");
+                return;
+            }
+
+            GameData gameData = gameService.getGame(gameID);
+            if (gameData == null) {
+                sendError(ctx, "Error: game not found");
+                return;
+            }
+
+            // making a new key set for the game id and putting it in gamesessions, then adding websocket message
+            gameSessions.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet()).add(ctx.session);
+
+            // send to client
+            ServerMessage loadingMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+            loadingMessage.game = gameData;
+            ctx.send(gson.toJson(loadingMessage));
+
+            // determine team
+            String team;
+            if (authData.username().equals(gameData.whiteUsername())) {
+                team = "white";
+            }
+            else if (authData.username().equals(gameData.blackUsername())) {
+                team = "black";
+            } else {
+                team = "observer";
+            }
+
+            // send to everyone else's clients
+            String broadcastMessage = notification(authData.username() + " has joined as " + team);
+            broadcastToOthers(gameID, ctx, broadcastMessage);
+
+        } catch (Exception e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
     }
 
     /**

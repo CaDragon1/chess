@@ -81,6 +81,10 @@ public class GameService {
                 throw new ServerException("bad request: null team color", 400);
             }
 
+            if (isGameOver(game.status())) {
+                throw new ServerException("cannot join completed game", 400);
+            }
+
 
             game = getGameDataFromTeam(team, game, auth);
             gameDAO.updateGame(game);
@@ -176,19 +180,18 @@ public class GameService {
             ChessGame game = gameData.game();
             ChessGame.TeamColor currentTeam = game.getTeamTurn();
 
-            if (gameData.status() != GameData.GameStatus.LIVE) {
+            if (!isActiveGame(gameData.status())) {
                 throw new ServerException("GAME NOT LIVE; move not made. game status: " + gameData.status(), 403);
             }
 
-            if (verifyMovementPossible(gameData, auth, currentTeam, game)) {
-                game.makeMove(move);
-            }
-
+            game.makeMove(move);
             GameData.GameStatus newGameStatus = getGameStatus(game, gameData);
             GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
                     gameData.gameName(), game, newGameStatus);
+
             gameDAO.updateGame(updatedGame);
             return updatedGame;
+
         } catch (DataAccessException e) {
             throw new ServerException("bad request", 400);
         } catch (InvalidMoveException e) {
@@ -221,33 +224,40 @@ public class GameService {
         return GameData.GameStatus.LIVE;
     }
 
-    /**
-     * Helper function to verify that it is possible to move (potentially superfluous)
-     * @param gameData is the game we're pulling from
-     * @param auth is the player's authdata
-     * @param currentTeam is the current team of game
-     * @param game is the game state we're determining movement validity for
-     * @return true if movement is possible
-     * @throws ServerException if movement is not allowed or other errors arise
-     */
-    private static boolean verifyMovementPossible(GameData gameData, AuthData auth, ChessGame.TeamColor currentTeam, ChessGame game) throws ServerException {
-        // Ensure it is the correct turn for the move to be made
-        boolean whitePlayer = gameData.whiteUsername() != null && gameData.whiteUsername().equalsIgnoreCase(auth.username());
-        boolean blackPlayer = gameData.blackUsername() != null && gameData.blackUsername().equalsIgnoreCase(auth.username());
-        if (currentTeam == ChessGame.TeamColor.WHITE && !whitePlayer) {
-            throw new ServerException("Not white team's turn", 403);
-        }
-        else if (currentTeam == ChessGame.TeamColor.BLACK && !blackPlayer) {
-            throw new ServerException("Not black team's turn", 403);
-        }
+    public GameData resignGame(String authToken, int gameID) throws ServerException {
+        try {
+            AuthData auth = authDAO.getAuthData(authToken);
+            if (auth == null) {
+                throw new ServerException("unauthorized", 401);
+            }
+            GameData gameData = gameDAO.getGame(gameID);
+            if (gameData == null) {
+                throw new ServerException("bad request", 400);
+            }
 
-        // Make sure the game isn't in checkmate or stalemate
-        boolean gameEnd = game.isInCheckmate(ChessGame.TeamColor.WHITE) || game.isInCheckmate(ChessGame.TeamColor.BLACK);
-        boolean gameStalemate = game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK);
-        if (gameEnd || gameStalemate) {
-            throw new ServerException("Game is over!", 400);
+            boolean isInGame = auth.username().equals(gameData.blackUsername()) ||
+                    auth.username().equals(gameData.whiteUsername());
+            if (!isInGame) {
+                throw new ServerException("player is observer and cannot resign", 403);
+            }
+
+            if (isActiveGame(gameData.status())) {
+                GameData updatedGame = new GameData(
+                        gameID,
+                        gameData.whiteUsername(),
+                        gameData.blackUsername(),
+                        gameData.gameName(),
+                        gameData.getGame(),
+                        GameData.GameStatus.RESIGNED
+                );
+                gameDAO.updateGame(updatedGame);
+                return updatedGame;
+            } else {
+                throw new ServerException("game is already over", 403);
+            }
+        } catch (DataAccessException e) {
+            throw new ServerException("bad request", 400);
         }
-        return true;
     }
 
     /**
@@ -261,5 +271,16 @@ public class GameService {
             id*=-1;
         }
         return id;
+    }
+
+    private boolean isActiveGame(GameData.GameStatus status) {
+        return status == GameData.GameStatus.LIVE;
+    }
+
+    private boolean isGameOver(GameData.GameStatus status) {
+        return switch(status) {
+            case RESIGNED, BLACK_WIN, WHITE_WIN, STALEMATE -> true;
+            default -> false;
+        };
     }
 }
