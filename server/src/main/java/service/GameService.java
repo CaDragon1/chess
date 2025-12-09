@@ -172,19 +172,21 @@ public class GameService {
             if (gameData == null) {
                 throw new ServerException("bad request", 400);
             }
-            if (getGameStatus(gameData.game(), gameData) == GameData.GameStatus.PREGAME) {
-                throw new ServerException("game requires two players to begin", 403);
-            }
+
             ChessGame game = gameData.game();
             ChessGame.TeamColor currentTeam = game.getTeamTurn();
+
+            if (gameData.status() != GameData.GameStatus.LIVE) {
+                throw new ServerException("GAME NOT LIVE; move not made. game status: " + gameData.status(), 403);
+            }
 
             if (verifyMovementPossible(gameData, auth, currentTeam, game)) {
                 game.makeMove(move);
             }
-            GameData.GameStatus status = getGameStatus(game, gameData);
 
+            GameData.GameStatus newGameStatus = getGameStatus(game, gameData);
             GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
-                    gameData.gameName(), game, getGameStatus(game, gameData));
+                    gameData.gameName(), game, newGameStatus);
             gameDAO.updateGame(updatedGame);
             return updatedGame;
         } catch (DataAccessException e) {

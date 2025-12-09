@@ -55,10 +55,30 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
             String game = response.getString("game");
 
             ChessGame chessGame = new Gson().fromJson(game, ChessGame.class);
-            return new GameData (gameID, white, black, name, chessGame);
+
+            GameData.GameStatus status = getGameStatus(chessGame, new GameData(gameID, white, black, name, chessGame, null));
+            return new GameData (gameID, white, black, name, chessGame, status);
         } catch (Exception e) {
             throw new DataAccessException("Json is invalid: " + e.getMessage());
         }
+    }
+
+    private static GameData.GameStatus getGameStatus(ChessGame game, GameData currentData) {
+        if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+            return GameData.GameStatus.STALEMATE;
+        }
+        ChessGame.TeamColor currentTurn = game.getTeamTurn();
+        if (game.isInCheckmate(currentTurn)) {
+            return currentTurn == ChessGame.TeamColor.WHITE ?
+                    GameData.GameStatus.BLACK_WIN : GameData.GameStatus.WHITE_WIN;
+        }
+        if (currentData.blackUsername() == null || currentData.whiteUsername() == null) {
+            return GameData.GameStatus.PREGAME;
+        }
+        if (currentData.status() == GameData.GameStatus.RESIGNED) {
+            return GameData.GameStatus.RESIGNED;
+        }
+        return GameData.GameStatus.LIVE;
     }
 
     @Override
