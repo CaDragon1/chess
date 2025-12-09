@@ -23,6 +23,15 @@ public class ChessPosition {
     }
 
     /**
+     * Method to return string-formatted chess coordinates
+     * @return the coordinates in letter-number format
+     */
+    public String getCoordinates() {
+        char file = (char) ('a' + (col - 1));
+        return "" + file + row;
+    }
+
+    /**
      * Basic constructor based on a bitboard index
      * @param index is an int between 0 and 63
      */

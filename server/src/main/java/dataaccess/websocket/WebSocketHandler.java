@@ -1,5 +1,6 @@
 package dataaccess.websocket;
 
+import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import io.javalin.Javalin;
@@ -84,12 +85,24 @@ public class WebSocketHandler {
                 return;
             }
 
+            ChessMove move = command.getMove();
+            GameData updatedGame = gameService.makeMove(authToken, gameID, move);
 
-            ServerMessage makeMove = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            ServerMessage makeMove = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+            makeMove.game = updatedGame;
+            broadcastToAll(gameID, gson.toJson(makeMove));
+
+            String moveMessage = authData.username() + " moved " + move.getStartPosition().getCoordinates() + " to " +
+                    move.getEndPosition().getCoordinates();
+
+            broadcastToOthers(gameID,ctx, notification(moveMessage));
+
         } catch (Exception e) {
             sendError(ctx, "Error: " + e.getMessage());
         }
     }
+
+
 
     // Signal game over state for game in db, notify others
     private void handleResign(WsMessageContext ctx, UserGameCommand command) {

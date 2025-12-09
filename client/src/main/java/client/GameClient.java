@@ -1,9 +1,8 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
+import com.google.gson.Gson;
+import exception.ResponseException;
 import models.GameData;
 
 import java.util.Arrays;
@@ -14,7 +13,18 @@ public class GameClient implements Client {
     private final String authToken;
     private GameData game;
     private final String teamColor;
+    private final Gson gson = new Gson();
 
+    // models for gson serialization
+    private record MessageResponse(String message) {}
+
+    /**
+     * Constructor for the game client
+     * @param server is the serverfacade; we only use this to get the list of games. Potential simplification exists.
+     * @param authToken is the authToken for the client
+     * @param gameID is the id of the game we're trying to represent
+     * @param teamColor is the team the player is joining
+     */
     public GameClient(ServerFacade server, String authToken, Integer gameID, String teamColor) {
         this.server = server;
         this.authToken = authToken;
@@ -27,7 +37,7 @@ public class GameClient implements Client {
 
     @Override
     public String help() {
-        return "{\"message\":\"--- HELP ---\\nCommands:\\nleave game\\nhelp\"}";
+        return "{\"message\":\"--- HELP ---\\nCommands:\\nmove <from> <to>\\nleave game\\nhelp\"}";
     }
 
     @Override
@@ -40,15 +50,24 @@ public class GameClient implements Client {
                 yield leaveGame(params);
             case "help":
                 yield help();
+            case "move":
             default:
                 yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
         };
     }
 
+    /**
+     * leaveGame sends a message that the REPL uses to exit the game
+     * @param params is an array of parameters passed in. Should be empty.
+     * @return the string containing a json formatted message and authtoken
+     */
     private String leaveGame(String[] params) {
         return String.format("{\"message\":\"Successfully exited game\", \"authToken\":\"%s\"}", authToken);
     }
 
+    /**
+     * drawBoard will draw the entire chess board.
+     */
     private void drawBoard() {
         // Using ANSI codes for colors
         final String ANSI_RESET = "\u001B[0m";
@@ -93,10 +112,62 @@ public class GameClient implements Client {
         printBorderEdge();
     }
 
+    private String makeMove(String[] params) throws ResponseException {
+        String badCommand = "Command not recognized. Use 'move <from> <to> [promotion piece]' " +
+                "(examples: 'move e2 e4' or 'move b2 b1 q')." +
+                "\n    (Promotion piece only necessary for promoting pawns)";
+        ChessPiece.PieceType promotionPiece = null;
+
+        if (params.length < 2 || !validParams(params[0], params[1])) {
+            return gson.toJson(new MessageResponse(badCommand));
+        }
+
+        ChessPosition from = parsePosition(params[0]);
+        ChessPosition to = parsePosition(params[1]);
+
+        if (params.length == 3) {
+            promotionPiece = parsePromotion(params[2], to.getRow());
+        }
+
+
+        ChessMove move = new ChessMove(from, to, promotionPiece);
+
+        server.makeMove(authToken, game.gameID(), move);
+    }
+
+    private ChessPiece.PieceType parsePromotion(String promo, int row) throws ResponseException {
+        return switch (promo.toLowerCase()) {
+            case "q", "queen" -> ChessPiece.PieceType.QUEEN;
+            case "r", "rook" -> ChessPiece.PieceType.ROOK;
+            case "b", "bishop" -> ChessPiece.PieceType.BISHOP;
+            case "n", "knight" -> ChessPiece.PieceType.KNIGHT;
+            default -> throw new ResponseException(
+                    "Valid promotion inputs are: q/r/b/n (queen/rook/bishop/knight)", 400);
+        };
+    }
+
+    private boolean validParams(String to, String from) {
+        if (to.length() != 2 || from.length() != 2) {
+            return false;
+        }
+        if (to.charAt(0) < 'a' || to.charAt(0) > 'h' || from.charAt(0) < 'a' || from.charAt(0) > 'h') {
+            return false;
+        }
+        if (to.charAt(1) < '1' || to.charAt(1) > '8' || from.charAt(1) < '1' || from.charAt(1) > '8') {
+            return false;
+        }
+        return true;
+    }
+
+    private ChessPosition parsePosition(String pos) {
+        int col = pos.charAt(0) - 'a' + 1;
+        int row = pos.charAt(1) - '0';
+        return new ChessPosition(row, col);
+    }
+
     /**
      * Helper function to print the edges of the border
      */
-
     private void printBorderEdge() {
         System.out.print("\u001B[47m" + "   ");
         if (teamColor != null && teamColor.equalsIgnoreCase("black")) {
@@ -112,7 +183,11 @@ public class GameClient implements Client {
         System.out.println("\u001B[47m" + "   " + "\u001b[0m");
     }
 
-    // Helper function to format the piece text appropriately
+    /**
+     * Helper function to format the piece text appropriately for display
+     * @param occupyingPiece is the piece we're getting the text representation for
+     * @return the text representation of the occupying piece
+     */
     private static String formatPieceText(ChessPiece occupyingPiece) {
         String piece = " ";
 
@@ -132,7 +207,11 @@ public class GameClient implements Client {
         return piece;
     }
 
-    // Helper function to find the specific game by ID
+    /**
+     * Helper function to find the specific game by ID
+     * @param gameID is the id of the game we're looking for
+     * @return the game in the gameList of gameID "gameID"
+     */
     private GameData findGame(int gameID) {
         try {
             List<GameData> gameList = server.listGame(authToken);

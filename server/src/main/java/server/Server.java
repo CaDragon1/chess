@@ -33,6 +33,7 @@ public class Server {
         javalin.get("/game", new GameHandler(gameService)::handleListGames);
         javalin.post("/game", new GameHandler(gameService)::handleCreateGame);
         javalin.put("/game", new GameHandler(gameService)::handleJoinGame);
+        javalin.post("/game/{gameID}/move", new GameHandler(gameService)::handleMakeMove);
         javalin.delete("/db", new ClearHandler(clearService)::handleClear);
 
         WebSocketHandler wsHandler = new WebSocketHandler(gameService, userService);

@@ -1,5 +1,6 @@
 package server.handlers;
 
+import chess.ChessMove;
 import com.google.gson.Gson;
 import io.javalin.http.Context;
 import models.GameData;
@@ -82,6 +83,23 @@ public class GameHandler {
     }
 
     public void handleMakeMove(Context http) {
+        try {
+            int gameID = http.pathParamAsClass("gameID", Integer.class).get();
 
+            String authToken = http.header("authorization");
+            if (authToken == null || authToken.isBlank()) {
+                http.status(401).json(serializer.toJson(Map.of("message", "Error: unauthorized")));
+                return;
+            }
+
+            MakeMoveRequest request = serializer.fromJson(http.body(), MakeMoveRequest.class);
+            ChessMove move = request.move();
+
+            service.makeMove(authToken, gameID, move);
+            http.status(200).json(serializer.toJson(Map.of("message", "Move successful")));
+        }
+        catch (ServerException e) {
+            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
+        }
     }
 }

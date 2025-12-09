@@ -20,13 +20,17 @@ public class Repl {
 
         client = preClient;
     }
+
+    /**
+     * Function to run the REPL loop. Has an endstate.
+     */
     public void run() {
         System.out.println("Welcome to the Chess client! Please register or log in.\nType 'help' for available commands.");
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
         while (!result.equalsIgnoreCase("{\"message\":\"Quitting application...\"}")) {
-            printPrompt();
+            System.out.print("> ");
             String line = scanner.nextLine();
 
             try {
@@ -46,10 +50,12 @@ public class Repl {
         System.out.println("Goodbye!");
     }
 
-    private void printPrompt() {
-        System.out.print("> ");
-    }
-
+    /**
+     * This function determines what the client state should be based on the evaluation result.
+     * @param evalResult is the result from evaluating and running a command
+     * @return postClient if the user logs in or leaves game, gameClient if the user joins a game, and preClient if logging out
+     * @throws ResponseException if there are issues parsing json objects
+     */
     private Client handleClientState(String evalResult) throws ResponseException {
         PostLoginClient postClient;
         GameClient gameClient;
@@ -84,29 +90,43 @@ public class Repl {
         return client;
     }
 
-    // Extract auth token from gson returns
+    /**
+     * Extract auth token from gson returns
+     * @param evalResult is the result from evaluation
+     * @return the authtoken
+     */
     private String extractAuthToken(String evalResult) {
         JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
         return json.get("authToken").getAsString();
     }
 
+    /**
+     * Extract the message from a gson return
+     * @param evalResult is the result of evaluation of a command
+     * @return the message
+     */
     private String extractMessage(String evalResult) {
         JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
         return json.get("message").getAsString();
     }
 
+    /**
+     * Extract the gameID from a gson return
+     * @param evalResult is the result of evaluation of a command
+     * @return the gameID
+     */
     private int extractGameID(String evalResult) {
         JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
         return json.get("gameID").getAsInt();
     }
 
+    /**
+     * Extract the team color from a gson return
+     * @param evalResult is the result of evaluation of a command
+     * @return the team color as string
+     */
     private String extractTeamColor(String evalResult) {
         JsonObject json = JsonParser.parseString(evalResult).getAsJsonObject();
         return json.get("teamColor").getAsString();
     }
-
-//    @Override
-//    public HandlerResult handleNotification(Notification notification, Object attachment) {
-//        return null;
-//    }
 }

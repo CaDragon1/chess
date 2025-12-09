@@ -1,6 +1,7 @@
 package client;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import exception.ResponseException;
 import models.GameData;
 
@@ -11,7 +12,19 @@ public class PostLoginClient implements Client{
     private final ServerFacade server;
     private final String authToken;
     private List<GameData> cachedGames = null;
+    private final Gson gson = new Gson();
 
+    // models for gson serialization
+    private record MessageResponse(String message) {}
+    private record StatusResponse(String status, String message) {}
+    private record ObserveResponse(String status, String message, String authToken, int gameID) {}
+    private record JoinResponse(String status, String message, String authToken, int gameID, String teamColor) {}
+
+    /**
+     * PostLoginClient constructor to handle the pre-game and post-login menu functions
+     * @param server is the serverfacade containing the game info and more
+     * @param authToken is the auth token of the user
+     */
     public PostLoginClient(ServerFacade server, String authToken) {
         this.server = server;
         this.authToken = authToken;
@@ -19,8 +32,16 @@ public class PostLoginClient implements Client{
 
     @Override
     public String help() {
-        return "{\"message\":\"--- HELP ---\\nCommands:\\nlist games\\ncreate game <game name>\\njoin game <game number> <team color>" +
-                "\\nobserve game <game number>\\nhelp\\nlogout\"}";
+        var msg = """
+                --- HELP ---
+                Commands:
+                list games
+                create game <game name>
+                join game <game number> <team color>
+                observe game <game number>
+                help
+                logout""";
+        return gson.toJson(new MessageResponse(msg));
     }
 
     @Override
@@ -45,20 +66,26 @@ public class PostLoginClient implements Client{
                 case "thatsaspicymeatball":
                     yield clearDatabase();
                 default:
-                    yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
+                    yield gson.toJson(new MessageResponse(
+                            "Error: Unknown command. Type 'help' for a list of available commands."));
             };
         } catch (ResponseException e) {
-            return String.format("{\"status\":\"error\",\"message\":\"%s\"}", e.getMessage());
+            return gson.toJson(new StatusResponse("error", e.getMessage()));
         }
     }
 
+    /**
+     * Method to handle an observeGame command
+     * @param params contains game index
+     * @return a string with the success or error state; used by repl to execute client state changes or commands
+     */
     private String observeGame(String[] params){
         try {
             int gameIndex;
             try {
                 gameIndex = Integer.parseInt(params[1]);
             } catch (Exception e) {
-                return "{\"message\":\"Error: Invalid game number \"}";
+                return gson.toJson(new MessageResponse("Error: Invalid game number"));
             }
             if (cachedGames == null) {
                 cachedGames = server.listGame(authToken);
@@ -67,19 +94,26 @@ public class PostLoginClient implements Client{
 
             boolean contains = (findGame(gameID) != null);
             if (!contains) {
-                return "{\"message\":\"Error: Invalid game\"}";
+                return gson.toJson(new MessageResponse("Error: Invalid game"));
             }
-            return String.format("{\"status\":\"success\", \"message\":\"Observing game...\", \"authToken\":\"%s\", \"gameID\":\"%s\"}", authToken, gameID);
+            return gson.toJson(new ObserveResponse(
+                    "success", "Observing game...", authToken, gameID
+            ));
 
         } catch (Exception e) {
             if (e.getMessage().contains("out of bounds")) {
-                return "{\"message\":\"Error: No game found of specified index\"}";
+                return gson.toJson(new MessageResponse("Error: No game found of specified index"));
             }
-            return String.format("{\"message\":\"Error: %s\"}", e.getMessage());
+            return gson.toJson(new MessageResponse("Error: " + e.getMessage()));
         }
     }
 
-    // Helper function to find the specific game by ID
+    /**
+     * Helper function to find the specific game by ID
+     * @param gameID is the game id
+     * @return the GameData of the game with game ID gameID
+     * @throws ResponseException if there's an error getting the information
+     */
     private GameData findGame(int gameID) throws ResponseException {
         List<GameData> gameList = server.listGame(authToken);
         for (GameData game : gameList) {
@@ -90,9 +124,16 @@ public class PostLoginClient implements Client{
         return null;
     }
 
+    /**
+     * Method to handle joining a game. This one's beefy; could use breaking apart.
+     * @param params
+     * @return a json formatted string with the success or failure message for the REPL
+     * @throws ResponseException if there is an error in any of the subfunctions
+     */
     private String joinGame(String[] params) throws ResponseException {
         if (params.length < 3) {
-            return "{\"message\":\"Game not joined: Try 'join game <game ID> <team color>'\"}";
+            return gson.toJson(new MessageResponse(
+                    "Game not joined: Try 'join game <game ID> <team color>'"));
         }
         if (params.length > 3) {
             throw new ResponseException("Game not joined: Too many parameters", 400);
@@ -102,7 +143,8 @@ public class PostLoginClient implements Client{
         try {
             gameIndex = Integer.parseInt(params[1]);
         } catch (Exception e) {
-            return "{\"message\":\"Game not joined: Game number must be an integer\"}";
+            return gson.toJson(new MessageResponse(
+                    "Game not joined: Game number must be an integer"));
         }
         String color = params[2];
 
@@ -112,15 +154,16 @@ public class PostLoginClient implements Client{
         ChessGame.TeamColor teamColor;
         GameData chessGame = findGame(gameID);
         if (chessGame == null) {
-            return String.format("{\"message\":\"Error: No game of index %s found.\"}", gameIndex);
+            return gson.toJson(new MessageResponse(
+                    String.format("Error: No game of index %s found.", gameIndex)));
         }
 
         if (color.equalsIgnoreCase("white")) {
             if (chessGame.whiteUsername() == null) {
                 teamColor = ChessGame.TeamColor.WHITE;
             } else {
-                return "{\"message\":\"Game not joined: White team already occupied.\"}";
-            }
+                return gson.toJson(new MessageResponse(
+                        "Game not joined: White team already occupied."));            }
         }
         else if (color.equalsIgnoreCase("black")) {
             if (chessGame.blackUsername() == null) {
@@ -164,6 +207,11 @@ public class PostLoginClient implements Client{
         return gameID;
     }
 
+    /**
+     * Function to prompt game creation
+     * @param params contains the game name and the auth token
+     * @return a json-formatted string telling the REPL how to proceed depending on if game was created or not
+     */
     private String createGame(String[] params) {
         if (params.length < 2 || params[1].isBlank()) {
             return "{\"message\":\"Game not created: Must provide a name for the game\"}";
@@ -176,6 +224,11 @@ public class PostLoginClient implements Client{
         }
     }
 
+    /**
+     * Function to indicate the user wants to be logged out
+     * @param params contains nothing in this case
+     * @return the json-formatted string telling the repl if the logout works or doesn't
+     */
     private String logout(String[] params) {
         try {
             server.logoutUser(authToken);
@@ -185,6 +238,11 @@ public class PostLoginClient implements Client{
         }
     }
 
+    /**
+     * Function to list games
+     * @return a json-formatted list of games for display
+     * @throws ResponseException if server.listGame fails
+     */
     private String listGames() throws ResponseException {
         List<GameData> games = server.listGame(authToken);
         if (games.isEmpty()) {
@@ -202,6 +260,11 @@ public class PostLoginClient implements Client{
         return gameList.toString();
     }
 
+    /**
+     * Function to clear a database. Should not, ultimately, be user-usable.
+     * @return json-formatted message indicating clear success
+     * @throws ResponseException if logout or database clearing fails
+     */
     private String clearDatabase() throws ResponseException {
         server.logoutUser(authToken);
         server.clearDatabase();

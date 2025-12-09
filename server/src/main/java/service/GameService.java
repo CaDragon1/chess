@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.InvalidMoveException;
 import dataaccess.DataAccessException;
 import dataaccess.interfaces.AuthDataAccess;
@@ -43,7 +44,8 @@ public class GameService {
                 while (gameDAO.getGame(gameID) != null) {
                     gameID = generateGameID();
                 }
-                GameData game = new GameData(gameID, null, null, gameName, new ChessGame());
+                GameData game = new GameData(gameID, null, null, gameName,
+                        new ChessGame(), GameData.GameStatus.PREGAME);
                 gameDAO.createGame(game);
                 return gameID;
             }
@@ -160,7 +162,7 @@ public class GameService {
      * @return the new gamedata object after the move is made
      * @throws ServerException if anything goes wrong with verification, viability, or other.
      */
-    public GameData makeMove(String authToken, int gameID, chess.ChessMove move) throws ServerException {
+    public GameData makeMove(String authToken, int gameID, ChessMove move) throws ServerException {
         try {
             AuthData auth = authDAO.getAuthData(authToken);
             if (auth == null) {

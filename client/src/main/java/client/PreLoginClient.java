@@ -13,10 +13,19 @@ public class PreLoginClient implements Client{
         this.server = server;
     }
 
+    /**
+     * Method to return a json-formatted string for "help" command
+     * @return json-formatted string containing the message for the help list
+     */
     public String help() {
         return "{\"message\":\"--- HELP ---\\nCommands:\\nregister <username> <password> <email>\\nlogin <username> <password>\\nhelp\\nquit\"}";
     }
 
+    /**
+     * Method to evaluate an input and determine which action the user wants to make
+     * @param input is the inputted string
+     * @return a json-formatted string depending on the result of the input
+     */
     public String eval(String input) {
         try {
             var tokens = input.toLowerCase().split(" ");
@@ -34,6 +43,12 @@ public class PreLoginClient implements Client{
         }
     }
 
+    /**
+     * Verify and execute the login of a user
+     * @param params contains username and password; if it doesn't, an exception is thrown
+     * @return the result of user login as a json-formatted string
+     * @throws ResponseException if the parameters are insufficient
+     */
     private String loginUser(String[] params) throws ResponseException {
         if (params.length < 2) {
             throw new ResponseException("Missing username or password", 400);
@@ -48,6 +63,12 @@ public class PreLoginClient implements Client{
                 params[0], authData.authToken());
     }
 
+    /**
+     * Function to register a user based on input
+     * @param params include username, password, and email. Otherwise, throws like my team does in Marvel Rivals when they instalock 4 dps
+     * @return a json string indicating success
+     * @throws ResponseException if the user creation is not possible given parameters (or something else fails)
+     */
     private String registerUser(String[] params) throws ResponseException {
         if (params.length < 3) {
             throw new ResponseException("Missing username, password, or email", 400);
