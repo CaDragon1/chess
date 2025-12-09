@@ -14,8 +14,8 @@ public class ServerMessage {
     ServerMessageType serverMessageType;
 
     public GameData game;
-    public String errorMsg;
-    public String notification;
+    public String errorMessage;
+    public String message;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -30,6 +30,9 @@ public class ServerMessage {
     public ServerMessageType getServerMessageType() {
         return this.serverMessageType;
     }
+    public String getMessage() { return this.message; }
+    public String getErrorMessage() { return this.errorMessage; }
+    public GameData getGame() { return game; }
 
     @Override
     public boolean equals(Object o) {

@@ -2,12 +2,10 @@ package dataaccess.websocket;
 
 import chess.ChessMove;
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
 import io.javalin.Javalin;
 import io.javalin.websocket.WsMessageContext;
 import models.AuthData;
 import models.GameData;
-import server.ServerException;
 import service.GameService;
 import service.UserService;
 import websocket.commands.UserGameCommand;
@@ -37,7 +35,6 @@ public class WebSocketHandler {
             });
             ws.onMessage(ctx -> {
                 String json = ctx.message();
-                ctx.send("WebSocket response:" + json);
                 UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
                 // Parse JSON into commands such as CONNECT, MAKE_MOVE, LEAVE, RESIGN with a switch statement
                 switch (command.getCommandType()) {
@@ -155,7 +152,7 @@ public class WebSocketHandler {
             }
 
             // send to everyone else's clients
-            String broadcastMessage = notification(authData.username() + "has joined team " + team);
+            String broadcastMessage = notification(authData.username() + " has joined as " + team);
             broadcastToOthers(gameID, ctx, broadcastMessage);
 
         } catch (Exception e) {
@@ -170,18 +167,18 @@ public class WebSocketHandler {
      */
     private void sendError(WsMessageContext ctx, String error) {
         ServerMessage errorMsg = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-        errorMsg.errorMsg = error;
+        errorMsg.errorMessage = error;
         ctx.send(gson.toJson(errorMsg));
     }
 
     /**
-     * Function for creating json objects for notification messages
+     * Function for creating json objects for message messages
      * @param message is the message we want to turn into a json servermessage string
-     * @return the json version of servermessage with message as the notification
+     * @return the json version of servermessage with message as the message
      */
     private String notification(String message) {
         ServerMessage notify = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notify.notification = message;
+        notify.message = message;
         return gson.toJson(notify);
     }
 

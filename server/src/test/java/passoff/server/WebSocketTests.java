@@ -225,7 +225,7 @@ public class WebSocketTests {
         //have white player leave--all other players get notified, white player should not be
         leave(white, gameID, Set.of(black, observer), Set.of(), "player/first leave");
 
-        //observer leaves - only black player should get a notification
+        //observer leaves - only black player should get a message
         leave(observer, gameID, Set.of(black), Set.of(white), "observer/second leave");
     }
 

@@ -45,15 +45,20 @@ public class GameClient implements Client {
         var tokens = input.toLowerCase().split(" ");
         var cmd = (tokens.length > 0) ? tokens[0] : "help";
         var params = Arrays.copyOfRange(tokens, 1, tokens.length);
-        return switch(cmd) {
-            case "leave", "exit", "quit", "leave game", "exit game", "quit game":
-                yield leaveGame(params);
-            case "help":
-                yield help();
-            case "move":
-            default:
-                yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
-        };
+        try {
+            return switch (cmd) {
+                case "leave", "exit", "quit", "leave game", "exit game", "quit game":
+                    yield leaveGame(params);
+                case "help":
+                    yield help();
+                case "move":
+                    yield makeMove(params);
+                default:
+                    yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
+            };
+        } catch (ResponseException e) {
+            return String.format("{\"status\":\"error\",\"message\":\"%s\"}", e.getMessage());
+        }
     }
 
     /**
@@ -133,6 +138,7 @@ public class GameClient implements Client {
         ChessMove move = new ChessMove(from, to, promotionPiece);
 
         server.makeMove(authToken, game.gameID(), move);
+        return gson.toJson(new MessageResponse("Sending move: " + params[0] + " to " + params[1]));
     }
 
     private ChessPiece.PieceType parsePromotion(String promo, int row) throws ResponseException {

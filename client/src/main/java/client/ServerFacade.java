@@ -2,6 +2,7 @@ package client;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import client.websocket.WebSocketClient;
 import com.google.gson.Gson;
 import models.*;
 import exception.ResponseException;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class ServerFacade {
 
     private final String serverUrl;
+    private WebSocketClient
 
     public ServerFacade(String url) {
         serverUrl = url;
