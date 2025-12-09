@@ -1,19 +1,42 @@
 package client;
 
 import chess.*;
+import client.websocket.GameMessageHandler;
+import client.websocket.WebSocketClient;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import models.GameData;
+import websocket.commands.UserGameCommand;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-public class GameClient implements Client {
+public class GameClient implements Client, GameMessageHandler {
     private final ServerFacade server;
     private final String authToken;
     private GameData game;
     private final String teamColor;
     private final Gson gson = new Gson();
+    private WebSocketClient wsClient;
+
+    @Override
+    public void onLoadGame(GameData game) {
+        this.game = game;
+        System.out.println("\n-=三=-  BOARD UPDATED  -=三=-\n");
+        drawBoard();
+    }
+
+    @Override
+    public void onNotification(String message) {
+        System.out.println("Notification: " + message);
+    }
+
+    @Override
+    public void onError(String error) {
+        System.err.println("Error: " + error);
+
+    }
 
     // models for gson serialization
     private record MessageResponse(String message) {}
@@ -31,6 +54,14 @@ public class GameClient implements Client {
         this.teamColor = teamColor;
         if (gameID != null) {
             game = findGame(gameID);
+        }
+
+        try {
+            URI uri = URI.create("ws://localhost:8080/ws");
+            wsClient = new WebSocketClient(uri, this);
+        } catch (Exception e) {
+            // just learned about this println message
+            System.err.println("Websocket connection failed: " + e.getMessage());
         }
         drawBoard();
     }
@@ -134,11 +165,21 @@ public class GameClient implements Client {
             promotionPiece = parsePromotion(params[2], to.getRow());
         }
 
-
         ChessMove move = new ChessMove(from, to, promotionPiece);
 
-        server.makeMove(authToken, game.gameID(), move);
-        return gson.toJson(new MessageResponse("Sending move: " + params[0] + " to " + params[1]));
+        try {
+            UserGameCommand command = new UserGameCommand(
+                    UserGameCommand.CommandType.MAKE_MOVE,
+                    authToken,
+                    game.gameID(),
+                    move
+            );
+
+            wsClient.send(command);
+            return gson.toJson(new MessageResponse("Move sent: " + params[0] + " to " + params[1]));
+        } catch (Exception e) {
+            throw new ResponseException("makeMove failure, not sent to websocket: " + e.getMessage(), 500);
+        }
     }
 
     private ChessPiece.PieceType parsePromotion(String promo, int row) throws ResponseException {

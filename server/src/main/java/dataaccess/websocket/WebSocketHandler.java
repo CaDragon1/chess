@@ -6,6 +6,7 @@ import io.javalin.Javalin;
 import io.javalin.websocket.WsMessageContext;
 import models.AuthData;
 import models.GameData;
+import org.eclipse.jetty.websocket.api.Session;
 import service.GameService;
 import service.UserService;
 import websocket.commands.UserGameCommand;
@@ -18,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketHandler {
     private final GameService gameService;
     private final UserService userService;
-    private final Map<Integer, Set<WsMessageContext>> gameSessions = new ConcurrentHashMap<>();
+    private final Map<Integer, Set<Session>> gameSessions = new ConcurrentHashMap<>();
     private final Gson gson = new Gson();
 
     public WebSocketHandler(GameService gameService, UserService userService) {
@@ -34,19 +35,24 @@ public class WebSocketHandler {
                 System.out.println("Websocket connected");
             });
             ws.onMessage(ctx -> {
-                String json = ctx.message();
-                UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
-                // Parse JSON into commands such as CONNECT, MAKE_MOVE, LEAVE, RESIGN with a switch statement
-                switch (command.getCommandType()) {
-                    case CONNECT -> handleConnect(ctx, command);
-                    case LEAVE -> handleLeave(ctx, command);
-                    case RESIGN -> handleResign(ctx, command);
-                    case MAKE_MOVE -> handleMakeMove(ctx, command);
+                try {
+                    String json = ctx.message();
+                    UserGameCommand command = gson.fromJson(json, UserGameCommand.class);
+                    // Parse JSON into commands such as CONNECT, MAKE_MOVE, LEAVE, RESIGN with a switch statement
+                    switch (command.getCommandType()) {
+                        case CONNECT -> handleConnect(ctx, command);
+                        case LEAVE -> handleLeave(ctx, command);
+                        case RESIGN -> handleResign(ctx, command);
+                        case MAKE_MOVE -> handleMakeMove(ctx, command);
+                    }
+                } catch (Exception e) {
+                    sendError(ctx, "Error: Invalid Json");
                 }
             });
             ws.onClose(ctx -> {
                 System.out.println("Websocket closed");
                 // Remove session
+                gameSessions.values().forEach(gameSessions -> gameSessions.remove(ctx.session));
             });
         });
     }
@@ -61,8 +67,8 @@ public class WebSocketHandler {
      *   "gameID": int,
      *   "move": { "start": { "row": 3, "col": 3 }, "end": { "row": 5, "col": 5 } }
      * }
-     * @param ctx
-     * @param command
+     * @param ctx contains the sender's websocket info
+     * @param command contains the authtoken and gameid we need
      */
     // Update database with new move, broadcast the board, notify others
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
@@ -133,7 +139,7 @@ public class WebSocketHandler {
             }
 
             // making a new key set for the game id and putting it in gamesessions, then adding websocket message
-            gameSessions.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet()).add(ctx);
+            gameSessions.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet()).add(ctx.session);
 
             // send to client
             ServerMessage loadingMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
@@ -189,11 +195,18 @@ public class WebSocketHandler {
      * @param message is the json message being sent
      */
     private void broadcastToAll(int gameID, String message) {
-        Set<WsMessageContext> currentSessions = gameSessions.get(gameID);
+        Set<Session> currentSessions = gameSessions.get(gameID);
         if (currentSessions != null) {
-            for (WsMessageContext context : currentSessions) {
-                context.send(message);
-            }
+            // check if session is open, cycle through each one, and attempt to send the message
+            currentSessions.stream()
+                    .filter(Session::isOpen)
+                    .forEach(session -> {
+                try {
+                    session.getRemote().sendString(message);
+                } catch (Exception e) {
+                    session.close(); // session is dead so should be excised from our set
+                }
+            });
         }
     }
 
@@ -205,13 +218,20 @@ public class WebSocketHandler {
      * @param message is the json message being sent
      */
     private void broadcastToOthers(int gameID, WsMessageContext ctx, String message) {
-        Set<WsMessageContext> currentSessions = gameSessions.get(gameID);
+        Set<Session> currentSessions = gameSessions.get(gameID);
+        Session senderSession = ctx.session;
+
         if (currentSessions != null) {
-            for (WsMessageContext context : currentSessions) {
-                if (context != ctx) {
-                    context.send(message);
-                }
-            }
+            // check if session is open and not the sender, cycle through each one, and attempt to send the message
+            currentSessions.stream()
+                    .filter(session -> session.isOpen() && session != senderSession)
+                    .forEach(session -> {
+                        try {
+                            session.getRemote().sendString(message);
+                        } catch (Exception e) {
+                            session.close(); // session is dead so should be excised from our set
+                        }
+                    });
         }
     }
 }

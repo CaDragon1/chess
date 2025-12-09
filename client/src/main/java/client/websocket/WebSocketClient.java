@@ -11,18 +11,9 @@ import java.net.URI;
 import java.util.Scanner;
 
 public class WebSocketClient extends Endpoint {
-    private Session session;
+    private final Session session;
     private final Gson gson = new Gson();
     private final GameMessageHandler gameMessageHandler;
-
-
-    public static void main(String[] args) throws Exception {
-        WebSocketClient client = new WebSocketClient();
-
-        Scanner scanner = new Scanner(System.in);
-
-        // I assume I need this to send the command to the serverside WebSocketHandler somehow
-    }
 
     public WebSocketClient(URI uri, GameMessageHandler handler) throws Exception {
         gameMessageHandler = handler;
