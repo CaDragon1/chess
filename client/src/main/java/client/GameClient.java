@@ -76,8 +76,16 @@ public class GameClient implements Client, GameMessageHandler {
 
     @Override
     public String help() {
-        return "{\"message\":\"--- HELP ---\\nCommands:\\nmove <from> <to>\\nredraw\\nhighlight <piece coords>" +
-                "\\nresign\\nleave game\\nhelp\"}";
+        return gson.toJson(new MessageResponse("""
+        --- CHESS GAME HELP ---
+        move e2 e4        - Make a move
+        move g7 g8 q      - Make a move with pawn promotion (q,r,b,n)
+        highlight e2      - Show legal moves (YELLOW = selected, GREEN = legal)
+        redraw            - Redraw board
+        resign            - Forfeit game (y/n to confirm)
+        leave/exit/quit   - Exit to main menu
+        help              - Show help message
+        """));
     }
 
     @Override
@@ -94,9 +102,9 @@ public class GameClient implements Client, GameMessageHandler {
                 case "move":
                     yield makeMove(params);
                 case "redraw":
-                    redraw(params);
+                    yield redraw(params);
                 case "highlight":
-                    highlight(params);
+                    yield highlight(params);
                 case "help":
                     yield help();
                 default:
@@ -121,7 +129,7 @@ public class GameClient implements Client, GameMessageHandler {
         } catch (Exception e) {
             System.err.println("LEAVE command not sent: " + e.getMessage());
         }
-        return String.format("{\"message\":\"Successfully exited game\", \"authToken\":\"%s\"}", authToken);
+        return String.format("{\"message\":\"successfully exited game\", \"authToken\":\"%s\", \"leaveGame\":true}", authToken);
     }
 
     private String resign(String[] params) throws ResponseException {
@@ -152,8 +160,8 @@ public class GameClient implements Client, GameMessageHandler {
     }
 
     private String highlight(String[] params) {
-        boolean validParams = params.length != 1 || params[0].length() != 2 || validParams(params[0], "a1");
-        if (!validParams) {
+        boolean invalidParams = params.length != 1 || params[0].length() != 2 || !validParams(params[0], "a1");
+        if (invalidParams) {
             return gson.toJson(new MessageResponse("Usage: Highlight <piece coordinate> (example: 'highlight c2'"));
         }
         ChessPosition position = parsePosition(params[0]);
@@ -214,6 +222,9 @@ public class GameClient implements Client, GameMessageHandler {
                 String bgColor = isWhiteSquare ? WHITE_BG_COLOR : BLACK_BG_COLOR;
                 if (highlights[row][col]) {
                     bgColor = HIGHLIGHT_BG;
+                }
+                if (selected.getRow() == row && selected.getColumn() == col) {
+                    bgColor = SELECT_BG;
                 }
 
                 String piece = formatPieceText(occupyingPiece);
@@ -281,6 +292,9 @@ public class GameClient implements Client, GameMessageHandler {
 
         if (params.length < 2 || !validParams(params[0], params[1])) {
             return gson.toJson(new MessageResponse(badCommand));
+        }
+        if (game == null) {
+            return gson.toJson(new MessageResponse("No game currently active"));
         }
 
         ChessPosition from = parsePosition(params[0]);

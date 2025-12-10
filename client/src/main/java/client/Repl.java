@@ -62,22 +62,28 @@ public class Repl {
         try {
             String evalMessage = extractMessage(evalResult);
 
-            if (evalMessage.contains("successfully logged in") || evalMessage.contains("successfully registered")
-                    || evalMessage.contains("Successfully exited game")) {
+            if (evalMessage.contains("successfully logged in") ||
+                    evalMessage.contains("successfully registered") ||
+                    evalMessage.contains("successfully exited game")) {
                 String authToken = extractAuthToken(evalResult);
-
                 postClient = new PostLoginClient(server, authToken);
                 return postClient;
-            } else if (evalMessage.contains("Successfully logged out")) {
+            }
+
+            else if (evalMessage.contains("successfully logged out")) {
                 return preClient;
-            } else if (evalMessage.contains("Joining game")) {
+            }
+
+            else if (evalMessage.contains("Joining game")) {
                 String authToken = extractAuthToken(evalResult);
                 int gameID = extractGameID(evalResult);
                 String teamColor = extractTeamColor(evalResult);
                 gameClient = new GameClient(server, authToken, gameID, teamColor);
 
                 return gameClient;
-            } else if (evalMessage.contains("Observing game")) {
+            }
+
+            else if (evalMessage.contains("Observing game")) {
                 String authToken = extractAuthToken(evalResult);
                 int gameID = extractGameID(evalResult);
                 gameClient = new GameClient(server, authToken, gameID, null);
