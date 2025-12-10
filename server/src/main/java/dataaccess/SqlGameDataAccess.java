@@ -56,22 +56,15 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
             String game = response.getString("game");
 
             ChessGame chessGame = new Gson().fromJson(game, ChessGame.class);
-            System.out.println("!!!!! Setting status to null");
-            GameData.GameStatus status = null;
+            GameData.GameStatus status = GameData.GameStatus.PREGAME;
             String gameStatus = response.getString("status");
-            System.out.println("!!!!! gameStatus from response is " + gameStatus);
+
             if (!response.wasNull() && gameStatus != null) {
                 try {
-                    status = GameData.GameStatus.valueOf(gameStatus.toUpperCase());
-                    System.out.println("!!!!! status verified as " + status.toString());
+                    status = GameData.GameStatus.valueOf(gameStatus.trim.toUpperCase());
                 } catch (IllegalArgumentException ignored) {
                     // apparently it's okay to just ignore something like this. I'm just ensuring that if status doesn't exist all is well
                 }
-            }
-
-            if (status == null) {
-                System.out.println("!!!! PREGAMING STATUS");
-                status = GameData.GameStatus.PREGAME;
             }
 
             return new GameData (gameID, white, black, name, chessGame, status);

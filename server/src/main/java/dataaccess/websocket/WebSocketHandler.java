@@ -138,6 +138,8 @@ public class WebSocketHandler {
                 return;
             }
 
+            gameService.resignGame(authToken, gameID);
+
             String message = authData.username() + " has resigned. Game over!";
             broadcastToAll(gameID, notification(message));
 
