@@ -138,16 +138,6 @@ public class WebSocketHandler {
                 return;
             }
 
-//            GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
-//                    gameData.gameName(), gameData.getGame(), GameData.GameStatus.RESIGNED);
-//
-//            gameService.updateGame(updatedGame);
-
-            GameData resignedGame = gameService.resignGame(authToken, gameID);
-            ServerMessage resignMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-            resignMsg.game = resignedGame;
-            broadcastToAll(gameID, gson.toJson(resignMsg));
-
             String message = authData.username() + " has resigned. Game over!";
             broadcastToAll(gameID, notification(message));
 
