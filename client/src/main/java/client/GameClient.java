@@ -59,6 +59,13 @@ public class GameClient implements Client, GameMessageHandler {
         try {
             URI uri = URI.create("ws://localhost:8080/ws");
             wsClient = new WebSocketClient(uri, this);
+
+            UserGameCommand connected = new UserGameCommand(
+                    UserGameCommand.CommandType.CONNECT,
+                    authToken,
+                    gameID
+            );
+            wsClient.send(connected);
         } catch (Exception e) {
             // just learned about this println message
             System.err.println("Websocket connection failed: " + e.getMessage());
@@ -68,7 +75,8 @@ public class GameClient implements Client, GameMessageHandler {
 
     @Override
     public String help() {
-        return "{\"message\":\"--- HELP ---\\nCommands:\\nmove <from> <to>\\nleave game\\nhelp\"}";
+        return "{\"message\":\"--- HELP ---\\nCommands:\\nmove <from> <to>\\nredraw\\nhighlight <piece coords>" +
+                "\\nresign\\nleave game\\nhelp\"}";
     }
 
     @Override
@@ -80,10 +88,16 @@ public class GameClient implements Client, GameMessageHandler {
             return switch (cmd) {
                 case "leave", "exit", "quit", "leave game", "exit game", "quit game":
                     yield leaveGame(params);
-                case "help":
-                    yield help();
+                case "resign":
+                    yield resign(params);
                 case "move":
                     yield makeMove(params);
+                case "redraw":
+                    redraw(params);
+                case "highlight":
+                    highlight(params);
+                case "help":
+                    yield help();
                 default:
                     yield "{\"message\":\"Error: Unknown command. Type 'help' for a list of available commands.\"}";
             };
@@ -98,6 +112,13 @@ public class GameClient implements Client, GameMessageHandler {
      * @return the string containing a json formatted message and authtoken
      */
     private String leaveGame(String[] params) {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken,
+                    game != null ? game.gameID() : null);
+            wsClient.send(command);
+        } catch (Exception e) {
+            System.err.println("LEAVE command not sent: " + e.getMessage());
+        }
         return String.format("{\"message\":\"Successfully exited game\", \"authToken\":\"%s\"}", authToken);
     }
 
