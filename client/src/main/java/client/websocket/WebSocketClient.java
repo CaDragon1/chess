@@ -54,6 +54,12 @@ public class WebSocketClient extends Endpoint {
 
     @Override
     public void onError(Session session, Throwable error) {
+        System.out.println("DEBUG: onError received: [" + error.getMessage() + "]");
+        if (error.getMessage().contains("Error:")) {
+            System.err.println(error);
+        } else {
+            System.err.println("Error: " + error);
+        }
         gameMessageHandler.onError("WebSocket error: " + error.getMessage());
     }
 }

@@ -25,7 +25,7 @@ public class UserService {
         }
         try {
             if (userDAO.getUser(userData.username()) != null) {
-                throw new ServerException("already  taken", 403);
+                throw new ServerException("already taken", 403);
             }
 
             String hashPW = BCrypt.hashpw(userData.password(), BCrypt.gensalt());

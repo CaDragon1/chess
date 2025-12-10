@@ -35,8 +35,15 @@ public class GameClient implements Client, GameMessageHandler {
 
     @Override
     public void onError(String error) {
-        System.err.println("Error: " + error);
-
+        if (error.toLowerCase().contains("move") ||
+                error.toLowerCase().contains("illegal") ||
+                error.toLowerCase().contains("turn")) {
+            if (error.toLowerCase().contains("error:")) {
+                System.err.println(error);
+            } else {
+                System.err.println("Error: " + error);
+            }
+        }
     }
 
     // models for gson serialization
@@ -178,7 +185,7 @@ public class GameClient implements Client, GameMessageHandler {
         }
 
         drawHighlightBoard(position, moves);
-        return gson.toJson(new MessageResponse(moves.size() + "legal moves for piece on square " + params[0] + "highlighted!"));
+        return gson.toJson(new MessageResponse(moves.size() + " legal moves for piece on square " + params[0] + " highlighted!"));
     }
 
     private void drawHighlightBoard(ChessPosition selected, Iterable<ChessMove> moves) {
@@ -314,9 +321,9 @@ public class GameClient implements Client, GameMessageHandler {
             );
 
             wsClient.send(command);
-            return gson.toJson(new MessageResponse("Move sent: " + params[0] + " to " + params[1]));
+            return gson.toJson(new MessageResponse(""));
         } catch (Exception e) {
-            throw new ResponseException("makeMove failure, not sent to websocket: " + e.getMessage(), 500);
+            throw new ResponseException("makeMove failure: " + e.getMessage(), 500);
         }
     }
 

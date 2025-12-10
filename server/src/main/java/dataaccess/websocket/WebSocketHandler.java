@@ -46,7 +46,7 @@ public class WebSocketHandler {
                         case MAKE_MOVE -> handleMakeMove(ctx, command);
                     }
                 } catch (Exception e) {
-                    sendError(ctx, "Error: Invalid Json");
+                    sendError(ctx, "Invalid Json");
                 }
             });
             ws.onClose(ctx -> {
@@ -79,12 +79,12 @@ public class WebSocketHandler {
 
             AuthData authData = userService.getAuthDataFromToken(authToken);
             if (authData == null) {
-                sendError(ctx, "Error: unauthorized");
+                sendError(ctx, "unauthorized");
                 return;
             }
             GameData gameData = gameService.getGame(gameID);
             if (gameData == null) {
-                sendError(ctx, "Error: game not found");
+                sendError(ctx, "game not found");
                 return;
             }
 
@@ -101,7 +101,7 @@ public class WebSocketHandler {
             broadcastToOthers(gameID,ctx, notification(moveMessage));
 
         } catch (Exception e) {
-            sendError(ctx, "Error: " + e.getMessage());
+            sendError(ctx, e.getMessage());
         }
     }
 
@@ -116,25 +116,25 @@ public class WebSocketHandler {
 
             AuthData authData = userService.getAuthDataFromToken(authToken);
             if (authData == null) {
-                sendError(ctx, "Error: unauthorized");
+                sendError(ctx, "unauthorized");
                 return;
             }
 
             GameData gameData = gameService.getGame(gameID);
             if (gameData == null) {
-                sendError(ctx, "Error: game not found");
+                sendError(ctx, "game not found");
                 return;
             }
 
             boolean isPlayer = authData.username().equals(gameData.whiteUsername()) ||
                     authData.username().equals(gameData.blackUsername());
             if (!isPlayer) {
-                sendError(ctx, "Error: Player is observer and cannot resign");
+                sendError(ctx, "Player is observer and cannot resign");
                 return;
             }
 
             if (gameData.status() != GameData.GameStatus.LIVE && gameData.status() != GameData.GameStatus.PREGAME) {
-                sendError(ctx, "Error: Game is over!");
+                sendError(ctx, "Game is over!");
                 return;
             }
 
@@ -144,14 +144,15 @@ public class WebSocketHandler {
 //            gameService.updateGame(updatedGame);
 
             GameData resignedGame = gameService.resignGame(authToken, gameID);
-//            ServerMessage resignMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-//            resignMsg.game = resignedGame;
+            ServerMessage resignMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+            resignMsg.game = resignedGame;
+            broadcastToAll(gameID, gson.toJson(resignMsg));
 
             String message = authData.username() + " has resigned. Game over!";
             broadcastToAll(gameID, notification(message));
 
         } catch (Exception e) {
-            sendError(ctx, "Error: " + e.getMessage());
+            sendError(ctx, e.getMessage());
         }
     }
 

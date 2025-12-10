@@ -109,11 +109,11 @@ public class GameHandler {
 
             GameData gameData = service.getGame(gameID);
             if (gameData == null) {
-                http.status(404).json(serializer.toJson(Map.of("message", "Error: Game not found")));
+                http.status(404).json(serializer.toJson(Map.of("message", "Game not found")));
                 return;
             }
             if (!playableGamestate(gameData.status())) {
-                http.status(400).json(serializer.toJson(Map.of("message", "Error: Game is not live")));
+                http.status(400).json(serializer.toJson(Map.of("message", "Game is not live")));
                 return;
             }
 
@@ -121,10 +121,10 @@ public class GameHandler {
             http.status(200).json(serializer.toJson(Map.of("message", "Move successful")));
         }
         catch (ServerException e) {
-            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", "Error: " + e.getMessage())));
+            http.status(e.getStatusCode()).json(serializer.toJson(Map.of("message", e.getMessage())));
         }
         catch (Exception e) {
-            http.status(500).json(serializer.toJson(Map.of("message", "Error: unknown error")));
+            http.status(500).json(serializer.toJson(Map.of("message", "unknown error")));
         }
     }
 

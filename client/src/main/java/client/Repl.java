@@ -32,16 +32,14 @@ public class Repl {
         while (!result.equalsIgnoreCase("{\"message\":\"Quitting application...\"}")) {
             System.out.print("> ");
             String line = scanner.nextLine();
-
             try {
                 result = client.eval(line);
                 client = handleClientState(result);
 
                 try {
                     System.out.println(extractMessage(result));
-                } catch (Exception e) {
-                    System.out.println(result);
-                }
+                } catch (Exception ignored) {}
+
             } catch (Throwable e) {
                 var msg = e.toString();
                 System.out.println(msg);
