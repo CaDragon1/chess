@@ -1,5 +1,6 @@
 package dataaccess.websocket;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import io.javalin.Javalin;
@@ -98,13 +99,39 @@ public class WebSocketHandler {
             String moveMessage = authData.username() + " moved " + move.getStartPosition().getCoordinates() + " to " +
                     move.getEndPosition().getCoordinates();
 
-            broadcastToOthers(gameID,ctx, notification(moveMessage));
+            // State-based notifications
+            broadcastStatus(ctx, updatedGame, gameID, moveMessage);
 
         } catch (Exception e) {
             sendError(ctx, e.getMessage());
         }
     }
 
+    private void broadcastStatus(WsMessageContext ctx, GameData updatedGame, int gameID, String moveMessage) {
+        GameData.GameStatus status = updatedGame.status();
+        ChessGame chessGame = updatedGame.getGame();
+
+        if (status == GameData.GameStatus.WHITE_WIN) {
+            broadcastToAll(gameID, notification("Checkmate! White wins!"));
+        } else if (status == GameData.GameStatus.BLACK_WIN) {
+            broadcastToAll(gameID, notification("Checkmate! Black wins!"));
+        } else if (status == GameData.GameStatus.STALEMATE) {
+            broadcastToAll(gameID, notification("Stalemate! The game is a draw."));
+        } else {
+            // check state of next team
+            ChessGame.TeamColor toMove = chessGame.getTeamTurn();
+            if (chessGame.isInCheck(toMove)) {
+                String userInCheck = toMove == ChessGame.TeamColor.WHITE
+                        ? updatedGame.whiteUsername()
+                        : updatedGame.blackUsername();
+                broadcastToAll(gameID,
+                        notification(userInCheck + " is in check!"));
+            }
+        }
+
+        // Always tell others about the move
+        broadcastToOthers(gameID, ctx, notification(moveMessage));
+    }
 
 
     // Signal game over state for game in db, notify others

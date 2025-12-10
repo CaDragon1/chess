@@ -68,7 +68,7 @@ public class Repl {
                 return postClient;
             }
 
-            else if (evalMessage.contains("successfully logged out")) {
+            else if (evalMessage.contains("Successfully logged out")) {
                 return preClient;
             }
 

@@ -14,6 +14,13 @@ import java.util.Collection;
 import java.util.List;
 
 public class GameClient implements Client, GameMessageHandler {
+    final String ANSI_RESET = "\u001B[0m";
+    final String WHITE_BG_COLOR = "\u001B[47m";
+    final String BLACK_BG_COLOR = "\u001B[100m";
+    final String HIGHLIGHT_BG = "\u001B[42m"; // green
+    final String SELECT_BG = "\u001B[43m";    // yellow
+    final String BORDER_COLOR = "\u001B[47m";
+
     private final ServerFacade server;
     private final String authToken;
     private GameData game;
@@ -167,7 +174,7 @@ public class GameClient implements Client, GameMessageHandler {
     }
 
     private String highlight(String[] params) {
-        boolean invalidParams = params.length != 1 || params[0].length() != 2 || !validParams(params[0], "a1");
+        boolean invalidParams = params.length != 1 || params[0].length() != 2 || validParams(params[0], "a1");
         if (invalidParams) {
             return gson.toJson(new MessageResponse("Usage: Highlight <piece coordinate> (example: 'highlight c2'"));
         }
@@ -189,12 +196,7 @@ public class GameClient implements Client, GameMessageHandler {
     }
 
     private void drawHighlightBoard(ChessPosition selected, Iterable<ChessMove> moves) {
-        final String ANSI_RESET = "\u001B[0m";
-        final String WHITE_BG_COLOR = "\u001B[47m";
-        final String BLACK_BG_COLOR = "\u001B[100m";
-        final String HIGHLIGHT_BG = "\u001B[42m"; // green
-        final String SELECT_BG = "\u001B[43m";    // yellow
-        final String BORDER_COLOR = "\u001B[47m";
+
 
         boolean isBlack = false;
         if (teamColor != null) {
@@ -248,12 +250,6 @@ public class GameClient implements Client, GameMessageHandler {
          * drawBoard will draw the entire chess board.
          */
     private void drawBoard () {
-        // Using ANSI codes for colors
-        final String ANSI_RESET = "\u001B[0m";
-        final String WHITE_BG_COLOR = "\u001B[47m";
-        final String BLACK_BG_COLOR = "\u001B[100m";
-        final String BORDER_COLOR = "\u001B[47m";
-
         // Figuring out which direction to go
         boolean isBlack = false;
         if (teamColor != null) {
@@ -297,7 +293,7 @@ public class GameClient implements Client, GameMessageHandler {
                 "\n    (Promotion piece only necessary for promoting pawns)";
         ChessPiece.PieceType promotionPiece = null;
 
-        if (params.length < 2 || !validParams(params[0], params[1])) {
+        if (params.length < 2 || validParams(params[0], params[1])) {
             return gson.toJson(new MessageResponse(badCommand));
         }
         if (game == null) {
@@ -340,15 +336,15 @@ public class GameClient implements Client, GameMessageHandler {
 
     private boolean validParams(String to, String from) {
         if (to.length() != 2 || from.length() != 2) {
-            return false;
+            return true;
         }
         if (to.charAt(0) < 'a' || to.charAt(0) > 'h' || from.charAt(0) < 'a' || from.charAt(0) > 'h') {
-            return false;
+            return true;
         }
         if (to.charAt(1) < '1' || to.charAt(1) > '8' || from.charAt(1) < '1' || from.charAt(1) > '8') {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     private ChessPosition parsePosition (String pos){
