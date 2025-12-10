@@ -85,7 +85,19 @@ public class GameService {
             }
 
             game = getGameDataFromTeam(team, game, auth);
-            gameDAO.updateGame(game);
+            // Check to see if we can set the game status to LIVE
+            GameData.GameStatus newStatus = GameData.GameStatus.PREGAME;
+            if (game.blackUsername() != null && game.whiteUsername() != null) {
+                newStatus = GameData.GameStatus.LIVE;
+            }
+            gameDAO.updateGame(new GameData(
+                    gameID,
+                    game.whiteUsername(),
+                    game.blackUsername(),
+                    game.gameName(),
+                    game.getGame(),
+                    newStatus
+            ));
 
         } catch (DataAccessException e) {
             if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
@@ -205,7 +217,7 @@ public class GameService {
                 throw new ServerException("White cannot play on black's turn", 403);
             }
             game.makeMove(move);
-            GameData.GameStatus newGameStatus = getGameStatus(game, gameData);
+            GameData.GameStatus newGameStatus = calculateGameStatus(game, gameData);
             GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
                     gameData.gameName(), game, newGameStatus);
 
@@ -226,7 +238,7 @@ public class GameService {
      * @return the status that corresponds with the current gamestate; stalemate, black_win, white_win, pregame,
      *  resigned, or live
      */
-    private static GameData.GameStatus getGameStatus(ChessGame game, GameData currentData) {
+    private static GameData.GameStatus calculateGameStatus(ChessGame game, GameData currentData) {
         if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
             return GameData.GameStatus.STALEMATE;
         }
@@ -235,11 +247,11 @@ public class GameService {
             return currentTurn == ChessGame.TeamColor.WHITE ?
                     GameData.GameStatus.BLACK_WIN : GameData.GameStatus.WHITE_WIN;
         }
-        if (currentData.blackUsername() == null || currentData.whiteUsername() == null) {
-            return GameData.GameStatus.PREGAME;
-        }
         if (currentData.status() == GameData.GameStatus.RESIGNED) {
             return GameData.GameStatus.RESIGNED;
+        }
+        if (currentData.blackUsername() == null || currentData.whiteUsername() == null) {
+            return GameData.GameStatus.PREGAME;
         }
         return GameData.GameStatus.LIVE;
     }

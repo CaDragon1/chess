@@ -56,8 +56,20 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
             String game = response.getString("game");
 
             ChessGame chessGame = new Gson().fromJson(game, ChessGame.class);
+            GameData.GameStatus status = null;
+            String gameStatus = response.getString("status");
+            if (!response.wasNull() && gameStatus != null) {
+                try {
+                    status = GameData.GameStatus.valueOf(gameStatus);
+                } catch (IllegalArgumentException ignored) {
+                    // apparently it's okay to just ignore something like this. I'm just ensuring that if status doesn't exist all is well
+                }
+            }
 
-            GameData.GameStatus status = getGameStatus(chessGame, new GameData(gameID, white, black, name, chessGame, null));
+            if (status == null) {
+                status = getGameStatus(chessGame,
+                        new GameData(gameID, white, black, name, chessGame, null));
+            }
 
             return new GameData (gameID, white, black, name, chessGame, status);
         } catch (Exception e) {
@@ -107,7 +119,8 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     @Override
     public void createGame(GameData gameData) throws DataAccessException {
         try (var connection = DatabaseManager.getConnection()) {
-            String create = "INSERT INTO GameData (gameID, whiteUsername, blackUsername, gameName, game)" + "VALUES (?, ?, ?, ?, ?)";
+            String create = "INSERT INTO GameData (gameID, whiteUsername, blackUsername, gameName, game, status)" +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
             Gson gson = new Gson();
 
             try (var preparedStatement = connection.prepareStatement(create)) {
@@ -120,6 +133,9 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
                 String gameJson = gson.toJson(gameData.game());
                 preparedStatement.setString(5, gameJson);
 
+                GameData.GameStatus status = gameData.status();
+                preparedStatement.setString(6, status != null ? status.name() : GameData.GameStatus.PREGAME.name());
+
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -130,7 +146,8 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
     @Override
     public void updateGame(GameData gameData) throws DataAccessException {
         try (var connection = DatabaseManager.getConnection()) {
-            String update = "UPDATE GameData SET whiteUsername = ?, blackUsername = ?, gameName = ?, game = ? WHERE gameID = ?";
+            String update = "UPDATE GameData SET whiteUsername = ?, blackUsername = ?, gameName = ?, game = ?, status = ?" +
+                    " WHERE gameID = ?";
             Gson gson = new Gson();
 
             try (var preparedStatement = connection.prepareStatement(update)) {
@@ -141,7 +158,10 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
                 String updateJson = gson.toJson(gameData.game());
                 preparedStatement.setString(4, updateJson);
 
-                preparedStatement.setInt(5, gameData.gameID());
+                GameData.GameStatus status = gameData.status();
+                preparedStatement.setString(5, status != null ? status.name() : GameData.GameStatus.PREGAME.name());
+
+                preparedStatement.setInt(6, gameData.gameID());
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
@@ -170,6 +190,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
                 `blackUsername` VARCHAR(255),
                 `gameName` VARCHAR(255) NOT NULL,
                 `game` TEXT NOT NULL,
+                `status` VARCHAR(20) NOT NULL DEFAULT 'PREGAME',
                 FOREIGN KEY (whiteUsername) REFERENCES UserData(username) ON DELETE SET NULL,
                 FOREIGN KEY (blackUsername) REFERENCES UserData(username) ON DELETE SET NULL
                 );"""
