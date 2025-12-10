@@ -10,6 +10,7 @@ import websocket.commands.UserGameCommand;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class GameClient implements Client, GameMessageHandler {
@@ -114,6 +115,7 @@ public class GameClient implements Client, GameMessageHandler {
     private String leaveGame(String[] params) {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken,
+                    // this allows me to not have to spend several lines verifying that the game's id is not null
                     game != null ? game.gameID() : null);
             wsClient.send(command);
         } catch (Exception e) {
@@ -122,10 +124,112 @@ public class GameClient implements Client, GameMessageHandler {
         return String.format("{\"message\":\"Successfully exited game\", \"authToken\":\"%s\"}", authToken);
     }
 
-    /**
-     * drawBoard will draw the entire chess board.
-     */
-    private void drawBoard() {
+    private String resign(String[] params) throws ResponseException {
+        System.out.print("Are you sure you want to resign from the match? (y/n)\n>>");
+        var response = System.console().readLine();
+        // if the response is anything but 'n', we cancel the resignation.
+        if (response == null || !response.equalsIgnoreCase("y")) {
+            return gson.toJson(new MessageResponse("Resignation canceled!"));
+        }
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN,
+                    authToken,
+                    game != null ? game.gameID() : null
+            );
+            wsClient.send(command);
+            return gson.toJson(new MessageResponse("You have forfeited the game."));
+        } catch (Exception e) {
+            throw new ResponseException("Resignation command failed to send: " + e.getMessage(), 500);
+        }
+    }
+
+    private String redraw(String[] params) {
+        if (game != null) {
+            drawBoard();
+            return gson.toJson(new MessageResponse("Board redrawn!"));
+        }
+        return gson.toJson(new MessageResponse("Board does not exist..."));
+    }
+
+    private String highlight(String[] params) {
+        boolean validParams = params.length != 1 || params[0].length() != 2 || validParams(params[0], "a1");
+        if (!validParams) {
+            return gson.toJson(new MessageResponse("Usage: Highlight <piece coordinate> (example: 'highlight c2'"));
+        }
+        ChessPosition position = parsePosition(params[0]);
+        ChessGame chessGame = game.getGame();
+        ChessPiece piece = chessGame.getBoard().getPiece(position);
+
+        if (piece == null) {
+            return gson.toJson(new MessageResponse("No piece exists on square " + params[0]));
+        }
+
+        Collection<ChessMove> moves = chessGame.validMoves(position);
+        if (moves == null || moves.isEmpty()) {
+            return gson.toJson(new MessageResponse("No valid moves exist for piece occupying square " + params[0]));
+        }
+
+        drawHighlightBoard(position, moves);
+        return gson.toJson(new MessageResponse(moves.size() + "legal moves for piece on square " + params[0] + "highlighted!"));
+    }
+
+    private void drawHighlightBoard(ChessPosition selected, Iterable<ChessMove> moves) {
+        final String ANSI_RESET = "\u001B[0m";
+        final String WHITE_BG_COLOR = "\u001B[47m";
+        final String BLACK_BG_COLOR = "\u001B[100m";
+        final String HIGHLIGHT_BG = "\u001B[42m"; // green
+        final String SELECT_BG = "\u001B[43m";    // yellow
+        final String BORDER_COLOR = "\u001B[47m";
+
+        boolean isBlack = false;
+        if (teamColor != null) {
+            isBlack = teamColor.equalsIgnoreCase("black");
+        }
+        int rowIDStart = isBlack ? 1 : 8;
+        int rowIDEnd = isBlack ? 9 : 0;
+        int colIDStart = isBlack ? 8 : 1;
+        int colIDEnd = isBlack ? 0 : 9;
+        int rowStep = isBlack ? 1 : -1;
+        int colStep = isBlack ? -1 : 1;
+
+        ChessBoard board = game.getGame().getBoard();
+
+        // Create an array of indexes to be highlighted. I started with an int array but a bool array made more sense.
+        boolean[][] highlights = new boolean[9][9];
+        for (ChessMove move : moves) {
+            ChessPosition pos = move.getEndPosition();
+            highlights[pos.getRow()][pos.getColumn()] = true;
+        }
+
+        printBorderEdge();
+        for (int row = rowIDStart; row != rowIDEnd; row += rowStep) {
+            System.out.print(BORDER_COLOR + " " + row + " " + ANSI_RESET);
+
+            for (int col = colIDStart; col != colIDEnd; col += colStep) {
+                // determines the checkerboard pattern
+                boolean isWhiteSquare = (row + col) % 2 == 1;
+
+                ChessPiece occupyingPiece = board.getPiece(new ChessPosition(row, col));
+
+                String bgColor = isWhiteSquare ? WHITE_BG_COLOR : BLACK_BG_COLOR;
+                if (highlights[row][col]) {
+                    bgColor = HIGHLIGHT_BG;
+                }
+
+                String piece = formatPieceText(occupyingPiece);
+                System.out.print(bgColor + " " + piece + " " + ANSI_RESET);
+            }
+            System.out.println(BORDER_COLOR + " " + row + " " + ANSI_RESET);
+        }
+        // Print bottom row
+        printBorderEdge();
+        System.out.println("YELLOW = selected, GREEN = legal move");
+    }
+
+        /**
+         * drawBoard will draw the entire chess board.
+         */
+    private void drawBoard () {
         // Using ANSI codes for colors
         final String ANSI_RESET = "\u001B[0m";
         final String WHITE_BG_COLOR = "\u001B[47m";
@@ -169,7 +273,7 @@ public class GameClient implements Client, GameMessageHandler {
         printBorderEdge();
     }
 
-    private String makeMove(String[] params) throws ResponseException {
+    private String makeMove (String[]params) throws ResponseException {
         String badCommand = "Command not recognized. Use 'move <from> <to> [promotion piece]' " +
                 "(examples: 'move e2 e4' or 'move b2 b1 q')." +
                 "\n    (Promotion piece only necessary for promoting pawns)";
@@ -187,7 +291,6 @@ public class GameClient implements Client, GameMessageHandler {
         }
 
         ChessMove move = new ChessMove(from, to, promotionPiece);
-
         try {
             UserGameCommand command = new UserGameCommand(
                     UserGameCommand.CommandType.MAKE_MOVE,
@@ -203,7 +306,7 @@ public class GameClient implements Client, GameMessageHandler {
         }
     }
 
-    private ChessPiece.PieceType parsePromotion(String promo, int row) throws ResponseException {
+    private ChessPiece.PieceType parsePromotion (String promo,int row) throws ResponseException {
         return switch (promo.toLowerCase()) {
             case "q", "queen" -> ChessPiece.PieceType.QUEEN;
             case "r", "rook" -> ChessPiece.PieceType.ROOK;
@@ -227,7 +330,7 @@ public class GameClient implements Client, GameMessageHandler {
         return true;
     }
 
-    private ChessPosition parsePosition(String pos) {
+    private ChessPosition parsePosition (String pos){
         int col = pos.charAt(0) - 'a' + 1;
         int row = pos.charAt(1) - '0';
         return new ChessPosition(row, col);
@@ -236,7 +339,7 @@ public class GameClient implements Client, GameMessageHandler {
     /**
      * Helper function to print the edges of the border
      */
-    private void printBorderEdge() {
+    private void printBorderEdge () {
         System.out.print("\u001B[47m" + "   ");
         if (teamColor != null && teamColor.equalsIgnoreCase("black")) {
             for (char col = 'h'; col >= 'a'; col--) {
@@ -256,14 +359,14 @@ public class GameClient implements Client, GameMessageHandler {
      * @param occupyingPiece is the piece we're getting the text representation for
      * @return the text representation of the occupying piece
      */
-    private static String formatPieceText(ChessPiece occupyingPiece) {
+    private static String formatPieceText (ChessPiece occupyingPiece){
         String piece = " ";
 
         if (occupyingPiece != null) {
             int isWhite = occupyingPiece.getTeamColor() == ChessGame.TeamColor.WHITE ? 1 : 0;
             piece = isWhite == 1 ? "\u001B[94m" : "\u001B[38;5;52m";
 
-            switch(occupyingPiece.getPieceType()) {
+            switch (occupyingPiece.getPieceType()) {
                 case PAWN -> piece = piece + UnicodePieces.PIECES.getPiece(6 * isWhite);
                 case ROOK -> piece = piece + UnicodePieces.PIECES.getPiece(1 + 6 * isWhite);
                 case KNIGHT -> piece = piece + UnicodePieces.PIECES.getPiece(2 + 6 * isWhite);
@@ -280,7 +383,7 @@ public class GameClient implements Client, GameMessageHandler {
      * @param gameID is the id of the game we're looking for
      * @return the game in the gameList of gameID "gameID"
      */
-    private GameData findGame(int gameID) {
+    private GameData findGame ( int gameID){
         try {
             List<GameData> gameList = server.listGame(authToken);
             for (GameData game : gameList) {
