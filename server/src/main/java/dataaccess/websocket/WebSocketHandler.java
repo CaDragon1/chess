@@ -138,11 +138,17 @@ public class WebSocketHandler {
                 return;
             }
 
-            GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
-                    gameData.gameName(), gameData.getGame(), GameData.GameStatus.RESIGNED);
+//            GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
+//                    gameData.gameName(), gameData.getGame(), GameData.GameStatus.RESIGNED);
+//
+//            gameService.updateGame(updatedGame);
+
+            GameData resignedGame = gameService.resignGame(authToken, gameID);
+//            ServerMessage resignMsg = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+//            resignMsg.game = resignedGame;
 
             String message = authData.username() + " has resigned. Game over!";
-            broadcastToAll(gameID, message);
+            broadcastToAll(gameID, notification(message));
 
         } catch (Exception e) {
             sendError(ctx, "Error: " + e.getMessage());
@@ -168,32 +174,38 @@ public class WebSocketHandler {
                 return;
             }
 
-            // making a new key set for the game id and putting it in gamesessions, then adding websocket message
-            gameSessions.computeIfAbsent(gameID, id -> ConcurrentHashMap.newKeySet()).add(ctx.session);
+            Set<Session> sessions = gameSessions.get(gameID);
+            if(sessions != null) {
+                sessions.remove(ctx.session);
+            }
 
-            // send to client
-            ServerMessage loadingMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-            loadingMessage.game = gameData;
-            ctx.send(gson.toJson(loadingMessage));
-
-            // determine team
-            String team;
             if (authData.username().equals(gameData.whiteUsername())) {
-                team = "white";
+                gameService.updateGame(removeUser("WHITE", gameData));
             }
             else if (authData.username().equals(gameData.blackUsername())) {
-                team = "black";
-            } else {
-                team = "observer";
+                gameService.updateGame(removeUser("BLACK", gameData));
             }
 
-            // send to everyone else's clients
-            String broadcastMessage = notification(authData.username() + " has joined as " + team);
-            broadcastToOthers(gameID, ctx, broadcastMessage);
+            String message = authData.username() + " has left the game.";
+            broadcastToOthers(gameID, ctx, notification(message));
 
         } catch (Exception e) {
             sendError(ctx, "Error: " + e.getMessage());
         }
+    }
+
+    private GameData removeUser(String team, GameData gameData) {
+        if (!team.equalsIgnoreCase("white") && !team.equalsIgnoreCase("black")) {
+            throw new RuntimeException("Error: wrong team color");
+        }
+        return new GameData(
+                gameData.gameID(),
+                team.equalsIgnoreCase("white") ? null : gameData.whiteUsername(),
+                team.equalsIgnoreCase("black") ? null : gameData.blackUsername(),
+                gameData.gameName(),
+                gameData.getGame(),
+                gameData.status()
+        );
     }
 
     /**

@@ -67,7 +67,6 @@ public class GameService {
      */
     public void joinGame(String authData, String team, int gameID) throws ServerException {
         try {
-            // nifty conversion trick I found online
             AuthData auth = authDAO.getAuthData(authData);
             GameData game = gameDAO.getGame(gameID);
             if (auth == null) {
@@ -85,13 +84,21 @@ public class GameService {
                 throw new ServerException("cannot join completed game", 400);
             }
 
-
             game = getGameDataFromTeam(team, game, auth);
             gameDAO.updateGame(game);
+
         } catch (DataAccessException e) {
             if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
                 throw new ServerException("unauthorized", 401);
             }
+            throw new ServerException(e.getMessage(), 500);
+        }
+    }
+
+    public void updateGame(GameData game) throws ServerException {
+        try {
+            gameDAO.updateGame(game);
+        } catch (DataAccessException e) {
             throw new ServerException(e.getMessage(), 500);
         }
     }
@@ -154,7 +161,7 @@ public class GameService {
         try {
             return gameDAO.getGame(gameID);
         } catch (DataAccessException e) {
-            throw new ServerException("Game not found: " + e.getMessage(), 404);
+            throw new ServerException("Game not found: " + e.getMessage(), 500);
         }
     }
 
@@ -184,6 +191,19 @@ public class GameService {
                 throw new ServerException("GAME NOT LIVE; move not made. game status: " + gameData.status(), 403);
             }
 
+            boolean isWhite = gameData.whiteUsername() != null &&
+                    gameData.whiteUsername().equalsIgnoreCase(auth.username());
+            boolean isBlack = gameData.blackUsername() != null &&
+                    gameData.blackUsername().equalsIgnoreCase(auth.username());
+            if (!isBlack && !isWhite) {
+                throw new ServerException("Observers cannot move pieces", 403);
+            }
+            if (!isWhite && currentTeam == ChessGame.TeamColor.WHITE) {
+                throw new ServerException("Black cannot play on white's turn", 403);
+            }
+            if (!isBlack && currentTeam == ChessGame.TeamColor.BLACK) {
+                throw new ServerException("White cannot play on black's turn", 403);
+            }
             game.makeMove(move);
             GameData.GameStatus newGameStatus = getGameStatus(game, gameData);
             GameData updatedGame = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
@@ -241,20 +261,19 @@ public class GameService {
                 throw new ServerException("player is observer and cannot resign", 403);
             }
 
-            if (isActiveGame(gameData.status())) {
-                GameData updatedGame = new GameData(
-                        gameID,
-                        gameData.whiteUsername(),
-                        gameData.blackUsername(),
-                        gameData.gameName(),
-                        gameData.getGame(),
-                        GameData.GameStatus.RESIGNED
-                );
-                gameDAO.updateGame(updatedGame);
-                return updatedGame;
-            } else {
+            if (!isActiveGame(gameData.status())) {
                 throw new ServerException("game is already over", 403);
             }
+            GameData updatedGame = new GameData(
+                    gameID,
+                    gameData.whiteUsername(),
+                    gameData.blackUsername(),
+                    gameData.gameName(),
+                    gameData.getGame(),
+                    GameData.GameStatus.RESIGNED
+            );
+            gameDAO.updateGame(updatedGame);
+            return updatedGame;
         } catch (DataAccessException e) {
             throw new ServerException("bad request", 400);
         }

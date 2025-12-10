@@ -72,14 +72,16 @@ public class GameHandler {
             String team = request.playerColor();
             int gameID = request.gameID();
 
+            if (authToken == null || authToken.isBlank()) {
+                throw new ServerException("unauthorized", 401);
+            }
+
             GameData gameData = service.getGame(gameID);
             if (gameData == null) {
-                http.status(404).json(serializer.toJson(Map.of("message", "Error: Game not found")));
-                return;
+                throw new ServerException("Game not found", 400);
             }
             if (!joinableGamestate(gameData.status())) {
-                http.status(400).json(serializer.toJson(Map.of("message", "Error: Cannot join a completed game")));
-                return;
+                throw new ServerException("Cannot join completed game", 400);
             }
 
             service.joinGame(authToken, team, gameID);
