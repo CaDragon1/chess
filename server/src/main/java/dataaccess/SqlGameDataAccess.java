@@ -61,7 +61,7 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
 
             if (!response.wasNull() && gameStatus != null) {
                 try {
-                    status = GameData.GameStatus.valueOf(gameStatus.trim.toUpperCase());
+                    status = GameData.GameStatus.valueOf(gameStatus.toUpperCase());
                 } catch (IllegalArgumentException ignored) {
                     // apparently it's okay to just ignore something like this. I'm just ensuring that if status doesn't exist all is well
                 }
