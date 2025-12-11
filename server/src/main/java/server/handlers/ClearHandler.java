@@ -20,7 +20,7 @@ public class ClearHandler {
 
     /**
      * handleClear method clears the data within the service object
-     * @param http is the context that holds the authtoken that I'm not currently using (TODO)
+     * @param http is the context that holds the authtoken that I'm not currently using
      */
     public void handleClear(Context http) {
         try {

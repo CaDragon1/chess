@@ -90,7 +90,9 @@ public class PawnMove extends MoveCalculator{
         if (currentTeam == ChessGame.TeamColor.WHITE) {
             return index / 8 == 7;
         }
-        else return index / 8 == 0;
+        else {
+            return index / 8 == 0;
+        }
     }
 
     /**

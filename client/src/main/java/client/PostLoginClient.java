@@ -52,15 +52,23 @@ public class PostLoginClient implements Client{
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch(cmd) {
                 case "list":
-                    if (tokens.length > 1 && tokens[1].equals("games")) yield listGames();
+                    if (tokens.length > 1 && tokens[1].equals("games")) {
+                        yield listGames();
+                    }
                 case "logout":
                     yield logout(params);
                 case "create":
-                    if (tokens.length > 1 && tokens[1].equals("game")) yield createGame(params);
+                    if (tokens.length > 1 && tokens[1].equals("game")) {
+                        yield createGame(params);
+                    }
                 case "join":
-                    if (tokens.length > 1 && tokens[1].equals("game")) yield joinGame(params);
+                    if (tokens.length > 1 && tokens[1].equals("game")) {
+                        yield joinGame(params);
+                    }
                 case "observe":
-                    if (tokens.length > 1 && tokens[1].equals("game")) yield observeGame(params);
+                    if (tokens.length > 1 && tokens[1].equals("game")) {
+                        yield observeGame(params);
+                    }
                 case "help":
                     yield help();
                 case "thatsaspicymeatball":
