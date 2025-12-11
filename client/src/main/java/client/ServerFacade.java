@@ -84,7 +84,7 @@ public class ServerFacade {
         var requestBody = Map.of("gameName", gameName);
         // Record for int response conversion
         record CreatedGame(int gameID) {}
-        return this.makeRequest("POST", path, requestBody, createdGame.class, authToken).gameID;
+        return this.makeRequest("POST", path, requestBody, CreatedGame.class, authToken).gameID;
     }
 
     /**
