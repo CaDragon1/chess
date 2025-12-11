@@ -115,7 +115,7 @@ public class ServerFacadeTests {
 
     @Test
     @Order(7)
-    public void listGameSuccess_Empty() throws ResponseException {
+    public void listGameSuccessEmpty() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
 
@@ -126,7 +126,7 @@ public class ServerFacadeTests {
 
     @Test
     @Order(7)
-    public void listGameSuccess_NotEmpty() throws ResponseException {
+    public void listGameSuccessNotEmpty() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
         int gameID = serverFacade.createGame(registerResult.authToken(), "testGame");
@@ -144,7 +144,7 @@ public class ServerFacadeTests {
 
     @Test
     @Order(8)
-    public void joinGameSuccess_White() throws ResponseException {
+    public void joinGameSuccessWhite() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
         int gameID = serverFacade.createGame(registerResult.authToken(), "testGame");
@@ -153,7 +153,7 @@ public class ServerFacadeTests {
     }
     @Test
     @Order(8)
-    public void joinGameSuccess_Black() throws ResponseException {
+    public void joinGameSuccessBlack() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
         int gameID = serverFacade.createGame(registerResult.authToken(), "testGame");
@@ -163,7 +163,7 @@ public class ServerFacadeTests {
 
     @Test
     @Order(8)
-    public void joinGameFailure_White() throws ResponseException {
+    public void joinGameFailureWhite() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
         int gameID = serverFacade.createGame(registerResult.authToken(), "testGame");
@@ -176,7 +176,7 @@ public class ServerFacadeTests {
 
     @Test
     @Order(8)
-    public void joinGameFailure_Black() throws ResponseException {
+    public void joinGameFailureBlack() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
         int gameID = serverFacade.createGame(registerResult.authToken(), "testGame");
@@ -189,7 +189,7 @@ public class ServerFacadeTests {
 
     @Test
     @Order(8)
-    public void joinGameFailure_NonexistentGame() throws ResponseException {
+    public void joinGameFailureNonexistentGame() throws ResponseException {
         UserData newTestUser = new UserData("testUser", "testPW", "test@game.chess");
         AuthData registerResult = serverFacade.registerUser(newTestUser);
 

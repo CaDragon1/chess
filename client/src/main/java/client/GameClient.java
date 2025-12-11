@@ -14,12 +14,12 @@ import java.util.Collection;
 import java.util.List;
 
 public class GameClient implements Client, GameMessageHandler {
-    final String ANSI_RESET = "\u001B[0m";
-    final String WHITE_BG_COLOR = "\u001B[47m";
-    final String BLACK_BG_COLOR = "\u001B[100m";
-    final String HIGHLIGHT_BG = "\u001B[42m"; // green
-    final String SELECT_BG = "\u001B[43m";    // yellow
-    final String BORDER_COLOR = "\u001B[47m";
+    static final String ANSI_RESET = "\u001B[0m";
+    static final String WHITE_BG_COLOR = "\u001B[47m";
+    static final String BLACK_BG_COLOR = "\u001B[100m";
+    static final String HIGHLIGHT_BG = "\u001B[42m"; // green
+    static final String SELECT_BG = "\u001B[43m";    // yellow
+    static final String BORDER_COLOR = "\u001B[47m";
 
     private final ServerFacade server;
     private final String authToken;
