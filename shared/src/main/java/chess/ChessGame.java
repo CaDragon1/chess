@@ -182,7 +182,8 @@ public class ChessGame {
         }
     }
 
-    private ChessBoard tryPromotionMove(ChessMove move, ChessBoard board, ChessPiece movePiece, int startIndex, int endIndex, ChessPiece targetPiece) {
+    private ChessBoard tryPromotionMove(ChessMove move, ChessBoard board, ChessPiece movePiece,
+                                        int startIndex, int endIndex, ChessPiece targetPiece) {
         int pieceBBIndex = getBitboardIndex(movePiece);
         board.getBitboards()[pieceBBIndex] &= ~(1L << startIndex);
 
@@ -196,7 +197,8 @@ public class ChessGame {
         return board;
     }
 
-    private ChessBoard tryNullPromoMove(ChessBoard board, ChessPiece movePiece, int startIndex, int endIndex, ChessPiece targetPiece) {
+    private ChessBoard tryNullPromoMove(ChessBoard board, ChessPiece movePiece, int startIndex,
+                                        int endIndex, ChessPiece targetPiece) {
         int pieceBBIndex = getBitboardIndex(movePiece);
 
         // Set the index on the piece's bitboard
@@ -234,7 +236,8 @@ public class ChessGame {
         long kingBitboard = checkBoard.getBitboards()[kingBBIndex];
         int kingIndex = Long.numberOfTrailingZeros(kingBitboard & -kingBitboard);
 
-        Collection<ChessMove> enemyMoves = allTeamMoves(teamColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE, checkBoard);
+        Collection<ChessMove> enemyMoves = allTeamMoves(teamColor == TeamColor.WHITE ?
+                TeamColor.BLACK : TeamColor.WHITE, checkBoard);
         for (ChessMove checkMove : enemyMoves) {
             if (checkMove.getEndPosition().getIndex() == kingIndex) {
                 return true;

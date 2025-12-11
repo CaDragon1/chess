@@ -8,7 +8,5 @@ public interface UserDataAccess {
 
     void addUser(UserData userData) throws DataAccessException;
 
-    void deleteUser(UserData userData) throws DataAccessException;
-
     void clear() throws DataAccessException;
 }

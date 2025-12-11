@@ -31,11 +31,6 @@ public class MemoryUserDataAccess implements UserDataAccess {
     }
 
     @Override
-    public void deleteUser(UserData userData) throws DataAccessException {
-        userDB.remove(userData);
-    }
-
-    @Override
     public void clear() throws DataAccessException {
         userDB.clear();
     }

@@ -87,11 +87,15 @@ public class PostLoginClient implements Client{
             } catch (Exception e) {
                 return gson.toJson(new MessageResponse("Error: Invalid game number"));
             }
-            if (cachedGames == null) { cachedGames = server.listGame(authToken); }
+            if (cachedGames == null) {
+                cachedGames = server.listGame(authToken);
+            }
             int gameID = findGameID(gameIndex);
 
             boolean contains = (findGame(gameID) != null);
-            if (!contains) { return gson.toJson(new MessageResponse("Error: Invalid game")); }
+            if (!contains) {
+                return gson.toJson(new MessageResponse("Error: Invalid game"));
+            }
 
             return gson.toJson(new ObserveResponse(
                     "success", "Observing game...", authToken, gameID
@@ -114,14 +118,16 @@ public class PostLoginClient implements Client{
     private GameData findGame(int gameID) throws ResponseException {
         List<GameData> gameList = server.listGame(authToken);
         for (GameData game : gameList) {
-            if (game.gameID() == gameID) { return game; }
+            if (game.gameID() == gameID) {
+                return game;
+            }
         }
         return null;
     }
 
     /**
      * Method to handle joining a game. This one's beefy; could use breaking apart.
-     * @param params
+     * @param params are the parameters used for joining a game.
      * @return a json formatted string with the success or failure message for the REPL
      * @throws ResponseException if there is an error in any of the subfunctions
      */
@@ -190,8 +196,10 @@ public class PostLoginClient implements Client{
             }
             GameData[] gameArray = cachedGames.toArray(new GameData[0]);
             gameID = gameArray[gameIndex - 1].gameID();
-            if (precached) { cachedGames = server.listGame(authToken); }
-            
+            if (precached) {
+                cachedGames = server.listGame(authToken);
+            }
+
         } catch (Exception e) {
             if (e.getMessage().contains("out of bounds")){
                 throw new ResponseException("No game of index " + gameIndex + " exists.", 400);
@@ -239,7 +247,9 @@ public class PostLoginClient implements Client{
      */
     private String listGames() throws ResponseException {
         List<GameData> games = server.listGame(authToken);
-        if (games.isEmpty()) { return "{\"message\":\"No games found\"}"; }
+        if (games.isEmpty()) {
+            return "{\"message\":\"No games found\"}";
+        }
 
         StringBuilder gameList = new StringBuilder("{\"message\":\"--- GAMES ---\\nIndex    Name    White Username    Black Username\\n");
         int index = 1;

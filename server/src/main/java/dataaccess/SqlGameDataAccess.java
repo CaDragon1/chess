@@ -174,20 +174,7 @@ public class SqlGameDataAccess extends SqlDataAccess implements GameDataAccess {
     };
 
     @Override
-    public void configureDatabase() throws DataAccessException {
-        try {
-            DatabaseManager.createDatabase();
-        } catch (DataAccessException e) {
-            throw new DataAccessException(e.getMessage());
-        }
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException | DataAccessException e) {
-            throw new DataAccessException(e.getMessage());
-        }
+    protected String[] getCreateStatements() {
+        return createStatements;  // Your existing private final String[] createStatements
     }
 }

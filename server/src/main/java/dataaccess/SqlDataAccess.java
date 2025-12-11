@@ -21,5 +21,22 @@ public abstract class SqlDataAccess implements SqlAccess {
     }
 
     @Override
-    public abstract void configureDatabase() throws DataAccessException;
+    public final void configureDatabase() throws DataAccessException {
+        try {
+            DatabaseManager.createDatabase();
+        } catch (DataAccessException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+        try (var conn = DatabaseManager.getConnection()) {
+            for (var statement : getCreateStatements()) {
+                try (var preparedStatement = conn.prepareStatement(statement)) {
+                    preparedStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException | DataAccessException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
+
+    protected abstract String[] getCreateStatements();
 }

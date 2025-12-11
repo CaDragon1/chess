@@ -68,20 +68,6 @@ public class SqlUserDataAccess extends SqlDataAccess implements UserDataAccess {
         }
     }
 
-    @Override
-    public void deleteUser(UserData userData) throws DataAccessException {
-        try (var connection = DatabaseManager.getConnection()) {
-            String delete = "DELETE FROM UserData WHERE username = ?";
-
-            try (var preparedStatement = connection.prepareStatement(delete)) {
-                preparedStatement.setString(1, userData.username());
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Delete user failure: " + e.getMessage());
-        }
-    }
-
     /**
      * Prepares sql statement to delete user data, then passes it
      * @throws DataAccessException if there is a failure
@@ -113,20 +99,7 @@ public class SqlUserDataAccess extends SqlDataAccess implements UserDataAccess {
     };
 
     @Override
-    public void configureDatabase() throws DataAccessException {
-        try {
-            DatabaseManager.createDatabase();
-        } catch (DataAccessException e) {
-            throw new DataAccessException(e.getMessage());
-        }
-        try (var conn = DatabaseManager.getConnection()) {
-            for (var statement : createStatements) {
-                try (var preparedStatement = conn.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException | DataAccessException e) {
-            throw new DataAccessException(e.getMessage());
-        }
+    protected String[] getCreateStatements() {
+        return createStatements;  // Your existing private final String[] createStatements
     }
 }
