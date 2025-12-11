@@ -53,6 +53,7 @@ public class GameService {
         } catch (DataAccessException e) {
             handleDataAccessException(e);
         }
+        return 0;
     }
 
     /**
@@ -152,6 +153,7 @@ public class GameService {
         } catch (DataAccessException e) {
             handleDataAccessException(e);
         }
+        return null;
     }
 
     /**
