@@ -19,15 +19,6 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
         authTokenDB.add(authData);
     }
 
-//    // New method for single session verification, not in the .md but needed
-//    public AuthData getCurrentUserAuthToken(String username) {
-//        for (AuthData token : authTokenDB) {
-//            if (token.username().equals(username)) {
-//                return token;
-//            }
-//        }
-//        return null;
-//    }
 
     @Override
     public void deleteAuthData(String authData) throws DataAccessException {

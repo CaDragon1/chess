@@ -2,9 +2,6 @@ package client;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-//import com.sun.nio.sctp.HandlerResult;
-//import com.sun.nio.sctp.Notification;
-//import com.sun.nio.sctp.NotificationHandler;
 import exception.ResponseException;
 
 import java.util.Scanner;

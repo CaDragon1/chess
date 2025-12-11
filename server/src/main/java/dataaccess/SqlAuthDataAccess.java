@@ -5,7 +5,7 @@ import models.AuthData;
 
 import java.sql.SQLException;
 
-public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
+public class SqlAuthDataAccess extends SqlDataAccess implements AuthDataAccess {
 
     public SqlAuthDataAccess () {
         try {
@@ -81,20 +81,6 @@ public class SqlAuthDataAccess implements AuthDataAccess, SqlAccess {
             }
         } catch (SQLException e) {
             throw new DataAccessException("Authdata clear failure: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (var connection = DatabaseManager.getConnection()) {
-            try (var preparedStatement = connection.prepareStatement(statement)) {
-                for (int i = 0; i < params.length; i++) {
-                    preparedStatement.setObject(i + 1, params[i]);
-                }
-                return preparedStatement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Auth DAO update failure: " + e.getMessage());
         }
     }
 

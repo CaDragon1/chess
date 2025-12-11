@@ -58,19 +58,6 @@ public class WebSocketHandler {
         });
     }
 
-    // Handler functions for my json parsing from websocket's message field
-
-    /**
-     * handleMakeMove json structure:
-     * {
-     *   "commandType": "MAKE_MOVE",
-     *   "authToken": "token",
-     *   "gameID": int,
-     *   "move": { "start": { "row": 3, "col": 3 }, "end": { "row": 5, "col": 5 } }
-     * }
-     * @param ctx contains the sender's websocket info
-     * @param command contains the authtoken and gameid we need
-     */
     // Update database with new move, broadcast the board, notify others
     private void handleMakeMove(WsMessageContext ctx, UserGameCommand command) {
         try {

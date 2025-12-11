@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 // "Would you rather have unlimited bacon, but no games... Or games, UNLIMITED games, and no games?" -Jschlatt
-public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
+public class SqlGameDataAccess extends SqlDataAccess implements GameDataAccess {
 
     public SqlGameDataAccess () {
         try {
@@ -71,25 +71,6 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
         } catch (Exception e) {
             throw new DataAccessException("Json is invalid: " + e.getMessage());
         }
-    }
-
-    private static GameData.GameStatus getGameStatus(ChessGame game, GameData currentData) {
-        if (currentData.status() == GameData.GameStatus.RESIGNED) {
-            return GameData.GameStatus.RESIGNED;
-        }
-        if (game.isInStalemate(ChessGame.TeamColor.WHITE) || game.isInStalemate(ChessGame.TeamColor.BLACK)) {
-            return GameData.GameStatus.STALEMATE;
-        }
-        ChessGame.TeamColor currentTurn = game.getTeamTurn();
-        if (game.isInCheckmate(currentTurn)) {
-            return currentTurn == ChessGame.TeamColor.WHITE ?
-                    GameData.GameStatus.BLACK_WIN : GameData.GameStatus.WHITE_WIN;
-        }
-        if (currentData.blackUsername() == null || currentData.whiteUsername() == null) {
-            return GameData.GameStatus.PREGAME;
-        }
-
-        return GameData.GameStatus.LIVE;
     }
 
     @Override
@@ -191,20 +172,6 @@ public class SqlGameDataAccess implements GameDataAccess, SqlAccess {
                 FOREIGN KEY (blackUsername) REFERENCES UserData(username) ON DELETE SET NULL
                 );"""
     };
-
-    @Override
-    public int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (var connection = DatabaseManager.getConnection()) {
-            try (var preparedStatement = connection.prepareStatement(statement)) {
-                for (int i = 0; i < params.length; i++) {
-                    preparedStatement.setObject(i + 1, params[i]);
-                }
-                return preparedStatement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Game DAO update failure: " + e.getMessage());
-        }
-    }
 
     @Override
     public void configureDatabase() throws DataAccessException {

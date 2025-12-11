@@ -5,7 +5,7 @@ import models.UserData;
 
 import java.sql.SQLException;
 
-public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
+public class SqlUserDataAccess extends SqlDataAccess implements UserDataAccess {
 
     public SqlUserDataAccess () {
         try {
@@ -111,20 +111,6 @@ public class SqlUserDataAccess implements UserDataAccess, SqlAccess {
                 )
             """
     };
-
-    @Override
-    public int executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (var connection = DatabaseManager.getConnection()) {
-            try (var preparedStatement = connection.prepareStatement(statement)) {
-                for (int i = 0; i < params.length; i++) {
-                    preparedStatement.setObject(i + 1, params[i]);
-                }
-                return preparedStatement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("User DAO update failure: " + e.getMessage());
-        }
-    }
 
     @Override
     public void configureDatabase() throws DataAccessException {
