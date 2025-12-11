@@ -51,10 +51,7 @@ public class GameService {
             }
             throw new ServerException("unauthorized", 401);
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
-                throw new ServerException("unauthorized", 401);
-            }
-            throw new ServerException(e.getMessage(), 500);
+            handleDataAccessException(e);
         }
     }
 
@@ -100,10 +97,7 @@ public class GameService {
             ));
 
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
-                throw new ServerException("unauthorized", 401);
-            }
-            throw new ServerException(e.getMessage(), 500);
+            handleDataAccessException(e);
         }
     }
 
@@ -156,10 +150,7 @@ public class GameService {
             }
             throw new ServerException("unauthorized", 401);
         } catch (DataAccessException e) {
-            if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
-                throw new ServerException("unauthorized", 401);
-            }
-            throw new ServerException(e.getMessage(), 500);
+            handleDataAccessException(e);
         }
     }
 
@@ -290,6 +281,14 @@ public class GameService {
             throw new ServerException("bad request", 400);
         }
     }
+
+    private void handleDataAccessException(DataAccessException e) throws ServerException {
+        if (e.getMessage().contains("unauthorized") || e.getMessage().contains("AuthToken not found")) {
+            throw new ServerException("unauthorized", 401);
+        }
+        throw new ServerException(e.getMessage(), 500);
+    }
+
 
     /**
      * Generates a random game ID
